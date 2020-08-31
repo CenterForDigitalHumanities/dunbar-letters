@@ -25,7 +25,7 @@ async function renderChange(mutationsList) {
         switch (mutation.attributeName) {
             case DEER.ID:
                 let id = mutation.target.getAttribute(DEER.ID)
-                if (id === "null") return
+                if (id === null) return
                 let obj = {}
                 try {
                     obj = JSON.parse(localStorage.getItem(id))

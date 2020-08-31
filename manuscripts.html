@@ -8,7 +8,7 @@
         <gm-header>
             <img src="media/gm-logo.png" alt="logo">
         </gm-header>
-        <form deer-type="manuscript" deer-context="http://www.loc.gov/mods" class="row">
+        <form id="msForm" deer-type="manuscript" deer-context="http://www.loc.gov/mods" class="row">
             <input type="text" deer-key="displayLabel" placeholder="Display Label" class="col">
             <input type="hidden" deer-key="targetCollection" value="Glossing-Matthew-dev">
             <input type="submit" value="Add MS to Collection" class="col">
@@ -25,8 +25,9 @@
         <script src="js/app.js" type="module"></script>
         <script>
             document.addEventListener('deer-created', event => {
-                let e = new CustomEvent("deer-view", { detail: { target: event.target, set:[collectionList] }, bubbles: true })
+                let e = new CustomEvent("deer-view", { detail: { set:[collectionList] }, bubbles: true })
                 document.dispatchEvent(e)
+                setTimeout(()=>location.href="",3000)
             })
         </script>
     </body>

@@ -29,6 +29,7 @@
             <input type="text" deer-key="region" placeholder="Region of Origin" class="col-9 col-4-md">
         </div>
         <input type="submit" value="update" class="col">
+        <a href="./manuscripts.html" onclick="deleteThis()" class="text-error">Drop from collection</a> 
     </form>
     <gm-footer>
         <a href="./index.html">🏠</a>
@@ -39,6 +40,15 @@
     <script src="js/app.js" type="module"></script>
     <script>
         window.onhashchange = onload = () => manuscript.setAttribute("deer-id", window.location.hash.substr(1))
+        function deleteThis() {
+            let collectorId = document.querySelector('[deer-key="targetCollection"]').getAttribute("deer-source")
+            fetch("http://tinydev.rerum.io/app/delete", {
+            method: "DELETE",
+            body: collectorId
+        }).then(obj=>{
+            location.href = "./manuscripts.html"
+        })
+        }
     </script>
 </body>
 
