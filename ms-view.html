@@ -37,15 +37,15 @@
             <input type="text" deer-key="url" placeholder="URL" class="col-9 col-4-md">
             <label class="col-3 col-2-md text-right">notes:</label>
             <input type="text" deer-key="notes" placeholder="notes" class="col-9 col-4-md">
-            <input type="button" disabled value="Add Folio Range">
+            <div class="col-3 col-2-md text-right"></div><input type="button" disabled value="Add Folio Range">
         </div>
         <input type="submit" value="update" class="col">
         <a href="./manuscripts.html" onclick="deleteThis(event)" class="text-error">Drop from collection</a> 
     </form>
-    <deer-view deer-template="entity" deer-listening="manuscript">current state</deer-view>
     <gm-footer>
         <a href="./index.html">🏠</a>
         <a href="./manuscripts.html">📚</a>
+        <deer-view deer-template="entity" deer-listening="manuscript">current state</deer-view>
     </gm-footer>
     <div id="globalFeedback" class="card is-center"></div>
     <script src="js/deer.js" type="module"></script>
