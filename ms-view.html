@@ -27,6 +27,16 @@
             <input type="text" deer-key="origin" placeholder="Place of Origin" class="col-9 col-4-md">
             <label class="col-3 col-2-md text-right">Region of Origin:</label>
             <input type="text" deer-key="region" placeholder="Region of Origin" class="col-9 col-4-md">
+
+            <label class="col-3 col-2-md text-right">Date:</label>
+            <input type="number" deer-key="date" placeholder="Enter decade" min="950" max="2020" step="10" class="col-9 col-4-md">
+            <label class="col-3 col-2-md text-right">Associated Institution:</label>
+            <input type="text" deer-key="institution" placeholder="Institution" class="col-9 col-4-md">
+
+            <label class="col-3 col-2-md text-right">Provenance:</label>
+            <input type="text" deer-key="provenance" placeholder="Provenance" class="col-9 col-4-md">
+            <div class="col-12 col-6-md text-right"></div>
+
             <label class="col-3 col-2-md text-right">Base Project:</label>
             <input type="text" deer-key="tpen://base-project" placeholder="Base Project URL" class="col-8 col-3-md">
             <deer-view class="col-1" deer-template="linky" deer-key="tpen://base-project" deer-listening="manuscript"></deer-view>
@@ -42,6 +52,7 @@
         <input type="submit" value="update" class="col">
         <a href="./manuscripts.html" onclick="deleteThis(event)" class="text-error">Drop from collection</a> 
     </form>
+    <deer-view deer-template="pageRange" deer-listening="manuscript"></deer-view>
     <gm-footer>
         <a href="./index.html">🏠</a>
         <a href="./manuscripts.html">📚</a>
