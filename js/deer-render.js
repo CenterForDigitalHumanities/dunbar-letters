@@ -150,6 +150,20 @@ DEER.TEMPLATES.label = function (obj, options = {}) {
 }
 
 /**
+ * Retreive the best label for object and return it formatted as HTML to be drawn.  
+ * @param {Object} obj some obj to be labeled
+ * @param {Object} options for lookup
+ */
+DEER.TEMPLATES.linky = function (obj, options = {}) {
+    try {
+        let link = obj[options.key]
+        return link ? `<a href="${UTILS.getValue(link)}" title="Open in a new window" target="_blank"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAQElEQVR42qXKwQkAIAxDUUdxtO6/RBQkQZvSi8I/pL4BoGw/XPkh4XigPmsUgh0626AjRsgxHTkUThsG2T/sIlzdTsp52kSS1wAAAABJRU5ErkJggg=="></a>` : ``
+    } catch (err) {
+        return null
+    }
+}
+
+/**
  * The TEMPLATED renderer to draw an JSON to the screen as some HTML template
  * @param {Object} obj some json of type Entity to be drawn
  * @param {Object} options additional properties to draw with the Entity

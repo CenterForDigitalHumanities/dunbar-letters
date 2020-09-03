@@ -28,11 +28,13 @@
             <label class="col-3 col-2-md text-right">Region of Origin:</label>
             <input type="text" deer-key="region" placeholder="Region of Origin" class="col-9 col-4-md">
             <label class="col-3 col-2-md text-right">Base Project:</label>
-            <input type="text" deer-key="tpen://base-project" placeholder="Base Project URL" class="col-9 col-4-md">
+            <input type="text" deer-key="tpen://base-project" placeholder="Base Project URL" class="col-8 col-3-md">
+            <deer-view class="col-1" deer-template="linky" deer-key="tpen://base-project" deer-listening="manuscript"></deer-view>
             <label class="col-3 col-2-md text-right">Gloss Project:</label>
+            <input type="text" id="gloss" deer-key="tpen://gloss-project" placeholder="Gloss Project" class="col-8 col-3-md">
+            <deer-view class="col-1" deer-template="linky" deer-key="tpen://gloss-project" deer-listening="manuscript"></deer-view>
             <label class="col-3 col-2-md text-right">IIIF Manifest:</label>
             <input type="text" deer-key="url" placeholder="URL" class="col-9 col-4-md">
-            <input type="text" deer-key="tpen://gloss-project" placeholder="Gloss Project" class="col-9 col-4-md">
             <label class="col-3 col-2-md text-right">notes:</label>
             <input type="text" deer-key="notes" placeholder="notes" class="col-9 col-4-md">
             <input type="button" disabled value="Add Folio Range">
