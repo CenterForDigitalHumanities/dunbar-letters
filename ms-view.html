@@ -10,27 +10,37 @@
     <gm-header>
         <img src="media/gm-logo.png" alt="logo">
     </gm-header>
-    <form id="manuscript" deer-type="manuscript" deer-context="http://www.loc.gov/mods">
+    <form id="manuscript" deer-type="manuscript" deer-context="http://purl.org/dc/terms">
         <input type="hidden" deer-key="targetCollection" value="Glossing-Matthew-dev">
         <div class="row">
-            <label class="col-3 col-2-md text-right">Display Label:</label>
-            <input type="text" deer-key="displayLabel" placeholder="Display Label" class="col-9 col-10-md">
+            <label class="col-3 col-2-md text-right">Label:</label>
+            <input type="text" deer-key="title" placeholder="Label" class="col-9 col-10-md">
             <label class="col-3 col-2-md text-right">Shelfmark:</label>
-            <input type="text" deer-key="shelfLocator" placeholder="Shelfmark" class="col-9 col-4-md">
+            <input type="text" deer-key="identifier" placeholder="Shelfmark" class="col-9 col-4-md">
             <label class="col-3 col-2-md text-right">Siglum:</label>
-            <input type="text" deer-key="siglum" placeholder="Siglum" class="col-9 col-4-md">
+            <input type="text" deer-key="alternative" placeholder="Siglum" class="col-9 col-4-md">
             <label class="col-3 col-2-md text-right">City:</label>
             <input type="text" deer-key="city" placeholder="City" class="col-9 col-4-md">
-            <label class="col-3 col-2-md text-right">Library:</label>
-            <input type="text" deer-key="Library" placeholder="Library" class="col-9 col-4-md">
+            <label class="col-3 col-2-md text-right">Repository:</label>
+            <input type="text" deer-key="Repository" placeholder="Repository" class="col-9 col-4-md">
             <label class="col-3 col-2-md text-right">Place of Origin:</label>
             <input type="text" deer-key="origin" placeholder="Place of Origin" class="col-9 col-4-md">
             <label class="col-3 col-2-md text-right">Region of Origin:</label>
             <input type="text" deer-key="region" placeholder="Region of Origin" class="col-9 col-4-md">
+            <label class="col-3 col-2-md text-right">Base Project:</label>
+            <input type="text" deer-key="tpen://base-project" placeholder="Base Project URL" class="col-9 col-4-md">
+            <label class="col-3 col-2-md text-right">Gloss Project:</label>
+            <label class="col-3 col-2-md text-right">IIIF Manifest:</label>
+            <input type="text" deer-key="url" placeholder="URL" class="col-9 col-4-md">
+            <input type="text" deer-key="tpen://gloss-project" placeholder="Gloss Project" class="col-9 col-4-md">
+            <label class="col-3 col-2-md text-right">notes:</label>
+            <input type="text" deer-key="notes" placeholder="notes" class="col-9 col-4-md">
+            <input type="button" disabled value="Add Folio Range">
         </div>
         <input type="submit" value="update" class="col">
         <a href="./manuscripts.html" onclick="deleteThis(event)" class="text-error">Drop from collection</a> 
     </form>
+    <deer-view deer-template="entity" deer-listening="manuscript">current state</deer-view>
     <gm-footer>
         <a href="./index.html">🏠</a>
         <a href="./manuscripts.html">📚</a>
