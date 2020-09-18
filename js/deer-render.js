@@ -254,31 +254,27 @@ DEER.TEMPLATES.person = function (obj, options = {}) {
  * @param {Object} obj some json of type Person to be drawn
  * @param {Object} options additional properties to draw with the Person
  */
-DEER.TEMPLATES.pageRange = function (obj, options = {}) {
-    return null
-    try {
-        let tmpl = `<form deer-type="Range" deer-context="http://iiif.io/api/image/3/context.json">
-        <input type="hidden" deer-key="isPartOf" value="${obj['@id']}">
-        <input type="hidden" deer-key="motivation" value="supplementing">
-
-startFolio
-endFolio
-Disposition
-Illuminated Initials
-Gloss ID
-General Target
-Specific Target
-Gloss Type
-Gloss Location
-
-        <input type="submit">
-        </form>`
-
-        return tmpl
-    } catch (err) {
-        return null
+DEER.TEMPLATES.pageRanges = function (obj, options = {}) {
+    return {
+        then: (elem)=>{
+            let queryObj = { "body.isPartOf.value" : obj['@id'] }
+            fetch(DEER.URLS.QUERY, {
+                method: "POST",
+                mode: "cors",
+                body: JSON.stringify(queryObj)
+            })
+            .then(response => response.json())
+            .then(pointers => {
+                let list = []
+                pointers.map(tc => list.push(fetch(tc.target || tc["@id"] || tc.id).then(response => response.json().catch(err => { __deleted: console.log(err) }))))
+                return Promise.all(list).then(l => l.filter(i => !i.hasOwnProperty("__deleted")))
+            })
+            .then(pages => pages.reduce((a,b)=> b+=`<deer-view deer-id="${a['@id']||a.id}" deer-template="gloss">range</deer-view>`,``))
+            .then(html=> elem.innerHTML = html)
+            .then(() => setTimeout(UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, elem, {set: elem.querySelectorAll("[deer-template]")}), 0))
+        },
+        html: `ranges incoming`
     }
-    return null
 }
 
 /**

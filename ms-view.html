@@ -52,9 +52,9 @@
         <input type="submit" value="update" class="col">
         <a href="./manuscripts.html" onclick="deleteThis(event)" class="text-error">Drop from collection</a>
     </form>
-    <deer-view deer-template="pageRange" deer-listening="manuscript"></deer-view>
+    <deer-view deer-template="pageRanges" deer-listening="manuscript"></deer-view>
 
-    <form id="folioRange" deer-type="Range" deer-context="https://iiif.io/api/presentation/3/context.json">
+    <form id="folioRange" deer-type="Range" deer-motivation="bookmarking" deer-context="https://iiif.io/api/presentation/3/context.json">
         <input type="hidden" deer-key="partOf">
         <input type="hidden" deer-key="additionalType" value="Gloss">
         <div class="row">
@@ -69,7 +69,7 @@
 
             <label class="col-3 col-2-md text-right">Disposition:</label>
             <select type="text" deer-key="disposition" class="col-9 col-4-md">
-                <option selected>Select One</option>
+                <option selected>&lt;Select One&gt;</option>
                 <option value="1 Column">1 Column</option>
                 <option value="2 Column">2 Column</option>
             </select>
@@ -92,12 +92,12 @@
 
             <label class="col-3 col-2-md text-right">Gloss Type:</label>
             <select type="text" deer-key="glossType" class="col-9 col-4-md">
-                <option selected>Select One</option>
+                <option selected> &lt;Select One&gt; </option>
                 <option value="Marginal">Marginal</option>
                 <option value="Interlinear-Marginal">Interlinear-Marginal</option>
                 <option value="Interlinear">Interlinear</option>
             </select>
-            <label class="col-3 col-2-md text-right">Folio:</label>
+            <label class="col-3 col-2-md text-right">Spread (folia):</label>
             <select deer-key="items" class="col-9 col-4-md">
                 <option selected>Select One</option>
             </select>
@@ -150,8 +150,8 @@
                         }
                     })
                 }).then(list => {
-                    let selectone = `<option selected>Select One</option>`
-                    let options = list.map(item => `<option value="${item.id}">${item.label}</option>`)
+                    let selectone = `<option selected> &lt;Select One&gt; </option>`
+                    let options = list.map(item => `<option title="${item.label}" value="${item.id}">${item.label}</option>`)
                     elem.innerHTML = selectone+options
                 })
             }))
