@@ -281,6 +281,38 @@ Gloss Location
     return null
 }
 
+/**
+ * The TEMPLATED renderer to draw Manuscript PageRanges to the screen
+ * @param {Object} obj some json of type Person to be drawn
+ * @param {Object} options additional properties to draw with the Person
+ */
+DEER.TEMPLATES.canvasDropdown = function (obj, options = {}) {
+    return null
+    try {
+        let tmpl = `<form deer-type="Range" deer-context="http://iiif.io/api/image/3/context.json">
+        <input type="hidden" deer-key="isPartOf" value="${obj['@id']}">
+        <input type="hidden" deer-key="motivation" value="supplementing">
+
+startFolio
+endFolio
+Disposition
+Illuminated Initials
+Gloss ID
+General Target
+Specific Target
+Gloss Type
+Gloss Location
+
+        <input type="submit">
+        </form>`
+
+        return tmpl
+    } catch (err) {
+        return null
+    }
+    return null
+}
+
 
 /**
  * The TEMPLATED renderer to draw JSON to the screen

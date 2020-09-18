@@ -30,15 +30,18 @@
             <input type="text" deer-key="region" placeholder="Region of Origin" class="col-9 col-4-md">
 
             <label class="col-3 col-2-md text-right">Date:</label>
-            <input type="number" deer-key="date" placeholder="Enter decade" min="950" max="2020" step="10" class="col-9 col-4-md">
+            <input type="number" deer-key="date" placeholder="Enter decade" min="950" max="2020" step="10"
+                class="col-9 col-4-md">
             <label class="col-3 col-2-md text-right">Associated Institution:</label>
             <input type="text" deer-key="institution" placeholder="Institution" class="col-9 col-4-md">
 
             <label class="col-3 col-2-md text-right">Provenance:</label>
             <input type="text" deer-key="provenance" placeholder="Provenance" class="col-9 col-4-md">
             <label class="col-3 col-2-md text-right">Base Project:</label>
-            <input id="baseProject" type="text" deer-key="tpen://base-project" placeholder="Base Project URL" class="col-8 col-3-md">
-            <deer-view class="col-1" deer-template="linky" deer-key="tpen://base-project" deer-listening="manuscript"></deer-view>
+            <input id="baseProject" type="text" deer-key="tpen://base-project" placeholder="Base Project URL"
+                class="col-8 col-3-md">
+            <deer-view class="col-1" deer-template="linky" deer-key="tpen://base-project" deer-listening="manuscript">
+            </deer-view>
 
             <label class="col-3 col-2-md text-right">IIIF Manifest:</label>
             <input type="text" deer-key="url" placeholder="URL" class="col-9 col-4-md">
@@ -47,7 +50,7 @@
             <div class="col-3 col-2-md text-right"></div><input type="button" disabled value="Add Folio Range">
         </div>
         <input type="submit" value="update" class="col">
-        <a href="./manuscripts.html" onclick="deleteThis(event)" class="text-error">Drop from collection</a> 
+        <a href="./manuscripts.html" onclick="deleteThis(event)" class="text-error">Drop from collection</a>
     </form>
     <deer-view deer-template="pageRange" deer-listening="manuscript"></deer-view>
 
@@ -57,10 +60,12 @@
         <div class="row">
             <label class="col-3 col-2-md text-right">Base Project:</label>
             <input type="text" deer-key="tpen://base-project" placeholder="Base Project URL" class="col-8 col-3-md">
-            <deer-view class="col-1" deer-template="linky" deer-key="tpen://base-project" deer-listening="folioRange"></deer-view>
+            <deer-view class="col-1" deer-template="linky" deer-key="tpen://base-project" deer-listening="folioRange">
+            </deer-view>
             <label class="col-3 col-2-md text-right">Gloss Project:</label>
             <input type="text" deer-key="tpen://gloss-project" placeholder="Gloss Project URL" class="col-8 col-3-md">
-            <deer-view class="col-1" deer-template="linky" deer-key="tpen://gloss-project" deer-listening="folioRange"></deer-view>
+            <deer-view class="col-1" deer-template="linky" deer-key="tpen://gloss-project" deer-listening="folioRange">
+            </deer-view>
 
             <label class="col-3 col-2-md text-right">Disposition:</label>
             <select type="text" deer-key="disposition" class="col-9 col-4-md">
@@ -84,7 +89,7 @@
             <textarea deer-key="targetedText" rows="2" class="col-9 col-10-md"></textarea>
             <label class="col-3 col-2-md text-right">Gloss Text:</label>
             <textarea deer-key="transcribedGloss" rows="2" class="col-9 col-10-md"></textarea>
-            
+
             <label class="col-3 col-2-md text-right">Gloss Type:</label>
             <select type="text" deer-key="glossType" class="col-9 col-4-md">
                 <option selected>Select One</option>
@@ -105,8 +110,14 @@
     <gm-footer>
         <a href="./index.html">🏠</a>
         <a href="./manuscripts.html">📚</a>
-        <a rel="noopener noreferrer" title="View on GitHub" href="https://github.com/CenterForDigitalHumanities/Glossing-Matthew" target="_blank">
-            <svg height="16" class="octicon octicon-mark-github" viewBox="0 0 16 16" version="1.1" width="16" aria-hidden="true"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+        <a rel="noopener noreferrer" title="View on GitHub"
+            href="https://github.com/CenterForDigitalHumanities/Glossing-Matthew" target="_blank">
+            <svg height="16" class="octicon octicon-mark-github" viewBox="0 0 16 16" version="1.1" width="16"
+                aria-hidden="true">
+                <path fill-rule="evenodd"
+                    d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z">
+                </path>
+            </svg>
         </a>
         <deer-view deer-template="entity" deer-listening="manuscript">current state</deer-view>
     </gm-footer>
@@ -117,12 +128,31 @@
         window.onhashchange = onload = () => {
             let msid = window.location.hash.substr(1)
             manuscript.setAttribute("deer-id", msid)
-            document.querySelectorAll("[deer-key='partOf']").forEach(el=>el.setAttribute("value",msid))
-            document.querySelectorAll("[deer-key='items']").forEach(el=>document.addEventListener("deer-form-rendered",event=>{
+            document.querySelectorAll("[deer-key='partOf']").forEach(el => el.setAttribute("value", msid))
+            document.querySelectorAll("[deer-key='items']").forEach(el => document.addEventListener("deer-form-rendered", event => {
+                const elem = el
                 let manifest = event.detail.url ? event.detail.url.value : event.detail["tpen://base-project"].value
-                manifest = manifest.replace(".jsp?projectID=","/")
-                fetch(manifest).then(response=>response.json()).then(m=>{
-                    let listOfNames = []
+                manifest = manifest.replace(".jsp?projectID=", "/")
+                fetch(manifest).then(response => response.json()).then(m => {
+                    let canvases = []
+                    if (m.sequences) {
+                        canvases = m.sequences[0].canvases
+                    } else if (m.items) {
+                        canvases = m.items.filter(item => (item.type === "Canvas" || item["@type"] === "Canvas"))
+                        // a little dumb right now, since the pages might be in the wrong order
+                    }
+                    return canvases.map(c => {
+                        let id = c['@id'] || c.id
+                        let label = (c.label['@none'] && c.label['@none'][0]) || (c.label.en && c.label.en[0]) || c.label.value || c.label['@value'] || c.label
+                        return {
+                            id: id,
+                            label: label
+                        }
+                    })
+                }).then(list => {
+                    let selectone = `<option selected>Select One</option>`
+                    let options = list.map(item => `<option value="${item.id}">${item.label}</option>`)
+                    elem.innerHTML = selectone+options
                 })
             }))
         }
@@ -130,11 +160,11 @@
             event.preventDefault()
             let collectorId = document.querySelector('[deer-key="targetCollection"]').getAttribute("deer-source")
             fetch("http://tinydev.rerum.io/app/delete", {
-            method: "DELETE",
-            body: collectorId
-        }).then(obj=>{
-            location.href = "./manuscripts.html"
-        })
+                method: "DELETE",
+                body: collectorId
+            }).then(obj => {
+                location.href = "./manuscripts.html"
+            })
         }
     </script>
 </body>
