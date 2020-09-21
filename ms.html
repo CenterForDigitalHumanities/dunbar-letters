@@ -52,60 +52,7 @@
         <input type="submit" value="update" class="col">
         <a href="./manuscripts.html" onclick="deleteThis(event)" class="text-error">Drop from collection</a>
     </form>
-    <deer-view deer-template="pageRanges" deer-listening="manuscript"></deer-view>
-
-    <form id="folioRange" deer-type="Range" deer-motivation="bookmarking" deer-context="https://iiif.io/api/presentation/3/context.json">
-        <input type="hidden" deer-key="partOf">
-        <input type="hidden" deer-key="additionalType" value="Gloss">
-        <div class="row">
-            <label class="col-3 col-2-md text-right">Base Project:</label>
-            <input type="text" deer-key="tpen://base-project" placeholder="Base Project URL" class="col-8 col-3-md">
-            <deer-view class="col-1" deer-template="linky" deer-key="tpen://base-project" deer-listening="folioRange">
-            </deer-view>
-            <label class="col-3 col-2-md text-right">Gloss Project:</label>
-            <input type="text" deer-key="tpen://gloss-project" placeholder="Gloss Project URL" class="col-8 col-3-md">
-            <deer-view class="col-1" deer-template="linky" deer-key="tpen://gloss-project" deer-listening="folioRange">
-            </deer-view>
-
-            <label class="col-3 col-2-md text-right">Disposition:</label>
-            <select type="text" deer-key="disposition" class="col-9 col-4-md">
-                <option selected>&lt;Select One&gt;</option>
-                <option value="1 Column">1 Column</option>
-                <option value="2 Column">2 Column</option>
-            </select>
-            <label class="col-3 col-2-md text-right">Illuminated Initials:</label>
-            <input type="number" deer-key="initialsCount" value="0" class="col-9 col-4-md" min="0" max="12" step="1">
-
-            <label class="col-3 col-2-md text-right">Access Date:</label>
-            <input type="date" deer-key="accessDate" class="col-9 col-4-md">
-            <div class="hide-sm hide-xs col-6-md"></div>
-
-            <label class="col-3 col-2-md text-right">General Target Section:</label>
-            <input type="date" deer-key="targetChapter" class="col-9 col-4-md">
-            <label class="col-3 col-2-md text-right">Specific Target Verse(s):</label>
-            <input type="date" deer-key="targetVerse" class="col-9 col-4-md">
-
-            <label class="col-3 col-2-md text-right">Target Text:</label>
-            <textarea deer-key="targetedText" rows="2" class="col-9 col-10-md"></textarea>
-            <label class="col-3 col-2-md text-right">Gloss Text:</label>
-            <textarea deer-key="transcribedGloss" rows="2" class="col-9 col-10-md"></textarea>
-
-            <label class="col-3 col-2-md text-right">Gloss Type:</label>
-            <select type="text" deer-key="glossType" class="col-9 col-4-md">
-                <option selected> &lt;Select One&gt; </option>
-                <option value="Marginal">Marginal</option>
-                <option value="Interlinear-Marginal">Interlinear-Marginal</option>
-                <option value="Interlinear">Interlinear</option>
-            </select>
-            <label class="col-3 col-2-md text-right">Spread (folia):</label>
-            <select deer-key="items" class="col-9 col-4-md">
-                <option selected>Select One</option>
-            </select>
-
-        </div>
-
-        <input type="submit" value="Add Folio Range" class="col">
-    </form>
+    <deer-view id="pageRanges"></deer-view>
 
     <gm-footer>
         <a href="./index.html">🏠</a>
@@ -128,33 +75,13 @@
         window.onhashchange = onload = () => {
             let msid = window.location.hash.substr(1)
             manuscript.setAttribute("deer-id", msid)
-            document.querySelectorAll("[deer-key='partOf']").forEach(el => el.setAttribute("value", msid))
-            document.querySelectorAll("[deer-key='items']").forEach(el => document.addEventListener("deer-form-rendered", event => {
-                const elem = el
-                let manifest = event.detail.url ? event.detail.url.value : event.detail["tpen://base-project"].value
-                manifest = manifest.replace(".jsp?projectID=", "/")
-                fetch(manifest).then(response => response.json()).then(m => {
-                    let canvases = []
-                    if (m.sequences) {
-                        canvases = m.sequences[0].canvases
-                    } else if (m.items) {
-                        canvases = m.items.filter(item => (item.type === "Canvas" || item["@type"] === "Canvas"))
-                        // a little dumb right now, since the pages might be in the wrong order
-                    }
-                    return canvases.map(c => {
-                        let id = c['@id'] || c.id
-                        let label = (c.label['@none'] && c.label['@none'][0]) || (c.label.en && c.label.en[0]) || c.label.value || c.label['@value'] || c.label
-                        return {
-                            id: id,
-                            label: label
-                        }
-                    })
-                }).then(list => {
-                    let selectone = `<option selected> &lt;Select One&gt; </option>`
-                    let options = list.map(item => `<option title="${item.label}" value="${item.id}">${item.label}</option>`)
-                    elem.innerHTML = selectone+options
-                })
-            }))
+            pageRanges.setAttribute("deer-collection", msid)
+            pageRanges.setAttribute("deer-link", "?partOf="+msid)
+            const broadcast = function (event = {}, type, element, obj = {}) {
+                let e = new CustomEvent(type, { detail: Object.assign(obj, { target: event.target }), bubbles: true })
+                element.dispatchEvent(e)
+            }
+            broadcast(undefined, "deer-view", document, { set: [pageRanges] })
         }
         function deleteThis(event) {
             event.preventDefault()
