@@ -10,6 +10,10 @@
 <body class="container">
     <gm-header>
         <img src="media/gm-logo.png" alt="logo">
+        <div class="tabs">
+            <a href="./index.html">🏠</a>
+            <a href="./manuscripts.html">📚 View Manuscripts</a>
+        </div>
     </gm-header>
     <form id="manuscript" deer-type="manuscript" deer-context="http://purl.org/dc/terms">
         <input type="hidden" deer-key="targetCollection" value="Glossing-Matthew-dev">
@@ -38,23 +42,23 @@
             <label class="col-3 col-2-md text-right">Provenance:</label>
             <input type="text" deer-key="provenance" placeholder="Provenance" class="col-9 col-4-md">
             <label class="col-3 col-2-md text-right">Base Project:</label>
-            <input id="baseProject" type="text" deer-key="tpen://base-project" placeholder="Base Project URL"
-                class="col-8 col-3-md">
-            <deer-view class="col-1" deer-template="linky" deer-key="tpen://base-project" deer-listening="manuscript">
-            </deer-view>
+            <input id="baseProject" type="text" deer-key="tpen://base-project" placeholder="Base Project ID"
+                class="col-9 col-4-md">
 
             <label class="col-3 col-2-md text-right">IIIF Manifest:</label>
             <input type="text" deer-key="url" placeholder="URL" class="col-9 col-4-md">
             <label class="col-3 col-2-md text-right">notes:</label>
             <input type="text" deer-key="notes" placeholder="notes" class="col-9 col-4-md">
-            <div class="col-3 col-2-md text-right"></div><input type="button" disabled value="Add Folio Range">
         </div>
         <input type="submit" value="update" class="col">
         <a href="./manuscripts.html" onclick="deleteThis(event)" class="text-error">Drop from collection</a>
     </form>
-    <deer-view id="pageRanges"></deer-view>
+    <div class="col-3 col-2-md text-right "></div><a id="newGloss" class="button primary" href="gloss.html">Add Gloss</a>
+    <span id="pageRanges"></span>
 
-    <gm-footer>
+    <pre class="card bg-light"><deer-view deer-template="entity" deer-listening="manuscript">current state</deer-view></pre>
+
+    <gm-footer class="row">
         <a href="./index.html">🏠</a>
         <a href="./manuscripts.html">📚</a>
         <a rel="noopener noreferrer" title="View on GitHub"
@@ -66,8 +70,8 @@
                 </path>
             </svg>
         </a>
-        <deer-view deer-template="entity" deer-listening="manuscript">current state</deer-view>
     </gm-footer>
+    
     <div id="globalFeedback" class="card is-center"></div>
     <script src="js/deer.js" type="module"></script>
     <script src="js/app.js" type="module"></script>
@@ -75,14 +79,31 @@
         window.onhashchange = onload = () => {
             let msid = window.location.hash.substr(1)
             manuscript.setAttribute("deer-id", msid)
-            pageRanges.setAttribute("deer-collection", msid)
-            pageRanges.setAttribute("deer-link", "?partOf="+msid)
+            newGloss.setAttribute("href", "gloss.html?partOf=" + msid + "#")
+            fetch("http://tinydev.rerum.io/app/query", {
+                method: "POST",
+                body: JSON.stringify({
+                    "body.partOf.value": msid
+                })
+            }).then(r => r.json())
+            .then(annotations => Promise.all(annotations.map(anno => fetch(anno.target).then(res => res.json()))))
+            .then(matches => {
+                var html = ``
+                matches.filter(a => a.__deleted === undefined).map(gloss => {
+                    html += `<a class="button secondary deer-view" href="gloss.html?partOf=${msid}#${gloss['@id']}" deer-id="${gloss['@id']}" deer-template="label"></a>`
+                })
+                pageRanges.innerHTML = html
+                broadcast(undefined, "deer-view", document, { set: pageRanges.childNodes })
+            })
             const broadcast = function (event = {}, type, element, obj = {}) {
                 let e = new CustomEvent(type, { detail: Object.assign(obj, { target: event.target }), bubbles: true })
                 element.dispatchEvent(e)
             }
             broadcast(undefined, "deer-view", document, { set: [pageRanges] })
         }
+
+        document.querySelector("input[deer-key='tpen://base-project']").addEventListener('input', e => document.querySelector("a[deer-key='tpen://base-project']").setAttribute("href", "http://t-pen.org/TPEN/project.jsp?projectID=" + e.target.value))
+
         function deleteThis(event) {
             event.preventDefault()
             let collectorId = document.querySelector('[deer-key="targetCollection"]').getAttribute("deer-source")
