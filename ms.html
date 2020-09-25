@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Glossing Matthew</title>
+    <link rel="stylesheet" href="css/gloss.css">
+    <link href="favicon.ico" rel="icon" type="image/x-icon" />
+</head>
+
+<body class="container">
+    <gm-header>
+        <img src="media/gm-logo.png" alt="logo">
+        <div class="tabs">
+            <a href="./index.html">🏠</a>
+            <a href="./manuscripts.html">📚 View Manuscripts</a>
+        </div>
+    </gm-header>
+    <form id="manuscript" deer-type="manuscript" deer-context="http://purl.org/dc/terms">
+        <input type="hidden" deer-key="targetCollection" value="Glossing-Matthew-dev">
+        <div class="row">
+            <label class="col-3 col-2-md text-right">Label:</label>
+            <input type="text" deer-key="title" placeholder="Label" class="col-9 col-10-md">
+            <label class="col-3 col-2-md text-right">Shelfmark:</label>
+            <input type="text" deer-key="identifier" placeholder="Shelfmark" class="col-9 col-4-md">
+            <label class="col-3 col-2-md text-right">Siglum:</label>
+            <input type="text" deer-key="alternative" placeholder="Siglum" class="col-9 col-4-md">
+            <label class="col-3 col-2-md text-right">City:</label>
+            <input type="text" deer-key="city" placeholder="City" class="col-9 col-4-md">
+            <label class="col-3 col-2-md text-right">Repository:</label>
+            <input type="text" deer-key="Repository" placeholder="Repository" class="col-9 col-4-md">
+            <label class="col-3 col-2-md text-right">Place of Origin:</label>
+            <input type="text" deer-key="origin" placeholder="Place of Origin" class="col-9 col-4-md">
+            <label class="col-3 col-2-md text-right">Region of Origin:</label>
+            <input type="text" deer-key="region" placeholder="Region of Origin" class="col-9 col-4-md">
+
+            <label class="col-3 col-2-md text-right">Date:</label>
+            <input type="number" deer-key="date" placeholder="Enter decade" min="950" max="2020" step="10"
+                class="col-9 col-4-md">
+            <label class="col-3 col-2-md text-right">Associated Institution:</label>
+            <input type="text" deer-key="institution" placeholder="Institution" class="col-9 col-4-md">
+
+            <label class="col-3 col-2-md text-right">Provenance:</label>
+            <input type="text" deer-key="provenance" placeholder="Provenance" class="col-9 col-4-md">
+            <label class="col-3 col-2-md text-right">Base Project:</label>
+            <input id="baseProject" type="text" deer-key="tpen://base-project" placeholder="Base Project ID"
+                class="col-9 col-4-md">
+
+            <label class="col-3 col-2-md text-right">IIIF Manifest:</label>
+            <input type="text" deer-key="url" placeholder="URL" class="col-9 col-4-md">
+            <label class="col-3 col-2-md text-right">notes:</label>
+            <input type="text" deer-key="notes" placeholder="notes" class="col-9 col-4-md">
+        </div>
+        <input type="submit" value="update" class="col">
+        <a href="./manuscripts.html" onclick="deleteThis(event)" class="text-error">Drop from collection</a>
+    </form>
+    <div class="col-3 col-2-md text-right "></div><a id="newGloss" class="button primary" href="gloss.html">Add Gloss</a>
+    <span id="pageRanges"></span>
+
+    <pre class="card bg-light"><deer-view deer-template="entity" deer-listening="manuscript">current state</deer-view></pre>
+
+    <gm-footer class="row">
+        <a href="./index.html">🏠</a>
+        <a href="./manuscripts.html">📚</a>
+        <a rel="noopener noreferrer" title="View on GitHub"
+            href="https://github.com/CenterForDigitalHumanities/Glossing-Matthew" target="_blank">
+            <svg height="16" class="octicon octicon-mark-github" viewBox="0 0 16 16" version="1.1" width="16"
+                aria-hidden="true">
+                <path fill-rule="evenodd"
+                    d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z">
+                </path>
+            </svg>
+        </a>
+    </gm-footer>
+    
+    <div id="globalFeedback" class="card is-center"></div>
+    <script src="js/deer.js" type="module"></script>
+    <script src="js/app.js" type="module"></script>
+    <script>
+        window.onhashchange = onload = () => {
+            let msid = window.location.hash.substr(1)
+            manuscript.setAttribute("deer-id", msid)
+            newGloss.setAttribute("href", "gloss.html?partOf=" + msid + "#")
+            fetch("http://tinydev.rerum.io/app/query", {
+                method: "POST",
+                body: JSON.stringify({
+                    "body.partOf.value": msid
+                })
+            }).then(r => r.json())
+            .then(annotations => Promise.all(annotations.map(anno => fetch(anno.target).then(res => res.json()))))
+            .then(matches => {
+                var html = ``
+                matches.filter(a => a.__deleted === undefined).map(gloss => {
+                    html += `<a class="button secondary deer-view" href="gloss.html?partOf=${msid}#${gloss['@id']}" deer-id="${gloss['@id']}" deer-template="label"></a>`
+                })
+                pageRanges.innerHTML = html
+                broadcast(undefined, "deer-view", document, { set: pageRanges.childNodes })
+            })
+            const broadcast = function (event = {}, type, element, obj = {}) {
+                let e = new CustomEvent(type, { detail: Object.assign(obj, { target: event.target }), bubbles: true })
+                element.dispatchEvent(e)
+            }
+            broadcast(undefined, "deer-view", document, { set: [pageRanges] })
+        }
+
+        document.querySelector("input[deer-key='tpen://base-project']").addEventListener('input', e => document.querySelector("a[deer-key='tpen://base-project']").setAttribute("href", "http://t-pen.org/TPEN/project.jsp?projectID=" + e.target.value))
+
+        function deleteThis(event) {
+            event.preventDefault()
+            let collectorId = document.querySelector('[deer-key="targetCollection"]').getAttribute("deer-source")
+            fetch("http://tinydev.rerum.io/app/delete", {
+                method: "DELETE",
+                body: collectorId
+            }).then(obj => {
+                location.href = "./manuscripts.html"
+            })
+        }
+    </script>
+</body>
+
+</html>
