@@ -177,7 +177,7 @@ DEER.TEMPLATES.thumbs = function(obj, options = {}) {
 
 DEER.TEMPLATES.folioTranscription = function(obj, options = {}) {
     return {
-        html: `<div class="is-full-width"> <h3> ... loading preview ... </h3> </div>`,
+        html: obj.tpenProject?`<div class="is-full-width"> <h3> ... loading preview ... </h3> </div>`:``,
         then: (elem)=>{
             fetch("http://t-pen.org/TPEN/manifest/"+obj.tpenProject.value)
             .then(response => response.json())
