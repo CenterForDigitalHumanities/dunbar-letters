@@ -163,6 +163,40 @@ DEER.TEMPLATES.linky = function (obj, options = {}) {
     }
 }
 
+DEER.TEMPLATES.thumbs = function(obj, options = {}) {
+    return {
+        html: obj["tpen://base-project"]?`<div class="is-full-width"> <h3> ... loading images ... </h3> </div>`:``,
+        then: (elem)=>{
+            fetch("http://t-pen.org/TPEN/manifest/"+obj["tpen://base-project"].value)
+            .then(response => response.json())
+            .then(ms => elem.innerHTML = `
+                ${ms.sequences[0].canvases.slice(0,10).reduce((a,b)=>a+=`<img class="thumbnail" src="${b.images[0].resource['@id']}">`,``)}
+        `)} 
+    }
+}
+
+DEER.TEMPLATES.folioTranscription = function(obj, options = {}) {
+    return {
+        html: `<div class="is-full-width"> <h3> ... loading preview ... </h3> </div>`,
+        then: (elem)=>{
+            fetch("http://t-pen.org/TPEN/manifest/"+obj.tpenProject.value)
+            .then(response => response.json())
+            .then(ms => elem.innerHTML = `
+                ${ms.sequences[0].canvases.slice(0,10).reduce((a,b)=>a+=`
+                <div class="page">
+                    <h3>${b.label}</h3>
+                    <div class="pull-right col-6">
+                        <img src="${b.images[0].resource['@id']}">
+                    </div>
+                        ${b.otherContent[0].resources.reduce((aa,bb)=>aa+=`
+                        <span class="line">${bb.resource["cnt:chars"].length?bb.resource["cnt:chars"]:"[ empty line ]"}</span>
+                        `,``)}
+                </div>
+                `,``)}
+        `)} 
+    }
+}
+
 /**
  * The TEMPLATED renderer to draw an JSON to the screen as some HTML template
  * @param {Object} obj some json of type Entity to be drawn

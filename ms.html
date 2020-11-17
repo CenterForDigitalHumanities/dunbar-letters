@@ -55,8 +55,9 @@
     </form>
     <div class="col-3 col-2-md text-right "></div><a id="newGloss" class="button primary" href="gloss.html">Add Gloss</a>
     <span id="pageRanges"></span>
+    <deer-view id="thumbroll" deer-template="thumbs" deer-id=""></deer-view>
 
-    <pre class="card bg-light"><deer-view deer-template="entity" deer-listening="manuscript">current state</deer-view></pre>
+    <pre class="card bg-light is-hidden"><deer-view deer-template="entity" deer-listening="manuscript">current state</deer-view></pre>
 
     <gm-footer class="row">
         <a href="./index.html">🏠</a>
@@ -79,6 +80,7 @@
         window.onhashchange = onload = () => {
             let msid = window.location.hash.substr(1)
             manuscript.setAttribute("deer-id", msid)
+            thumbroll.setAttribute("deer-id", msid)
             newGloss.setAttribute("href", "gloss.html?partOf=" + msid + "#")
             fetch("http://tinydev.rerum.io/app/query", {
                 method: "POST",
@@ -106,13 +108,15 @@
 
         function deleteThis(event) {
             event.preventDefault()
-            let collectorId = document.querySelector('[deer-key="targetCollection"]').getAttribute("deer-source")
-            fetch("http://tinydev.rerum.io/app/delete", {
-                method: "DELETE",
-                body: collectorId
-            }).then(obj => {
-                location.href = "./manuscripts.html"
-            })
+            if (confirm("Really remove this manuscript?\n(Cannot be undone)")){
+                let collectorId = document.querySelector('[deer-key="targetCollection"]').getAttribute("deer-source")
+                fetch("http://tinydev.rerum.io/app/delete", {
+                    method: "DELETE",
+                    body: collectorId
+                }).then(obj => {
+                    location.href = "./manuscripts.html"
+                })
+            }
         }
     </script>
 </body>

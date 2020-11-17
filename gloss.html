@@ -87,7 +87,10 @@
         <input type="submit" value="Save Folio Range" class="col">
         <button type="button" onclick="deleteThis(event)" class="button error"> delete </button>
     </form>
-    <pre class="card bg-light"><deer-view id=frPreview deer-template="entity">current state</deer-view></pre>
+
+    <deer-view id="previewTranscription" deer-template="folioTranscription"></deer-view>
+
+    <pre class="card bg-light is-hidden"><deer-view id="frPreview" deer-template="entity">current state</deer-view></pre>
 
     <gm-footer>
         <a href="./index.html">🏠</a>
@@ -111,6 +114,7 @@
             let glossid = window.location.hash.substr(1)
             let msid = params.get("partOf")
             glossing.setAttribute("deer-id", msid)
+            previewTranscription.setAttribute("deer-id",glossid)
             thisMS.setAttribute("href","./ms.html#"+msid)
             folioRange.setAttribute("deer-id", glossid)
             frPreview.setAttribute("deer-id", glossid)

@@ -19,6 +19,40 @@ textarea {
   display: inline-block;
 }
 
+img.thumbnail {
+  max-height: 12rem;
+  margin: 0 .1rem;
+}
+
+#thumbroll {
+  position: relative;
+  overflow-x: auto;
+  white-space: nowrap;
+  display: block;
+  width: 100%;
+}
+
+#previewTranscription {
+  width:100%;
+  position: relative;
+}
+
+.page {
+  display: block;
+  padding: 1rem;
+  margin: 1rem;
+  box-shadow: 0 0 .25rem #000000;
+  overflow: auto;
+}
+
+.line {
+  display: block;
+}
+
+.line:nth-child(2n){
+  background-color: #dddddd;
+}
+
 /* Feedback */
 
 #globalFeedback {
