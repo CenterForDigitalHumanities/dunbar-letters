@@ -53,11 +53,13 @@
         <input type="submit" value="update" class="col">
         <a href="./manuscripts.html" onclick="deleteThis(event)" class="text-error">Drop from collection</a>
     </form>
-    <div class="col-3 col-2-md text-right "></div><a id="newGloss" class="button primary" href="gloss.html">Add Gloss</a>
+    <div class="col-3 col-2-md text-right "></div><a id="newGloss" class="button primary" href="gloss.html">Add
+        Gloss</a>
     <span id="pageRanges"></span>
     <deer-view id="thumbroll" deer-template="thumbs" deer-id=""></deer-view>
 
-    <pre class="card bg-light is-hidden"><deer-view deer-template="entity" deer-listening="manuscript">current state</deer-view></pre>
+    <pre
+        class="card bg-light is-hidden"><deer-view deer-template="entity" deer-listening="manuscript">current state</deer-view></pre>
 
     <gm-footer class="row">
         <a href="./index.html">🏠</a>
@@ -72,7 +74,7 @@
             </svg>
         </a>
     </gm-footer>
-    
+
     <div id="globalFeedback" class="card is-center"></div>
     <script src="js/deer.js" type="module"></script>
     <script src="js/app.js" type="module"></script>
@@ -88,15 +90,15 @@
                     "body.partOf.value": msid
                 })
             }).then(r => r.json())
-            .then(annotations => Promise.all(annotations.map(anno => fetch(anno.target).then(res => res.json()))))
-            .then(matches => {
-                var html = ``
-                matches.filter(a => a.__deleted === undefined).map(gloss => {
-                    html += `<a class="button secondary deer-view" href="gloss.html?partOf=${msid}#${gloss['@id']}" deer-id="${gloss['@id']}" deer-template="label"></a>`
+                .then(annotations => Promise.all(annotations.map(anno => fetch(anno.target).then(res => res.json()))))
+                .then(matches => {
+                    var html = ``
+                    matches.filter(a => a.__deleted === undefined).map(gloss => {
+                        html += `<a class="button secondary deer-view" href="gloss.html?partOf=${msid}#${gloss['@id']}" deer-id="${gloss['@id']}" deer-template="label"></a>`
+                    })
+                    pageRanges.innerHTML = html
+                    broadcast(undefined, "deer-view", document, { set: pageRanges.childNodes })
                 })
-                pageRanges.innerHTML = html
-                broadcast(undefined, "deer-view", document, { set: pageRanges.childNodes })
-            })
             const broadcast = function (event = {}, type, element, obj = {}) {
                 let e = new CustomEvent(type, { detail: Object.assign(obj, { target: event.target }), bubbles: true })
                 element.dispatchEvent(e)
@@ -108,7 +110,7 @@
 
         function deleteThis(event) {
             event.preventDefault()
-            if (confirm("Really remove this manuscript?\n(Cannot be undone)")){
+            if (confirm("Really remove this manuscript?\n(Cannot be undone)")) {
                 let collectorId = document.querySelector('[deer-key="targetCollection"]').getAttribute("deer-source")
                 fetch("http://tinydev.rerum.io/app/delete", {
                     method: "DELETE",

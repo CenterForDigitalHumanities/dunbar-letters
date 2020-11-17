@@ -163,37 +163,39 @@ DEER.TEMPLATES.linky = function (obj, options = {}) {
     }
 }
 
-DEER.TEMPLATES.thumbs = function(obj, options = {}) {
+DEER.TEMPLATES.thumbs = function (obj, options = {}) {
     return {
-        html: obj["tpen://base-project"]?`<div class="is-full-width"> <h3> ... loading images ... </h3> </div>`:``,
-        then: (elem)=>{
-            fetch("http://t-pen.org/TPEN/manifest/"+obj["tpen://base-project"].value)
-            .then(response => response.json())
-            .then(ms => elem.innerHTML = `
-                ${ms.sequences[0].canvases.slice(0,10).reduce((a,b)=>a+=`<img class="thumbnail" src="${b.images[0].resource['@id']}">`,``)}
-        `)} 
+        html: obj["tpen://base-project"] ? `<div class="is-full-width"> <h3> ... loading images ... </h3> </div>` : ``,
+        then: (elem) => {
+            fetch("http://t-pen.org/TPEN/manifest/" + obj["tpen://base-project"].value)
+                .then(response => response.json())
+                .then(ms => elem.innerHTML = `
+                ${ms.sequences[0].canvases.slice(0, 10).reduce((a, b) => a += `<img class="thumbnail" src="${b.images[0].resource['@id']}">`, ``)}
+        `)
+        }
     }
 }
 
-DEER.TEMPLATES.folioTranscription = function(obj, options = {}) {
+DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
     return {
-        html: obj.tpenProject?`<div class="is-full-width"> <h3> ... loading preview ... </h3> </div>`:``,
-        then: (elem)=>{
-            fetch("http://t-pen.org/TPEN/manifest/"+obj.tpenProject.value)
-            .then(response => response.json())
-            .then(ms => elem.innerHTML = `
-                ${ms.sequences[0].canvases.slice(0,10).reduce((a,b)=>a+=`
+        html: obj.tpenProject ? `<div class="is-full-width"> <h3> ... loading preview ... </h3> </div>` : ``,
+        then: (elem) => {
+            fetch("http://t-pen.org/TPEN/manifest/" + obj.tpenProject.value)
+                .then(response => response.json())
+                .then(ms => elem.innerHTML = `
+                ${ms.sequences[0].canvases.slice(0, 10).reduce((a, b) => a += `
                 <div class="page">
                     <h3>${b.label}</h3>
                     <div class="pull-right col-6">
                         <img src="${b.images[0].resource['@id']}">
                     </div>
-                        ${b.otherContent[0].resources.reduce((aa,bb)=>aa+=`
-                        <span class="line">${bb.resource["cnt:chars"].length?bb.resource["cnt:chars"]:"[ empty line ]"}</span>
-                        `,``)}
+                        ${b.otherContent[0].resources.reduce((aa, bb) => aa += `
+                        <span class="line">${bb.resource["cnt:chars"].length ? bb.resource["cnt:chars"] : "[ empty line ]"}</span>
+                        `, ``)}
                 </div>
-                `,``)}
-        `)} 
+                `, ``)}
+        `)
+        }
     }
 }
 
@@ -290,22 +292,22 @@ DEER.TEMPLATES.person = function (obj, options = {}) {
  */
 DEER.TEMPLATES.pageRanges = function (obj, options = {}) {
     return {
-        then: (elem)=>{
-            let queryObj = { "body.isPartOf.value" : obj['@id'] }
+        then: (elem) => {
+            let queryObj = { "body.isPartOf.value": obj['@id'] }
             fetch(DEER.URLS.QUERY, {
                 method: "POST",
                 mode: "cors",
                 body: JSON.stringify(queryObj)
             })
-            .then(response => response.json())
-            .then(pointers => {
-                let list = []
-                pointers.map(tc => list.push(fetch(tc.target || tc["@id"] || tc.id).then(response => response.json().catch(err => { __deleted: console.log(err) }))))
-                return Promise.all(list).then(l => l.filter(i => !i.hasOwnProperty("__deleted")))
-            })
-            .then(pages => pages.reduce((a,b)=> b+=`<deer-view deer-id="${a['@id']||a.id}" deer-template="gloss">range</deer-view>`,``))
-            .then(html=> elem.innerHTML = html)
-            .then(() => setTimeout(UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, elem, {set: elem.querySelectorAll("[deer-template]")}), 0))
+                .then(response => response.json())
+                .then(pointers => {
+                    let list = []
+                    pointers.map(tc => list.push(fetch(tc.target || tc["@id"] || tc.id).then(response => response.json().catch(err => { __deleted: console.log(err) }))))
+                    return Promise.all(list).then(l => l.filter(i => !i.hasOwnProperty("__deleted")))
+                })
+                .then(pages => pages.reduce((a, b) => b += `<deer-view deer-id="${a['@id'] || a.id}" deer-template="gloss">range</deer-view>`, ``))
+                .then(html => elem.innerHTML = html)
+                .then(() => setTimeout(UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, elem, { set: elem.querySelectorAll("[deer-template]") }), 0))
         },
         html: `ranges incoming`
     }

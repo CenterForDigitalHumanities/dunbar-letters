@@ -5,7 +5,7 @@
 }
 
 textarea {
-  resize: vertical;
+  resize    : vertical;
   max-height: 20rem;
 }
 
@@ -15,80 +15,108 @@ textarea {
 
 .needs-more::before {
   content: "⚠ ";
-  color: red;
+  color  : red;
   display: inline-block;
 }
 
 img.thumbnail {
   max-height: 12rem;
-  margin: 0 .1rem;
+  margin    : 0 .1rem;
 }
 
 #thumbroll {
-  position: relative;
-  overflow-x: auto;
+  position   : relative;
+  overflow-x : auto;
   white-space: nowrap;
-  display: block;
-  width: 100%;
+  display    : block;
+  width      : 100%;
 }
 
 #previewTranscription {
-  width:100%;
+  width   : 100%;
   position: relative;
 }
 
 .page {
-  display: block;
-  padding: 1rem;
-  margin: 1rem;
+  display   : block;
+  padding   : 1rem;
+  margin    : 1rem;
   box-shadow: 0 0 .25rem #000000;
-  overflow: auto;
+  overflow  : auto;
 }
 
 .line {
   display: block;
 }
 
-.line:nth-child(2n){
+.line:nth-child(2n) {
   background-color: #dddddd;
 }
 
 /* Feedback */
 
 #globalFeedback {
-    visibility: hidden; 
-    min-width: 250px; 
-    margin-left: -125px;
-    text-align: center;
-    position: fixed; 
-    z-index: 9; 
-    left: 50%;
-    bottom: 30px;
+  visibility : hidden;
+  min-width  : 250px;
+  margin-left: -125px;
+  text-align : center;
+  position   : fixed;
+  z-index    : 9;
+  left       : 50%;
+  bottom     : 30px;
 }
-  
+
 #globalFeedback.show {
-    visibility: visible; 
-    -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
-    animation: fadein 0.5s, fadeout 0.5s 2.5s;
+  visibility       : visible;
+  -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+  animation        : fadein 0.5s, fadeout 0.5s 2.5s;
 }
-  
-  /* Animations to fade in and out */
-  @-webkit-keyframes fadein {
-    from {bottom: 0; opacity: 0;}
-    to {bottom: 30px; opacity: 1;}
+
+/* Animations to fade in and out */
+@-webkit-keyframes fadein {
+  from {
+    bottom : 0;
+    opacity: 0;
   }
-  
-  @keyframes fadein {
-    from {bottom: 0; opacity: 0;}
-    to {bottom: 30px; opacity: 1;}
+
+  to {
+    bottom : 30px;
+    opacity: 1;
   }
-  
-  @-webkit-keyframes fadeout {
-    from {bottom: 30px; opacity: 1;}
-    to {bottom: 0; opacity: 0;}
+}
+
+@keyframes fadein {
+  from {
+    bottom : 0;
+    opacity: 0;
   }
-  
-  @keyframes fadeout {
-    from {bottom: 30px; opacity: 1;}
-    to {bottom: 0; opacity: 0;}
+
+  to {
+    bottom : 30px;
+    opacity: 1;
   }
+}
+
+@-webkit-keyframes fadeout {
+  from {
+    bottom : 30px;
+    opacity: 1;
+  }
+
+  to {
+    bottom : 0;
+    opacity: 0;
+  }
+}
+
+@keyframes fadeout {
+  from {
+    bottom : 30px;
+    opacity: 1;
+  }
+
+  to {
+    bottom : 0;
+    opacity: 0;
+  }
+}
