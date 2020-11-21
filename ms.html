@@ -53,10 +53,14 @@
         <input type="submit" value="update" class="col">
         <a href="./manuscripts.html" onclick="deleteThis(event)" class="text-error">Drop from collection</a>
     </form>
-    <div class="col-3 col-2-md text-right "></div><a id="newGloss" class="button primary" href="gloss.html">Add
+    
+    <div class="col">
+        <a id="newGloss" class="button primary" href="gloss.html">Add
         Gloss</a>
-    <span id="pageRanges"></span>
-    <deer-view id="thumbroll" deer-template="thumbs" deer-id=""></deer-view>
+
+        <span id="pageRanges"></span>
+    </div>
+    <deer-view  class="col" id="thumbroll" deer-template="thumbs" deer-id=""></deer-view>
 
     <pre
         class="card bg-light is-hidden"><deer-view deer-template="entity" deer-listening="manuscript">current state</deer-view></pre>
