@@ -39,7 +39,7 @@
                 Log into <a rel="noopener noreferrer" target="_blank" href="http://t-pen.org">TPEN</a> in a
                 new tab. Once you have confirmed you are logged in, you may
                 <a id="copyLink" rel="noopener noreferrer" target="_blank"
-                    href="http://t-pen.org/TPEN/copyProjectWithAnnotations?projectID=">make a copy</a>
+                    href="http://t-pen.org/TPEN/index.jsp?makeCopy=true&projectID=">make a copy</a>
                 for this gloss. The page should open to an empty tab.
                 <br>
                 Reload your TPEN page to find the new project in your list and
@@ -136,7 +136,7 @@
                 })
             document.querySelector("[deer-key='partOf']").setAttribute("value", msid)
             document.querySelector("input[deer-key='tpen://base-project']").addEventListener('input', e => {
-                copyLink.setAttribute("href", "http://t-pen.org/TPEN/copyProjectWithAnnotations?projectID=" + e.target.value)
+                copyLink.setAttribute("href", "http://t-pen.org/TPEN/index.jsp?makeCopy=true&projectID=" + e.target.value)
                 document.querySelector("a[deer-key='tpen://base-project']").setAttribute("href", "http://t-pen.org/TPEN/project.jsp?projectID=" + e.target.value)
             })
             const glossProjectInput = document.querySelector("input[deer-key='tpenProject']")
