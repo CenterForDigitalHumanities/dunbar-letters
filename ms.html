@@ -2,21 +2,21 @@
 <html lang="en">
 
 <head>
-    <title>Glossing Matthew</title>
+    <title>Dunbar Letters</title>
     <link rel="stylesheet" href="css/gloss.css">
     <link href="favicon.ico" rel="icon" type="image/x-icon" />
 </head>
 
 <body class="container">
     <gm-header>
-        <img src="media/gm-logo.png" alt="logo">
+        <img src="media/logo.png" alt="logo">
         <div class="tabs">
             <a href="./index.html">🏠</a>
             <a href="./manuscripts.html">📚 View Manuscripts</a>
         </div>
     </gm-header>
     <form id="manuscript" deer-type="manuscript" deer-context="http://purl.org/dc/terms">
-        <input type="hidden" deer-key="targetCollection" value="Glossing-Matthew-dev">
+        <input type="hidden" deer-key="targetCollection" value="Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar">
         <div class="row">
             <label class="col-3 col-2-md text-right">Label:</label>
             <input type="text" deer-key="title" placeholder="Label" class="col-9 col-10-md">
@@ -54,12 +54,6 @@
         <a href="./manuscripts.html" onclick="deleteThis(event)" class="text-error">Drop from collection</a>
     </form>
     
-    <div class="col">
-        <a id="newGloss" class="button primary" href="gloss.html">Add
-        Gloss</a>
-
-        <span id="pageRanges"></span>
-    </div>
     <deer-view  class="col" id="thumbroll" deer-template="thumbs" deer-id=""></deer-view>
 
     <pre
@@ -69,7 +63,7 @@
         <a href="./index.html">🏠</a>
         <a href="./manuscripts.html">📚</a>
         <a rel="noopener noreferrer" title="View on GitHub"
-            href="https://github.com/CenterForDigitalHumanities/Glossing-Matthew" target="_blank">
+            href="https://github.com/cubap/Dunbar-Letters" target="_blank">
             <svg height="16" class="octicon octicon-mark-github" viewBox="0 0 16 16" version="1.1" width="16"
                 aria-hidden="true">
                 <path fill-rule="evenodd"
