@@ -61,7 +61,7 @@ export default {
             if (options.list) {
                 tmpl += `<ul>`
                 obj[options.list].forEach((val, index) => {
-                    tmpl += `<li><deer-view deer-id="${val["@id"]}" deer-template="label"></deer-view> <a href="${options.link}${val['@id']}">edit</a></li>`
+                    tmpl += `<li><a href="${options.link}${val['@id']}"><deer-view deer-id="${val["@id"]}" deer-template="label"></deer-view></a></li>`
                 })
                 tmpl += `</ul>`
             }
