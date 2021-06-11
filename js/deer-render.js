@@ -203,6 +203,14 @@ DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
                     unclear {
                         opacity:.4;
                     }
+                    line.empty {
+                        line-height: 1.6;
+                        background-color: #CCC;
+                        height: 1em;
+                        margin: .4em 0;
+                        display:block;
+                        border-radius: 4px;
+                    }
                 </style>
                 ${ms.sequences[0].canvases.slice(0, 10).reduce((a, b) => a += `
                 <div class="page">
@@ -217,7 +225,7 @@ DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
                                 ? bb.resource["cnt:chars"].slice(-1)=='-' 
                                     ? bb.resource["cnt:chars"].substring(0,bb.resource["cnt:chars"].length-1) 
                                     : bb.resource["cnt:chars"]+' ' 
-                                : " [ empty line ] ",'')
+                                : " <line class='empty col-6'></line> ",'')
                         }
                     </div>
                 </div>
