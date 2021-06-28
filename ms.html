@@ -15,56 +15,48 @@
             <a href="./manuscripts.html">📚 View Manuscripts</a>
         </div>
     </gm-header>
-    <form id="manuscript" deer-type="manuscript" deer-context="http://purl.org/dc/terms">
-        <input type="hidden" deer-key="targetCollection" value="Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar">
+    <form id="letter" deer-type="PhysicalResource" deer-context="http://purl.org/dc/terms">
+        <input type="hidden" deer-key="targetCollection"
+            value="Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar">
         <div class="row">
             <label class="col-3 col-2-md text-right">Label:</label>
-            <input type="text" deer-key="title" placeholder="Label" class="col-9 col-10-md">
-            <label class="col-3 col-2-md text-right">Shelfmark:</label>
-            <input type="text" deer-key="identifier" placeholder="Shelfmark" class="col-9 col-4-md">
-            <label class="col-3 col-2-md text-right">Siglum:</label>
-            <input type="text" deer-key="alternative" placeholder="Siglum" class="col-9 col-4-md">
-            <label class="col-3 col-2-md text-right">City:</label>
-            <input type="text" deer-key="city" placeholder="City" class="col-9 col-4-md">
+            <input type="text" deer-key="name" placeholder="Convenient Label for Humans" class="col-9 col-10-md">
+            <label class="col-3 col-2-md text-right">Title:</label>
+            <input type="text" deer-key="title" placeholder="Catalog Title" class="col-9 col-10-md">
             <label class="col-3 col-2-md text-right">Repository:</label>
             <input type="text" deer-key="Repository" placeholder="Repository" class="col-9 col-4-md">
-            <label class="col-3 col-2-md text-right">Place of Origin:</label>
-            <input type="text" deer-key="origin" placeholder="Place of Origin" class="col-9 col-4-md">
-            <label class="col-3 col-2-md text-right">Region of Origin:</label>
-            <input type="text" deer-key="region" placeholder="Region of Origin" class="col-9 col-4-md">
-
+            <label class="col-3 col-2-md text-right">Shelfmark:</label>
+            <input type="text" deer-key="identifier" placeholder="Shelfmark" class="col-9 col-4-md">
             <label class="col-3 col-2-md text-right">Date:</label>
-            <input type="number" deer-key="date" placeholder="Enter decade" min="950" max="2020" step="10"
+            <input type="date" deer-key="date" placeholder="Enter year" min="1880-01-01" max="1906-02-07"
                 class="col-9 col-4-md">
-            <label class="col-3 col-2-md text-right">Associated Institution:</label>
-            <input type="text" deer-key="institution" placeholder="Institution" class="col-9 col-4-md">
+            <label class="col-3 col-2-md text-right">City Whence:</label>
+            <input type="text" deer-key="fromLocation" placeholder="from City" class="col-9 col-4-md">
+            <label class="col-3 col-2-md text-right">City Whither:</label>
+            <input type="text" deer-key="toLocation" placeholder="to City" class="col-9 col-4-md">
+            <label class="col-3 col-2-md text-right">URL:</label>
+            <input type="text" deer-key="url" placeholder="Record View" class="col-9 col-4-md">
 
-            <label class="col-3 col-2-md text-right">Provenance:</label>
-            <input type="text" deer-key="provenance" placeholder="Provenance" class="col-9 col-4-md">
-            <label class="col-3 col-2-md text-right">Base Project: <a deer-key="tpen:project" target="_blank" href="">transcribe</a></label>
+            <label class="col-3 col-2-md text-right">Base Project: <a deer-key="tpen:project" target="_blank"
+                    href="">transcribe</a></label>
             <input id="baseProject" type="text" deer-key="tpen:project" placeholder="Base Project ID"
                 class="col-9 col-4-md">
-
-            <label class="col-3 col-2-md text-right">IIIF Manifest:</label>
-            <input type="text" deer-key="url" placeholder="URL" class="col-9 col-4-md">
             <label class="col-3 col-2-md text-right">notes:</label>
             <input type="text" deer-key="notes" placeholder="notes" class="col-9 col-4-md">
         </div>
         <input type="submit" value="update" class="col">
         <a href="./manuscripts.html" onclick="deleteThis(event)" class="text-error">Drop from collection</a>
     </form>
-    
-    <deer-view  class="col" id="thumbroll" deer-template="thumbs" deer-id=""></deer-view>
-    <deer-view id="previewTranscription" deer-template="folioTranscription"></deer-view>
 
-    <pre
-        class="card bg-light is-hidden"><deer-view deer-template="entity" deer-listening="manuscript">current state</deer-view></pre>
+    <pre id="externalData"></pre>
+    <deer-view class="col" id="thumbroll" deer-template="thumbs" deer-id=""></deer-view>
+    <deer-view id="previewTranscription" deer-template="folioTranscription"></deer-view>
 
     <gm-footer class="row">
         <a href="./index.html">🏠</a>
         <a href="./manuscripts.html">📚</a>
-        <a rel="noopener noreferrer" title="View on GitHub"
-            href="https://github.com/cubap/Dunbar-Letters" target="_blank">
+        <a rel="noopener noreferrer" title="View on GitHub" href="https://github.com/cubap/Dunbar-Letters"
+            target="_blank">
             <svg height="16" class="octicon octicon-mark-github" viewBox="0 0 16 16" version="1.1" width="16"
                 aria-hidden="true">
                 <path fill-rule="evenodd"
@@ -80,7 +72,14 @@
     <script>
         window.onhashchange = onload = () => {
             const msid = window.location.hash.substr(1)
-            ;[manuscript,thumbroll,previewTranscription].forEach(el=>el.setAttribute("deer-id", msid))
+            ;[letter, thumbroll, previewTranscription].forEach(el => el.setAttribute("deer-id", msid))
+            const externals = document.addEventListener('deer-loaded', (event) => {
+                if (event?.detail?.url?.value) {
+                    const handle = event.detail.url.value.split('handle/')[1]
+                    loadExternals(handle)
+                    document.removeEventListener('deer-loaded',externals)
+                }
+            })
         }
 
         baseProject.addEventListener('input', e => document.querySelector("a[deer-key='tpen:project']").setAttribute("href", "http://t-pen.org/TPEN/project.jsp?projectID=" + e.target.value))
@@ -96,6 +95,18 @@
                     location.href = "./manuscripts.html"
                 })
             }
+        }
+        async function loadExternals(handle) {
+            const url = `https://udspace.udel.edu/rest/handle/${handle}?expand=metadata`
+            const xmlItem = await fetch(url, {
+                mode: 'cors',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).catch(()=>{
+                return `<p>Probable CORS error. <a target="_blank" href="${url}">View remote resource metadata in new tab</a>.</p>`
+            })
+            externalData.innerHTML = xmlItem
         }
     </script>
 </body>
