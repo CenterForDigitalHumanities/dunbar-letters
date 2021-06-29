@@ -69,8 +69,6 @@
     <div id="globalFeedback" class="card is-center"></div>
     <script src="js/deer.js" type="module"></script>
     <script src="js/app.js" type="module"></script>
-    <iframe src="https://udspace.udel.edu/rest/handle/19716/28710?expand=metadata" id="metadata" onload="loadedData">loading</iframe>
-
     <script>
         window.onhashchange = onload = () => {
             const msid = window.location.hash.substr(1)
@@ -78,7 +76,7 @@
             const externals = document.addEventListener('deer-loaded', (event) => {
                 if (event?.detail?.url?.value) {
                     const handle = event.detail.url.value.split('handle/')[1]
-                    // loadUDelMetadata(handle)
+                    loadUDelMetadata(handle)
                     document.removeEventListener('deer-loaded', externals)
                 }
             })
@@ -109,20 +107,10 @@
                     if (err.status >= 400) {
                         return `<p class="error">Content error: ${err.status}, ${err.statusText}</p>`
                     }
-                    const newScript = document.createElement("script")
-                    newScript.onload = loadedData
-                    newScript.type = "text/xml"
-                    newScript.id = "metadata"
-                    document.body.append(newScript)
-                    newScript.src = url
                     return `<p>Probable CORS error. <a target="_blank" href="${url}">View remote resource metadata in new tab</a>.</p>`
                 })
             externalData.innerHTML = xmlItem
         }
-        function loadedData() {
-            externalData.innerHTML = metadata
-        }
-        externalData.innerHTML = metadata.contentWindow.document.body.innerHTML
     </script>
 </body>
 
