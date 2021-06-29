@@ -75,8 +75,8 @@
                 ;[letter, thumbroll, previewTranscription].forEach(el => el.setAttribute("deer-id", msid))
             const externals = document.addEventListener('deer-loaded', (event) => {
                 if (event?.detail?.url?.value) {
-                    const handle = event.detail.url.value.split('handle/')[1]
-                    loadUDelMetadata(handle)
+                    const handlUrl = new URL(event.detail.url.value)
+                    loadUDelMetadata(handlUrl.pathname)
                     document.removeEventListener('deer-loaded', externals)
                 }
             })
@@ -97,7 +97,7 @@
             }
         }
         async function loadUDelMetadata(handle) {
-            const url = `https://udspace.udel.edu/rest/handle/${handle}?expand=metadata`
+            const url = `https://udspace.udel.edu/rest${handle}?expand=metadata`
             const xmlItem = await fetch(url)
                 .then(res => res.ok ? res : Promise.reject(res))
                 .catch((err) => {
