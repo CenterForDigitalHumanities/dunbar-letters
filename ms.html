@@ -49,6 +49,7 @@
     </form>
 
     <pre id="externalData"></pre>
+    <p class="col">Original catalog record: <deer-view id="catalogLink" deer-template="linky" deer-key="url"></deer-view></p>
     <deer-view class="col" id="thumbroll" deer-template="thumbs" deer-id=""></deer-view>
     <deer-view id="previewTranscription" deer-template="folioTranscription"></deer-view>
 
@@ -72,7 +73,7 @@
     <script>
         window.onhashchange = onload = () => {
             const msid = window.location.hash.substr(1)
-                ;[letter, thumbroll, previewTranscription].forEach(el => el.setAttribute("deer-id", msid))
+                ;[catalogLink, letter, thumbroll, previewTranscription].forEach(el => el.setAttribute("deer-id", msid))
             const externals = document.addEventListener('deer-loaded', (event) => {
                 if (event?.detail?.url?.value) {
                     const handlUrl = new URL(event.detail.url.value)
