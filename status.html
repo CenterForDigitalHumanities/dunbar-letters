@@ -16,9 +16,28 @@
         </div>
     </gm-header>
 
-    <deer-view id="previewTranscription" deer-template="folioTranscription"></deer-view>
-
-    <pre class="card bg-light is-hidden"><deer-view id="frPreview" deer-template="entity">current state</deer-view></pre>
+    <div id="parsedStatus"></div>
+    <div id="assignedStatus"></div>
+    <div id="transcribedStatus"></div>
+    <div id="finalizedStatus"></div>
+    <div id="recordStatus"></div>
+    <div id="uDelLinkStatus"></div>
+    <div id="TPENLinkStatus"></div>
+    <div id="describedStatus"></div>
+    <div id="releasedStatus"></div>
+    <div id="envelopeStatus"></div>
+    <pre class="card bg-light"><deer-view-x id="frPreview" deer-template="entity">TPEN project created
+TPEN project parsed
+TPEN project assigned
+TPEN project transcribed
+TPEN project proofed/finalized
+DLA record minted
+DLA record linked to Delaware
+DLA record linked to TPEN
+DLA record described
+DLA record released
+TPEN envelope linked to record
+TPEN envelope project created</deer-view-x></pre>
 
     <gm-footer>
         <a href="./index.html">🏠</a>
@@ -37,25 +56,10 @@
     <script src="js/deer.js" type="module"></script>
     <script src="js/app.js" type="module"></script>
     <script>
-        window.onhashchange = onload = () => {
-            let params = (new URL(document.location)).searchParams
-            let glossid = window.location.hash.substr(1)
-            document.querySelectorAll(".send-id").forEach(el => el.setAttribute("deer-id", glossid))
-            let page = parseInt(params.get("page")) || 1
-            folioLayout.setAttribute("deer-index", page - 1)
-        }
-
         function broadcast(event = {}, type, element, obj = {}) {
             let e = new CustomEvent(type, { detail: Object.assign(obj, { target: event.target }), bubbles: true })
             element.dispatchEvent(e)
         }
-
-        function alertReturn(noid) {
-            let msg = noid
-                ? "You entered this page without a manuscript URI. Click OK to head back to the list."
-                : "The manuscript this gloss is from does not have a TPEN project associated with it."
-        }
-
     </script>
 </body>
 
