@@ -6,6 +6,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UDel Scraper</title>
+    <style>
+        name, handle{
+            min-width: 24em;
+            display: inline-block;
+        }
+    </style>
 </head>
 
 <body>
@@ -15,12 +21,12 @@
 
 
     <script defer>
-const LOC ='https://udspace.udel.edu/rest/collections/599?expand=items'
+const LOC ='http://tinypaul.rerum.io/dla/proxy?url=https://udspace.udel.edu/rest/collections/599?expand=items&limit=800'
 const cacheLOC = 'media/udel.xml'
 
         function fetchLetters(collectionUri) {
             return fetch(collectionUri)
-                .then(res => res.ok ? res.text() : Promise.reject(res))
+                .then(res => res.ok ? res.json() : Promise.reject(res))
                 .then(extractItems)
                 .then(drawItems)
                 .then(saveItems)
@@ -28,15 +34,21 @@ const cacheLOC = 'media/udel.xml'
         }
 
         function extractItems(collection) {
-            const parser = new DOMParser()
-            const xmlCollection = parser.parseFromString(collection, "text/xml")
-            const itemElems = [...xmlCollection.getElementsByTagName("items")] ?? []
-            const itemArray = itemElems.map(i=>({handle:i.querySelector("handle").textContent,name:i.querySelector("name").textContent,}))
+            const itemElems = collection.items ?? []
+            const itemArray = itemElems.map(i=>({handle:i.handle,name:i.name}))
             return itemArray
         }
 
         function drawItems(itemArray) {
-            result.innerHTML = itemArray.reduce((a,b)=>a+=(`<div>name: ${b.name} handle: ${b.handle}</div>`),``)
+            result.innerHTML = itemArray.reduce((a,b)=>a+=(`<div is="record" dla-handle="${b.handle}" title="${b.name}"><strong>name:</strong> <name>${b.name}</name> <strong>handle:</strong> <handle>${b.handle}</handle><result></result></div>`),``)
+            document.querySelectorAll("[is='record']").forEach(el=>{
+                const handle = `http://tinypaul.rerum.io/dla/proxy?url=https://udspace.udel.edu/rest/handle/${el.getAttribute("dla-handle")}`
+                fetch(`${handle}?expand=metadata`)
+                .then(res=>res.ok ? res.json() : Promise.reject(res))
+                .then(res=>el.querySelector("result").innerHTML = "fetched!")
+                .catch(err=>console.error(err))
+
+            })
             return itemArray
         }
 
@@ -44,7 +56,7 @@ const cacheLOC = 'media/udel.xml'
             return itemArray
         }
 
-        fetchLetters(cacheLOC)
+        fetchLetters(LOC)
     </script>
 </body>
 
