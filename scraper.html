@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UDel Scraper</title>
+</head>
+
+<body>
+    <div id="result">
+        nothing here
+    </div>
+
+
+    <script defer>
+const LOC ='https://udspace.udel.edu/rest/collections/599?expand=items'
+const cacheLOC = 'media/udel.xml'
+
+        function fetchLetters(collectionUri) {
+            return fetch(collectionUri)
+                .then(res => res.ok ? res.text() : Promise.reject(res))
+                .then(extractItems)
+                .then(drawItems)
+                .then(saveItems)
+                .catch(result.innerHTML = `Oh no, that's all wrong.`)
+        }
+
+        function extractItems(collection) {
+            const parser = new DOMParser()
+            const xmlCollection = parser.parseFromString(collection, "text/xml")
+            const itemElems = [...xmlCollection.getElementsByTagName("items")] ?? []
+            const itemArray = itemElems.map(i=>({handle:i.querySelector("handle").textContent,name:i.querySelector("name").textContent,}))
+            return itemArray
+        }
+
+        function drawItems(itemArray) {
+            result.innerHTML = itemArray.reduce((a,b)=>a+=(`<div>name: ${b.name} handle: ${b.handle}</div>`),``)
+            return itemArray
+        }
+
+        function saveItems(itemArray) {
+            return itemArray
+        }
+
+        fetchLetters(cacheLOC)
+    </script>
+</body>
+
+</html>
