@@ -45,7 +45,10 @@ const cacheLOC = 'media/udel.xml'
                 const handle = `http://tinypaul.rerum.io/dla/proxy?url=https://udspace.udel.edu/rest/handle/${el.getAttribute("dla-handle")}`
                 fetch(`${handle}?expand=metadata`)
                 .then(res=>res.ok ? res.json() : Promise.reject(res))
-                .then(res=>el.querySelector("result").innerHTML = "fetched!")
+                .then(res=>{
+                    
+                    el.querySelector("result").innerHTML = "fetched!"
+                })
                 .catch(err=>console.error(err))
 
             })
