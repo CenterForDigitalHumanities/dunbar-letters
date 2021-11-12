@@ -15,7 +15,7 @@
             <a href="./ms.html" id="thisMS" class="is-hidden">📖 This Manuscript</a>
         </div>
     </gm-header>
-    <pre>
+    <div class="itemStatus">
         <ul id="statusList">
             <li>
                 <label class="statusLabel"> TPEN project parsed </label>
@@ -58,7 +58,7 @@
                 <div class="statusValue" id="envelopeStatus">determining...</div>
             </li>
         </ul>
-    </pre>
+    </div>
 <!--     <pre class="card bg-light">
         <deer-view-x id="frPreview" deer-template="entity">TPEN project created
             TPEN project parsed
@@ -97,32 +97,85 @@
             element.dispatchEvent(e)
         }
 
-        function determineStatuses(){
-            const statusEndpoint = "/getStatus?status="
-            let statusesToFind = statusList.querySelectorAll(".statusValue").map(elem => {
-                return elem.getAttribute("id")
-            })
-            let statusPromises = statusToFind.map(status => {
-                return fetch(statusEndpoint+status)
-                // .then(s => {
+        async function determineStatuses(){
+            //Determine status against what?
+            //A list of DLA materials?
+            //A list of TPEN projects?
+            //A list of DLA RERUM entities?
+            let listOfThings = [] // /getDunbarProjects or something
+            
 
-                // })
-                // catch(e =>{
-                //     return e
-                // })
-            })
-            Promise.all(statusPromises)
-            .then(statusResult => {
-                if (statusResult.ok){
-                    return statusResult.json()
-                }
-                else{
-                    //?
-                }
-            })
-            .then(statusJson => {
-                // will have which status it was in the return
-                document.getElementById(statusJson.which).innerHTML = statusJson.message
+            listOfThings.forEach(thing =>{
+                //Each thing will have this suite of statuses to check for
+                let statusesToFind = [
+                    "parsedStatus",
+                    "assignedStatus",
+                    "transcribedStatus",
+                    "finalizedStatus",
+                    "recordStatus",
+                    "uDelLinkStatus",
+                    "TPENLinkStatus",
+                    "describedStatus",
+                    "linkedStatus",
+                    "envelopeStatus"
+                ]
+
+                //METHOD 1
+                //Request endpoints one at a time
+                let statusEndpoint = "/getStatus?status="+status //use tinyPaul for this
+                await fetch(statusEndpoint)
+                //Process the responses one at a time
+                .then(statusResult => {
+                    if (statusResult.ok){
+                        //Store the JSON result
+                        return statusResult.json()
+                    }
+                    else{
+                        //Store a JSON result that is an Error object
+                        return {"error" : "boo hoo"}
+                    }
+                })
+                .then(statusJson => {
+                    // will have which status it was in the return
+                    document.getElementById(statusJson.which).innerHTML = statusJson.message
+                })
+                .catch(err => {
+                    // Hmm might be hard to know which one to populate with the error.
+                })
+                
+                //Method 2
+                //Generate an array of promises and Promise.all()
+                let statusPromises = statusesToFind.map(status => {
+                    let statusEndpoint = "/getStatus?status="+status //use tinyPaul for this
+                    return fetch(statusEndpoint)
+                    //Process the responses one at a time
+                    .then(statusResult => {
+                        if (statusResult.ok){
+                            //Store the JSON result
+                            return statusResult.json()
+                        }
+                        else{
+                            //Store a JSON result that is an Error object
+                            return {"error" : "boo hoo"}
+                        }
+                    })
+                    .catch(err => {
+                        // Hmm might be hard to know which one to populate with the error.
+                        return {"error" : "boo hoo"}
+                    })
+                })
+
+                let statusResultsList = await Promise.all(statusPromises)
+                statusResultsList.forEach(statusJson =>{
+                    if(statusJSON.hasOwnProperty("error")){
+                        // Hmm might be hard to know which one to populate with the error.
+                        document.getElementById(statusJson.which).innerHTML = statusJson.error
+                    }
+                    else{
+                        document.getElementById(statusJson.which).innerHTML = statusJson.message
+                    }
+                })
+
             })
         }
     </script>
