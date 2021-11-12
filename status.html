@@ -15,29 +15,65 @@
             <a href="./ms.html" id="thisMS" class="is-hidden">📖 This Manuscript</a>
         </div>
     </gm-header>
-
-    <div id="parsedStatus"></div>
-    <div id="assignedStatus"></div>
-    <div id="transcribedStatus"></div>
-    <div id="finalizedStatus"></div>
-    <div id="recordStatus"></div>
-    <div id="uDelLinkStatus"></div>
-    <div id="TPENLinkStatus"></div>
-    <div id="describedStatus"></div>
-    <div id="releasedStatus"></div>
-    <div id="envelopeStatus"></div>
-    <pre class="card bg-light"><deer-view-x id="frPreview" deer-template="entity">TPEN project created
-TPEN project parsed
-TPEN project assigned
-TPEN project transcribed
-TPEN project proofed/finalized
-DLA record minted
-DLA record linked to Delaware
-DLA record linked to TPEN
-DLA record described
-DLA record released
-TPEN envelope linked to record
-TPEN envelope project created</deer-view-x></pre>
+    <pre>
+        <ul id="statusList">
+            <li>
+                <label class="statusLabel"> TPEN project parsed </label>
+                <div class="statusValue" id="parsedStatus">determining...</div>
+            </li>
+            <li>
+                <label class="statusLabel"> TPEN project assigned </label>
+                <div class="statusValue" id="assignedStatus">determining...</div>
+            </li>
+            <li>
+                <label class="statusLabel"> TPEN project transcribed </label>
+                <div class="statusValue" id="transcribedStatus">determining...</div>
+            </li>
+            <li>
+                <label class="statusLabel"> TPEN project proofed/finalized </label>
+                <div class="statusValue" id="finalizedStatus">determining...</div>
+            </li>
+            <li>
+                <label class="statusLabel"> DLA record minted </label>
+                <div class="statusValue" id="recordStatus">determining...</div>
+            </li>
+            <li>
+                <label class="statusLabel"> DLA record linked to Delaware </label>
+                <div class="statusValue" id="uDelLinkStatus">determining...</div>
+            </li>
+            <li>
+                <label class="statusLabel"> DLA record linked to TPEN </label>
+                <div class="statusValue" id="TPENLinkStatus">determining...</div>
+            </li>
+            <li>
+                <label class="statusLabel"> DLA record described </label>
+                <div class="statusValue" id="describedStatus" query=>determining...</div>
+            </li>
+            <li>
+                <label class="statusLabel">TPEN enveloped linked to record </label>
+                <div class="statusValue" id="linkedStatus">determining...</div>
+            </li>
+            <li>
+                <label class="statusLabel"> TPEN envelope project created </label>
+                <div class="statusValue" id="envelopeStatus">determining...</div>
+            </li>
+        </ul>
+    </pre>
+<!--     <pre class="card bg-light">
+        <deer-view-x id="frPreview" deer-template="entity">TPEN project created
+            TPEN project parsed
+            TPEN project assigned
+            TPEN project transcribed
+            TPEN project proofed/finalized
+            DLA record minted
+            DLA record linked to Delaware
+            DLA record linked to TPEN
+            DLA record described
+            DLA record released
+            TPEN envelope linked to record
+            TPEN envelope project created
+        </deer-view-x>
+    </pre> -->
 
     <gm-footer>
         <a href="./index.html">🏠</a>
@@ -59,6 +95,35 @@ TPEN envelope project created</deer-view-x></pre>
         function broadcast(event = {}, type, element, obj = {}) {
             let e = new CustomEvent(type, { detail: Object.assign(obj, { target: event.target }), bubbles: true })
             element.dispatchEvent(e)
+        }
+
+        function determineStatuses(){
+            const statusEndpoint = "/getStatus?status="
+            let statusesToFind = statusList.querySelectorAll(".statusValue").map(elem => {
+                return elem.getAttribute("id")
+            })
+            let statusPromises = statusToFind.map(status => {
+                return fetch(statusEndpoint+status)
+                // .then(s => {
+
+                // })
+                // catch(e =>{
+                //     return e
+                // })
+            })
+            Promise.all(statusPromises)
+            .then(statusResult => {
+                if (statusResult.ok){
+                    return statusResult.json()
+                }
+                else{
+                    //?
+                }
+            })
+            .then(statusJson => {
+                // will have which status it was in the return
+                document.getElementById(statusJson.which).innerHTML = statusJson.message
+            })
         }
     </script>
 </body>
