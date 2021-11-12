@@ -15,7 +15,7 @@
             <a href="./ms.html" id="thisMS" class="is-hidden">📖 This Manuscript</a>
         </div>
     </gm-header>
-    <div class="itemStatus">
+    <div class="itemStatusRenderingExample">
         <ul id="statusList">
             <li>
                 <label class="statusLabel"> TPEN project parsed </label>
@@ -103,8 +103,6 @@
             //A list of TPEN projects?
             //A list of DLA RERUM entities?
             let listOfThings = [] // /getDunbarProjects or something
-            
-
             listOfThings.forEach(thing =>{
                 //Each thing will have this suite of statuses to check for
                 let statusesToFind = [
@@ -119,10 +117,12 @@
                     "linkedStatus",
                     "envelopeStatus"
                 ]
+                //TODO Generate a ul element to track the statuses for this entity
 
                 //METHOD 1
                 //Request endpoints one at a time
                 statusesToFind.forEach(status => {
+                    //Generate a list element for this status
                     let statusEndpoint = "/getStatus?status="+status //use tinyPaul for this
                     await fetch(statusEndpoint)
                     .then(statusResult => {
@@ -136,11 +136,10 @@
                         }
                     })
                     .then(statusJson => {
-                        // will have which status it was in the return
-                        document.getElementById(status).innerHTML = statusJson.message
+                        //TODO create the li element for this status
                     })
                     .catch(err => {
-                        document.getElementById(status).innerHTML = statusJson.error
+                        //TODO create the li element for this status determination error
                     })
                 })
                 
@@ -149,7 +148,6 @@
                 let statusPromises = statusesToFind.map(status => {
                     let statusEndpoint = "/getStatus?status="+status //use tinyPaul for this
                     return fetch(statusEndpoint)
-                    //Process the responses one at a time
                     .then(statusResult => {
                         if (statusResult.ok){
                             //Store the JSON result
@@ -169,10 +167,10 @@
                 let statusResultsList = await Promise.all(statusPromises)
                 statusResultsList.forEach(statusJson =>{
                     if(statusJSON.hasOwnProperty("error")){
-                        document.getElementById(statusJson.which).innerHTML = statusJson.error
+                        //TODO create the li element for this status
                     }
                     else{
-                        document.getElementById(statusJson.which).innerHTML = statusJson.message
+                        //TODO create the li element for this status determination error
                     }
                 })
             })
