@@ -122,25 +122,26 @@
 
                 //METHOD 1
                 //Request endpoints one at a time
-                let statusEndpoint = "/getStatus?status="+status //use tinyPaul for this
-                await fetch(statusEndpoint)
-                //Process the responses one at a time
-                .then(statusResult => {
-                    if (statusResult.ok){
-                        //Store the JSON result
-                        return statusResult.json()
-                    }
-                    else{
-                        //Store a JSON result that is an Error object
-                        return {"error" : "boo hoo"}
-                    }
-                })
-                .then(statusJson => {
-                    // will have which status it was in the return
-                    document.getElementById(statusJson.which).innerHTML = statusJson.message
-                })
-                .catch(err => {
-                    // Hmm might be hard to know which one to populate with the error.
+                statusesToFind.forEach(status => {
+                    let statusEndpoint = "/getStatus?status="+status //use tinyPaul for this
+                    await fetch(statusEndpoint)
+                    .then(statusResult => {
+                        if (statusResult.ok){
+                            //JSON result
+                            return statusResult.json()
+                        }
+                        else{
+                            //Make a JSON error object
+                            return {"error" : "boo hoo"}
+                        }
+                    })
+                    .then(statusJson => {
+                        // will have which status it was in the return
+                        document.getElementById(status).innerHTML = statusJson.message
+                    })
+                    .catch(err => {
+                        document.getElementById(status).innerHTML = statusJson.error
+                    })
                 })
                 
                 //Method 2
@@ -156,26 +157,24 @@
                         }
                         else{
                             //Store a JSON result that is an Error object
-                            return {"error" : "boo hoo"}
+                            return {"which":status, "error" : "boo hoo"}
                         }
                     })
                     .catch(err => {
                         // Hmm might be hard to know which one to populate with the error.
-                        return {"error" : "boo hoo"}
+                        return {"which":status, "error" : "boo hoo"}
                     })
                 })
 
                 let statusResultsList = await Promise.all(statusPromises)
                 statusResultsList.forEach(statusJson =>{
                     if(statusJSON.hasOwnProperty("error")){
-                        // Hmm might be hard to know which one to populate with the error.
                         document.getElementById(statusJson.which).innerHTML = statusJson.error
                     }
                     else{
                         document.getElementById(statusJson.which).innerHTML = statusJson.message
                     }
                 })
-
             })
         }
     </script>
