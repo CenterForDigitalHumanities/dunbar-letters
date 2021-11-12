@@ -1,7 +1,7 @@
-const DEV = true // false or comment to turn off
+const DEV = false
 
 const baseV1 = DEV ? "http://devstore.rerum.io/":"http://store.rerum.io/"
-const tiny = DEV ? "http://tiny.rerum.io/app/":"http://tinypaul.rerum.io/dla/"
+const tiny = DEV ? "http://tinydev.rerum.io/app/":"http://tinypaul.rerum.io/dla/"
 
 export default {
     ID: "deer-id", // attribute, URI for resource to render

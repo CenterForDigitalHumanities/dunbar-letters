@@ -485,7 +485,7 @@ export default class DeerRender {
                 if (this.id) {
                     fetch(this.id).then(response => response.json()).then(obj => RENDER.element(this.elem, obj)).catch(err => err)
                 } else if (this.collection) {
-                    // Look not only for direct objects, but also collection annotations
+// Look not only for direct objects, but also collection annotations
                     // Only the most recent, do not consider history parent or children history nodes
                     let historyWildcard = { "$exists": true, "$size": 0 }
                     let queryObj = {
@@ -494,32 +494,47 @@ export default class DeerRender {
                         }, {
                             "body.targetCollection": this.collection
                         }, {
+                            "body.targetCollection.value": this.collection
+                        }, {
                             "body.partOf": this.collection
                         }],
                         "__rerum.history.next": historyWildcard
                     }
-                    fetch(DEER.URLS.QUERY, {
+                    const listObj = {
+                        name: this.collection,
+                        itemListElement: []
+                    }
+
+                    getPagedQuery.bind(this)(100)
+                    .then(()=>RENDER.element(this.elem, listObj))
+                    .catch(err=>{
+                        console.error("Broke with listObj at ",listObj)
+                        RENDER.element(this.elem, listObj)
+                    })
+
+                    function getPagedQuery(lim,it=0) {
+                        return fetch(`${DEER.URLS.QUERY}?limit=${lim}&skip=${it}`, {
                         method: "POST",
                         mode: "cors",
                         body: JSON.stringify(queryObj)
                     }).then(response => response.json())
-                        .then(pointers => {
-                            let list = []
-                            pointers.map(tc => list.push(fetch(tc.target || tc["@id"] || tc.id).then(response => response.json().catch(err => { __deleted: console.log(err) }))))
-                            return Promise.all(list).then(l => l.filter(i => !i.hasOwnProperty("__deleted")))
-                        })
+                        // .then(pointers => {
+                        //     let list = []
+                        //     pointers.map(tc => list.push(fetch(tc.target || tc["@id"] || tc.id).then(response => response.json().catch(err => { __deleted: console.log(err) }))))
+                        //     return Promise.all(list).then(l => l.filter(i => !i.hasOwnProperty("__deleted")))
+                        // })
                         .then(list => {
-                            let listObj = {
-                                name: this.collection,
-                                itemListElement: list
-                            }
+                            listObj.itemListElement = listObj.itemListElement.concat(list.map(anno=>({'@id':anno.target ?? anno["@id"] ?? anno.id})))
                             this.elem.setAttribute(DEER.LIST, "itemListElement")
                             try {
                                 listObj["@type"] = list[0]["@type"] || list[0].type || "ItemList"
                             } catch (err) { }
-                            RENDER.element(this.elem, listObj)
+                            // RENDER.element(this.elem, listObj)
+                            if(list.length ?? (list.length % lim === 0)) {
+                                return getPagedQuery.bind(this)(lim,it+list.length)
+                            }
                         })
-                }
+                    }                }
             }
         } catch (err) {
             let message = err

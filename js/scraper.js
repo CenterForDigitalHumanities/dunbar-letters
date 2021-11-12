@@ -2,7 +2,7 @@ import { default as DEER } from './deer-config.js'
 import pLimit from './plimit.js'
 
 const LOC = 'http://tinypaul.rerum.io/dla/proxy?url=https://udspace.udel.edu/rest/collections/599?expand=items&limit=800'
-const cacheLOC = 'media/udel.xml'
+const cacheLOC = 'media/udel.json'
 
 const DC_ROOT_ANNOTATION = {
     "@context": "http://www.w3.org/ns/anno.jsonld",
@@ -43,74 +43,87 @@ function extractItems(collection) {
     return itemArray
 }
 
+const limiter = pLimit(4)
+
 function drawItems(itemArray) {
     result.innerHTML = itemArray.reduce((a, b) => a += (`<div is="record" dla-handle="${b.handle}" title="${b.name}"><strong>name:</strong> <name>${b.name}</name> <strong>handle:</strong> <handle>${b.handle}</handle><result></result></div>`), ``)
     document.querySelectorAll("[is='record']").forEach(el => {
         const handle = `http://tinypaul.rerum.io/dla/proxy?url=https://udspace.udel.edu/rest/handle/${el.getAttribute("dla-handle")}`
-        fetch(`${handle}?expand=metadata`)
+        limiter(() => fetch(`${handle}?expand=metadata`)
             .then(res => res.ok ? res.json() : Promise.reject(res))
             .then(res => {
                 setMetadata(el, res.metadata)
                 el.querySelector("result").innerHTML = "fetched!"
             })
             .catch(err => console.error(err))
+        )
     })
-    return itemArray
+    return limiter
 }
 
 function saveItems() {
-    const limiter = pLimit(4)
     document.querySelectorAll("[is='record']").forEach(el => {
-        limiter(()=>hasRecord(el.metadata.url)
-        .then(existingData=>{
-
-            if(!existingData){
-                const anno = Object.assign({
-                target:el.metadata.url,
-                body: el.metadata
-            },DC_ROOT_ANNOTATION)
-            limiter(()=>fetch(DEER.URLS.CREATE, {
-                method: 'POST',
-                mode: 'cors',
-                body: JSON.stringify(anno)
-            })
-            .then(res => res.ok ? el.querySelector("result").innerHTML = "matched!" : Promise.reject(res))
-                .catch(err => console.error(err))
-                )
-                const record = Object.assign({
-                    label:el.metadata.title
-                },NEW_RECORD)
-                limiter(()=>fetch(DEER.URLS.CREATE,{
-                    method: 'POST',
-                    mode: 'cors',
-                    body: JSON.stringify(record)
-                }))
-                .then(res => res.ok ? res.headers.get("location") ?? res.headers.get("Location") : Promise.reject(res))
-                .then(loc=>{
-                    el.setAttribute("dla-id",loc)
-                    const handleAnno = Object.assign({
-                        target:el.metadata.url,
-                        body: {
-                            url: { value: loc }
-                        }
-                    },DC_ROOT_ANNOTATION)
-                    limiter(()=>fetch(DEER.URLS.CREATE, {
-                        method: 'POST',
-                        mode: 'cors',
-                        body: JSON.stringify(anno)
+        limiter(() => hasRecord(el.metadata.uri)
+            .then(existingData => {
+                if (existingData.length===0) {
+                    const record = Object.assign({
+                        label: el.metadata.title
+                    }, NEW_RECORD)
+                    limiter(() => {
+                        return fetch(DEER.URLS.CREATE, {
+                            method: 'POST',
+                            mode: 'cors',
+                            body: JSON.stringify(record)
+                        })
+                            .then(res => res.ok ? res.headers.get("location") ?? res.headers.get("Location") : Promise.reject(res))
+                            .then(loc => {
+                                el.setAttribute("dla-id", loc)
+                                const handleAnno = Object.assign({
+                                    target: loc,
+                                    body: {
+                                        source: {
+                                            value: el.metadata.uri,
+                                            format: "text/html"
+                                        }
+                                    }
+                                }, DC_ROOT_ANNOTATION)
+                                limiter(() => {
+                                    return fetch(DEER.URLS.CREATE, {
+                                        method: 'POST',
+                                        mode: 'cors',
+                                        body: JSON.stringify(handleAnno)
+                                    })
+                                        .then(res => res.ok ? el.querySelector("result").innerHTML = "created!" : Promise.reject(res))
+                                })
+                                const collectionAnno = Object.assign({
+                                    target: loc,
+                                    body: {
+                                        targetCollection: {
+                                            value: "Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar"
+                                        }
+                                    }
+                                }, DC_ROOT_ANNOTATION)
+                                limiter(() => {
+                                    return fetch(DEER.URLS.CREATE, {
+                                        method: 'POST',
+                                        mode: 'cors',
+                                        body: JSON.stringify(collectionAnno)
+                                    })
+                                        .then(res => res.ok ? el.querySelector("result").innerHTML = "created!" : Promise.reject(res))
+                                })
+                            })
+                            .catch(err => console.error(err))
                     })
-                })
-                .catch(err => console.error(err))
-            }
-            
-        })
-        })
-        return true
-        
-        async function hasRecord(handle){
+                }
+            })
+        )
+    })
+    return true
+
+    async function hasRecord(handle) {
         const historyWildcard = { $exists: true, $type: 'array', $eq: [] }
         const query = {
-            target: handle,
+            "body.source.value": handle,
             '__rerum.history.next': historyWildcard
         }
         return fetch(DEER.URLS.QUERY, {
@@ -118,8 +131,7 @@ function saveItems() {
             mode: 'cors',
             body: JSON.stringify(query)
         })
-        .then(res => res.ok ? res.json() : Promise.reject(res))
-        .then(results=>results.length>0)
+            .then(res => res.ok ? res.json() : Promise.reject(res))
     }
 }
 
@@ -141,4 +153,13 @@ function setMetadata(el, metadata) {
     })
 }
 
-fetchLetters(LOC)
+function getTranscriptionProjects(){
+    // you must log in first, dude
+    // fetch(`media/tpen.json`)
+    fetch(`http://165.134.105.25:8181/TPEN28/getDunbarProjects`)
+    .then(res=>res.ok?res.json():Promise.reject(res))
+    .then(list=>tpenned.innerHTML=list)
+}
+
+fetchLetters(cacheLOC)
+getTranscriptionProjects()
