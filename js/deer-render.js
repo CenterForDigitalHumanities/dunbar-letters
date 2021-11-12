@@ -13,7 +13,7 @@
 
 import { default as UTILS } from './deer-utils.js'
 import { default as config } from './deer-config.js'
-import { OpenSeadragon} from './openseadragon.js'
+import { OpenSeadragon } from './openseadragon.js'
 
 const changeLoader = new MutationObserver(renderChange)
 var DEER = config
@@ -190,11 +190,12 @@ DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
     return {
         html: obj['tpen:project'] ? `<div class="is-full-width"> <h3> ... loading preview ... </h3> </div>` : ``,
         then: (elem) => {
-            fetch("http://t-pen.org/TPEN/manifest/" + obj['tpen:project'].value)
-                .then(response => response.json())
-                .then(ms => elem.innerHTML = `
+            if (obj['tpen:project']) {
+                fetch("http://t-pen.org/TPEN/manifest/" + obj['tpen:project'].value)
+                    .then(response => response.json())
+                    .then(ms => elem.innerHTML = `
                 <style>
-                    printed {
+                printed {
                         font-family:serif;
                     }
                     note {
@@ -211,52 +212,70 @@ DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
                         display:block;
                         border-radius: 4px;
                     }
-                </style>
-                ${ms.sequences[0].canvases.slice(0, 10).reduce((a, b) => a += `
-                <div class="page">
+                    </style>
+                    ${ms.sequences[0].canvases.slice(0, 10).reduce((a, b) => a += `
+                    <div class="page">
                     <h3>${b.label}</h3> <a href="./layout.html#${ms['@id']}">(edit layout)</a>
                     <div class="pull-right col-6">
-                        <img src="${b.images[0].resource['@id']}">
+                    <img src="${b.images[0].resource['@id']}">
                     </div>
                     <div>
-                        ${
-                            b.otherContent[0].resources.reduce((aa, bb) => aa += 
-                                bb.resource["cnt:chars"].length 
-                                ? bb.resource["cnt:chars"].slice(-1)=='-' 
-                                    ? bb.resource["cnt:chars"].substring(0,bb.resource["cnt:chars"].length-1) 
-                                    : bb.resource["cnt:chars"]+' ' 
-                                : " <line class='empty col-6'></line> ",'')
+                        ${b.otherContent[0].resources.reduce((aa, bb) => aa +=
+                        bb.resource["cnt:chars"].length
+                            ? bb.resource["cnt:chars"].slice(-1) == '-'
+                                ? bb.resource["cnt:chars"].substring(0, bb.resource["cnt:chars"].length - 1)
+                                : bb.resource["cnt:chars"] + ' '
+                            : " <line class='empty col-6'></line> ", '')
                         }
-                    </div>
-                </div>
-                `, ``)}
-        `)
+                        </div>
+                        </div>
+                        `, ``)}
+                        `)
+            } else {
+                function getTranscriptionProjects() {
+                    // you must log in first, dude
+                    // fetch(`media/tpen.json`)
+                    fetch(`http://165.134.105.25:8181/TPEN28/getDunbarProjects`)
+                        .then(res => res.ok ? res.json() : Promise.reject(res))
+                        .then(list => matchTranscriptionRecords(list))
+                }
+
+                function matchTranscriptionRecords(list) {
+                    let projectList = ``
+                    const metadataUri = `http://tinypaul.rerum.io/dla/proxy?url=${obj.source?.value.replace('edu/handle',"edu/rest/handle")}?expand=metadata`
+                    fetch(metadataUri)
+                    .then(res=>res.ok?res.json():Promise.reject(res))
+                    .then(meta=>{
+
+                    })
+                }
+                getTranscriptionProjects()
+            }
         }
     }
-}
 
-DEER.TEMPLATES.osd = function(obj, options ={}) {
-    const imgURL = obj.sequences[0].canvases[options.index || 0].images[0].resource['@id']
-    return {
-        html: ``,
-        then: elem => {
+    DEER.TEMPLATES.osd = function (obj, options = {}) {
+        const imgURL = obj.sequences[0].canvases[options.index || 0].images[0].resource['@id']
+        return {
+            html: ``,
+            then: elem => {
                 OpenSeadragon({
-                    id:elem.id,
+                    id: elem.id,
                     tileSources: {
                         type: 'image',
-                        url:  imgURL,
+                        url: imgURL,
                         crossOriginPolicy: 'Anonymous',
                         ajaxWithCredentials: false
                     }
                 })
+            }
         }
     }
-}
 
-DEER.TEMPLATES.lines = function (obj, options = {}) {
-    let c = obj.sequences[0].canvases[options.index || 0]
-    return {
-        html: `
+    DEER.TEMPLATES.lines = function (obj, options = {}) {
+        let c = obj.sequences[0].canvases[options.index || 0]
+        return {
+            html: `
         <div class="page">
             <h3>${c.label}</h3>
             <div class="row">
@@ -305,60 +324,60 @@ DEER.TEMPLATES.lines = function (obj, options = {}) {
                 `, ``)}
         </div>
         `,
-        then: elem => {
-            const allLines = elem.getElementsByTagName("line")
-            for (const l of allLines) { l.addEventListener("click", selectLine) }
-            function selectLine(event) {
-                const lastClick = document.querySelector("line.just")
-                const line = event.target.closest("line")
-                const SHIFT = event.shiftKey
-                if (lastClick && SHIFT) {
-                    // band-select
-                    const change = lastClick.classList.contains("selected") // change is constant
-                        ? "add"
-                        : "remove"
-                    const lookNext = parseInt(lastClick.getAttribute("index")) < parseInt(line.getAttribute("index"))
-                        ? "nextElementSibling"
-                        : "previousElementSibling"
-                    let changeLine = lastClick
-                    do {
-                        changeLine = changeLine[lookNext]
-                        if(!changeLine.classList.contains("located")){
-                            changeLine.classList[change]("selected")
+            then: elem => {
+                const allLines = elem.getElementsByTagName("line")
+                for (const l of allLines) { l.addEventListener("click", selectLine) }
+                function selectLine(event) {
+                    const lastClick = document.querySelector("line.just")
+                    const line = event.target.closest("line")
+                    const SHIFT = event.shiftKey
+                    if (lastClick && SHIFT) {
+                        // band-select
+                        const change = lastClick.classList.contains("selected") // change is constant
+                            ? "add"
+                            : "remove"
+                        const lookNext = parseInt(lastClick.getAttribute("index")) < parseInt(line.getAttribute("index"))
+                            ? "nextElementSibling"
+                            : "previousElementSibling"
+                        let changeLine = lastClick
+                        do {
+                            changeLine = changeLine[lookNext]
+                            if (!changeLine.classList.contains("located")) {
+                                changeLine.classList[change]("selected")
+                            }
+                        } while (changeLine !== line)
+                    } else {
+                        if (!line.classList.contains("located")) {
+                            line.classList.toggle("selected")
                         }
-                    } while (changeLine !== line)
-                } else {
-                    if(!line.classList.contains("located")){
-                        line.classList.toggle("selected")
+                    }
+                    if (lastClick) { lastClick.classList.remove("just") }
+                    if (!line.classList.contains("located")) {
+                        line.classList.add("just")
                     }
                 }
-                if (lastClick) { lastClick.classList.remove("just") }
-                if(!line.classList.contains("located")){
-                    line.classList.add("just")
+                const controls = elem.querySelectorAll("a.tag")
+                for (const b of controls) {
+                    b.addEventListener("click", e => {
+                        const change = e.target.getAttribute("data-change")
+                        Array.from(allLines).filter(el => !el.classList.contains("located")).forEach(l => { l.classList[change]("selected"); l.classList.remove("just") })
+                    })
                 }
-            }
-            const controls = elem.querySelectorAll("a.tag")
-            for (const b of controls) {
-                b.addEventListener("click",e=>{
-                    const change = e.target.getAttribute("data-change")
-                    Array.from(allLines).filter(el=>!el.classList.contains("located")).forEach(l=>{l.classList[change]("selected");l.classList.remove("just")})
-                })
-            }
-            const locations = elem.querySelectorAll("a.gloss-location")
-            for (const l of locations) {
-                l.addEventListener("click",e=>{
-                    const assignment= e.target.getAttribute("data-change")
-                    const selected = elem.querySelectorAll(".selected")
-                    for (const s of selected) {
-                        s.classList.add("located", assignment.split(/\s/).reduce((response,word)=> response+=word.slice(0,1),''))
-                        s.classList.remove("just", "selected")
-                    }
-                })
+                const locations = elem.querySelectorAll("a.gloss-location")
+                for (const l of locations) {
+                    l.addEventListener("click", e => {
+                        const assignment = e.target.getAttribute("data-change")
+                        const selected = elem.querySelectorAll(".selected")
+                        for (const s of selected) {
+                            s.classList.add("located", assignment.split(/\s/).reduce((response, word) => response += word.slice(0, 1), ''))
+                            s.classList.remove("just", "selected")
+                        }
+                    })
+                }
             }
         }
     }
 }
-
 /**
  * The TEMPLATED renderer to draw an JSON to the screen as some HTML template
  * @param {Object} obj some json of type Entity to be drawn
@@ -485,7 +504,7 @@ export default class DeerRender {
                 if (this.id) {
                     fetch(this.id).then(response => response.json()).then(obj => RENDER.element(this.elem, obj)).catch(err => err)
                 } else if (this.collection) {
-// Look not only for direct objects, but also collection annotations
+                    // Look not only for direct objects, but also collection annotations
                     // Only the most recent, do not consider history parent or children history nodes
                     let historyWildcard = { "$exists": true, "$size": 0 }
                     let queryObj = {
@@ -506,35 +525,36 @@ export default class DeerRender {
                     }
 
                     getPagedQuery.bind(this)(100)
-                    .then(()=>RENDER.element(this.elem, listObj))
-                    .catch(err=>{
-                        console.error("Broke with listObj at ",listObj)
-                        RENDER.element(this.elem, listObj)
-                    })
-
-                    function getPagedQuery(lim,it=0) {
-                        return fetch(`${DEER.URLS.QUERY}?limit=${lim}&skip=${it}`, {
-                        method: "POST",
-                        mode: "cors",
-                        body: JSON.stringify(queryObj)
-                    }).then(response => response.json())
-                        // .then(pointers => {
-                        //     let list = []
-                        //     pointers.map(tc => list.push(fetch(tc.target || tc["@id"] || tc.id).then(response => response.json().catch(err => { __deleted: console.log(err) }))))
-                        //     return Promise.all(list).then(l => l.filter(i => !i.hasOwnProperty("__deleted")))
-                        // })
-                        .then(list => {
-                            listObj.itemListElement = listObj.itemListElement.concat(list.map(anno=>({'@id':anno.target ?? anno["@id"] ?? anno.id})))
-                            this.elem.setAttribute(DEER.LIST, "itemListElement")
-                            try {
-                                listObj["@type"] = list[0]["@type"] || list[0].type || "ItemList"
-                            } catch (err) { }
-                            // RENDER.element(this.elem, listObj)
-                            if(list.length ?? (list.length % lim === 0)) {
-                                return getPagedQuery.bind(this)(lim,it+list.length)
-                            }
+                        .then(() => RENDER.element(this.elem, listObj))
+                        .catch(err => {
+                            console.error("Broke with listObj at ", listObj)
+                            RENDER.element(this.elem, listObj)
                         })
-                    }                }
+
+                    function getPagedQuery(lim, it = 0) {
+                        return fetch(`${DEER.URLS.QUERY}?limit=${lim}&skip=${it}`, {
+                            method: "POST",
+                            mode: "cors",
+                            body: JSON.stringify(queryObj)
+                        }).then(response => response.json())
+                            // .then(pointers => {
+                            //     let list = []
+                            //     pointers.map(tc => list.push(fetch(tc.target || tc["@id"] || tc.id).then(response => response.json().catch(err => { __deleted: console.log(err) }))))
+                            //     return Promise.all(list).then(l => l.filter(i => !i.hasOwnProperty("__deleted")))
+                            // })
+                            .then(list => {
+                                listObj.itemListElement = listObj.itemListElement.concat(list.map(anno => ({ '@id': anno.target ?? anno["@id"] ?? anno.id })))
+                                this.elem.setAttribute(DEER.LIST, "itemListElement")
+                                try {
+                                    listObj["@type"] = list[0]["@type"] || list[0].type || "ItemList"
+                                } catch (err) { }
+                                // RENDER.element(this.elem, listObj)
+                                if (list.length ?? (list.length % lim === 0)) {
+                                    return getPagedQuery.bind(this)(lim, it + list.length)
+                                }
+                            })
+                    }
+                }
             }
         } catch (err) {
             let message = err

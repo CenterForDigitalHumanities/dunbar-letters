@@ -117,6 +117,23 @@ function saveItems() {
                 }
             })
         )
+        limiter(()=>{
+            return hasMetadata("identifier")
+            .then(annos=>{
+                if(annos?.length === 0) {
+                    const anno = Object.assign({
+                        target: el.metadata.uri,
+                        body: []
+                    }, DC_ROOT_ANNOTATION)
+                    Object.entries(el.metadata).forEach((m)=>{
+                        anno.body.push({
+                            [m[0]]:m[1]
+                        })
+                    })
+                    console.log(anno,el.metadata.uri)
+                }
+            })
+        })
     })
     return true
 
@@ -130,6 +147,17 @@ function saveItems() {
             method: 'POST',
             mode: 'cors',
             body: JSON.stringify(query)
+        })
+            .then(res => res.ok ? res.json() : Promise.reject(res))
+    }
+
+    async function hasMetadata(key) {
+        const historyWildcard = { $exists: true, $type: 'array', $eq: [] }
+        const query = `{"body.${key}.value":{"$exists":true},"__rerum.history.next": "${historyWildcard}"}`
+        return fetch(DEER.URLS.QUERY, {
+            method: 'POST',
+            mode: 'cors',
+            body: query
         })
             .then(res => res.ok ? res.json() : Promise.reject(res))
     }
@@ -155,8 +183,8 @@ function setMetadata(el, metadata) {
 
 function getTranscriptionProjects(){
     // you must log in first, dude
-    // fetch(`media/tpen.json`)
-    fetch(`http://165.134.105.25:8181/TPEN28/getDunbarProjects`)
+    fetch(`media/tpen.json`)
+    // fetch(`http://165.134.105.25:8181/TPEN28/getDunbarProjects`)
     .then(res=>res.ok?res.json():Promise.reject(res))
     .then(list=>tpenned.innerHTML=list)
 }
