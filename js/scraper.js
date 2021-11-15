@@ -117,23 +117,6 @@ function saveItems() {
                 }
             })
         )
-        limiter(()=>{
-            return hasMetadata("identifier")
-            .then(annos=>{
-                if(annos?.length === 0) {
-                    const anno = Object.assign({
-                        target: el.metadata.uri,
-                        body: []
-                    }, DC_ROOT_ANNOTATION)
-                    Object.entries(el.metadata).forEach((m)=>{
-                        anno.body.push({
-                            [m[0]]:m[1]
-                        })
-                    })
-                    console.log(anno,el.metadata.uri)
-                }
-            })
-        })
     })
     return true
 
@@ -151,16 +134,36 @@ function saveItems() {
             .then(res => res.ok ? res.json() : Promise.reject(res))
     }
 
-    async function hasMetadata(key) {
-        const historyWildcard = { $exists: true, $type: 'array', $eq: [] }
-        const query = `{"body.${key}.value":{"$exists":true},"__rerum.history.next": "${historyWildcard}"}`
-        return fetch(DEER.URLS.QUERY, {
-            method: 'POST',
-            mode: 'cors',
-            body: query
-        })
-            .then(res => res.ok ? res.json() : Promise.reject(res))
-    }
+}
+async function hasMetadata(handle) {
+    const historyWildcard = { $exists: true, $type: 'array', $eq: [] }
+    const query = `{"target":"${handle}","body.value":{"$exists":true},"__rerum.history.next": "${historyWildcard}"}`
+    return fetch(DEER.URLS.QUERY, {
+        method: 'POST',
+        mode: 'cors',
+        body: query
+    })
+        .then(res => res.ok ? res.json() : Promise.reject(res))
+}
+
+function saveMetadata(el) {
+        const handle = el.metadata.uri    
+        limiter(()=>{
+          return hasMetadata(handle)
+          .then(annos=>{
+              if(annos?.length === 0) {
+                  const anno = Object.assign({
+                      target: el.metadata.uri,
+                      body: Object.entries(el.metadata).map((m)=>({[m[0]]:m[1]}))
+                  }, DC_ROOT_ANNOTATION)
+                  return fetch(DEER.URLS.CREATE,{
+                      method: 'POST',
+                      mode: 'cors',
+                      body: JSON.stringify(anno)
+                  }).then(res=>res.ok ? el.querySelector("result").innerHTML = "created!" : Promise.reject(res))
+              }
+          })
+      })
 }
 
 function setMetadata(el, metadata) {
@@ -179,6 +182,7 @@ function setMetadata(el, metadata) {
         }
         el.metadata[key] = data.value
     })
+    saveMetadata(el)
 }
 
 function getTranscriptionProjects(){
