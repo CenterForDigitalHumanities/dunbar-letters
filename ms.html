@@ -44,12 +44,14 @@
             <label class="col-3 col-2-md text-right">notes:</label>
             <input type="text" deer-key="notes" placeholder="notes" class="col-9 col-4-md">
         </div>
+        <deer-view id="externalData" deer-template="shadow"></deer-view>
         <input type="submit" value="update" class="col">
         <a href="./manuscripts.html" onclick="deleteThis(event)" class="text-error">Drop from collection</a>
     </form>
 
-    <pre id="externalData"></pre>
-    <p class="col">Original catalog record: <deer-view id="catalogLink" deer-template="linky" deer-key="url"></deer-view></p>
+    <p class="col">Original catalog record: <deer-view id="catalogLink" deer-template="linky" deer-key="url">
+        </deer-view>
+    </p>
     <deer-view class="col" id="thumbroll" deer-template="thumbs" deer-id=""></deer-view>
     <deer-view id="previewTranscription" deer-template="folioTranscription"></deer-view>
 
@@ -75,9 +77,12 @@
             const msid = window.location.hash.substr(1)
                 ;[catalogLink, letter, thumbroll, previewTranscription].forEach(el => el.setAttribute("deer-id", msid))
             const externals = document.addEventListener('deer-loaded', (event) => {
+                if (externalData.getAttribute('deer-id')) { return document.removeEventListener('deer-loaded', externals) }
                 if (event?.detail?.url?.value) {
                     const handlUrl = new URL(event.detail.url.value)
-                    loadUDelMetadata(handlUrl.pathname)
+                    externalData.setAttribute('deer-link',handlUrl)
+                    externalData.setAttribute('deer-id','/')
+                    // loadUDelMetadata(handlUrl.pathname)
                     document.removeEventListener('deer-loaded', externals)
                 }
             })
@@ -98,20 +103,35 @@
             }
         }
         async function loadUDelMetadata(handle) {
-            const url = `https://udspace.udel.edu/rest${handle}?expand=metadata`
-            const xmlItem = await fetch(url)
-                .then(res => res.ok ? res : Promise.reject(res))
-                .catch((err) => {
-                    if (err.status >= 500) {
-                        return `<p class="error">Server error: ${err.status}</p>`
-                    }
-                    if (err.status >= 400) {
-                        return `<p class="error">Content error: ${err.status}, ${err.statusText}</p>`
-                    }
-                    return `<p>Probable CORS error. <a target="_blank" href="${url}">View remote resource metadata in new tab</a>.</p>`
+            const historyWildcard = { "$exists": true, "$size": 0 }
+            const uDelData = {
+                target: handle,
+                "__rerum.history.next": historyWildcard
+            }
+            fetch(DEER.URLS.QUERY, {
+                method: "POST",
+                mode: "cors",
+                body: JSON.stringify(uDelData)
+            }).then(response => response.ok ? response.json() : Promise.reject(response))
+                .then(data => {
+                    externalData.innerHTML = data
                 })
-            externalData.innerHTML = xmlItem
         }
+        // async function loadUDelMetadata(handle) {
+        //     const url = `https://udspace.udel.edu/rest${handle}?expand=metadata`
+        //     const xmlItem = await fetch(url)
+        //         .then(res => res.ok ? res : Promise.reject(res))
+        //         .catch((err) => {
+        //             if (err.status >= 500) {
+        //                 return `<p class="error">Server error: ${err.status}</p>`
+        //             }
+        //             if (err.status >= 400) {
+        //                 return `<p class="error">Content error: ${err.status}, ${err.statusText}</p>`
+        //             }
+        //             return `<p>Probable CORS error. <a target="_blank" href="${url}">View remote resource metadata in new tab</a>.</p>`
+        //         })
+        //     externalData.innerHTML = xmlItem
+        // }
     </script>
 </body>
 
