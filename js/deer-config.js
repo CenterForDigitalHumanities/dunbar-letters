@@ -1,3 +1,8 @@
+const DEV = true // false or comment to turn off
+
+const baseV1 = DEV ? "http://devstore.rerum.io/":"http://store.rerum.io/"
+const tiny = DEV ? "http://tinydev.rerum.io/app/":"http://tinypaul.rerum.io/dla/"
+
 export default {
     ID: "deer-id", // attribute, URI for resource to render
     TYPE: "deer-type", // attribute, JSON-LD @type
@@ -24,12 +29,12 @@ export default {
     PRIMITIVES: [],
 
     URLS: {
-        BASE_ID: "http://devstore.rerum.io/v1",
-        CREATE: "http://tinydev.rerum.io/app/create",
-        UPDATE: "http://tinydev.rerum.io/app/update",
-        OVERWRITE: "http://tinydev.rerum.io/app/overwrite",
-        QUERY: "http://tinydev.rerum.io/app/query",
-        SINCE: "http://devstore.rerum.io/v1/since"
+        BASE_ID: baseV1,
+        CREATE: tiny+"create",
+        UPDATE: tiny+"update",
+        OVERWRITE: tiny+"overwrite",
+        QUERY: tiny+"query",
+        SINCE: baseV1+"since"
     },
 
     EVENTS: {
