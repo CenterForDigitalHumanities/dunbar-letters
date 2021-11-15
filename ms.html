@@ -22,11 +22,7 @@
             <label class="col-3 col-2-md text-right">Label:</label>
             <input type="text" deer-key="name" placeholder="Convenient Label for Humans" class="col-9 col-10-md">
             <label class="col-3 col-2-md text-right">Title:</label>
-            <input type="text" deer-key="title" placeholder="Catalog Title" class="col-9 col-10-md">
-            <label class="col-3 col-2-md text-right">Repository:</label>
-            <input type="text" deer-key="Repository" placeholder="Repository" class="col-9 col-4-md">
-            <label class="col-3 col-2-md text-right">Shelfmark:</label>
-            <input type="text" deer-key="identifier" placeholder="Shelfmark" class="col-9 col-4-md">
+            <input type="text" deer-key="label" placeholder="Catalog Title" class="col-9 col-10-md">
             <label class="col-3 col-2-md text-right">Date:</label>
             <input type="date" deer-key="date" placeholder="Enter year" min="1880-01-01" max="1906-02-07"
                 class="col-9 col-4-md">
@@ -35,11 +31,11 @@
             <label class="col-3 col-2-md text-right">City Whither:</label>
             <input type="text" deer-key="toLocation" placeholder="to City" class="col-9 col-4-md">
             <label class="col-3 col-2-md text-right">URL:</label>
-            <input type="text" deer-key="url" placeholder="Record View" class="col-9 col-4-md">
+            <input type="text" deer-key="source" placeholder="Record View" class="col-9 col-4-md">
 
-            <label class="col-3 col-2-md text-right">Base Project: <a deer-key="tpen:project" target="_blank"
+            <label class="col-3 col-2-md text-right">Base Project: <a deer-key="tpenProject" target="_blank"
                     href="">transcribe</a></label>
-            <input id="baseProject" type="text" deer-key="tpen:project" placeholder="Base Project ID"
+            <input id="baseProject" type="text" deer-key="transcription" placeholder="TPEN Base Project ID"
                 class="col-9 col-4-md">
             <label class="col-3 col-2-md text-right">notes:</label>
             <input type="text" deer-key="notes" placeholder="notes" class="col-9 col-4-md">
@@ -78,8 +74,8 @@
                 ;[catalogLink, letter, thumbroll, previewTranscription].forEach(el => el.setAttribute("deer-id", msid))
             const externals = document.addEventListener('deer-loaded', (event) => {
                 if (externalData.getAttribute('deer-id')) { return document.removeEventListener('deer-loaded', externals) }
-                if (event?.detail?.url?.value) {
-                    const handlUrl = new URL(event.detail.url.value)
+                if (event?.detail?.source?.value) {
+                    const handlUrl = new URL(event.detail.source.value)
                     externalData.setAttribute('deer-link',handlUrl)
                     externalData.setAttribute('deer-id','/')
                     // loadUDelMetadata(handlUrl.pathname)
