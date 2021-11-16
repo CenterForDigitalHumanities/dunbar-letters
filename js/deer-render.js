@@ -186,14 +186,30 @@ DEER.TEMPLATES.pageLinks = function (obj, options = {}) {
     return obj.sequences[0].canvases.reduce((a, b, i) => a += `<a class="button" href="?page=${i + 1}#${obj["@id"]}">${b.label}</a>`, ``)
 }
 
+DEER.TEMPLATES.shadow = (obj,options={})=>{
+    return {
+        html:`goop`,
+        then:(elem)=>{
+            UTILS.findByTargetId(options.link)
+            .then(extData=> {
+                const props = extData?.pop().body
+                elem.innerHTML = `<div>
+                ${props.reduce((a,b)=>a+=`<label>${Object.keys(b)[0]}</label>: ${UTILS.getValue(Object.values(b)[0],"label")}<br>`,``)}
+                </div>`
+                
+            })
+        }
+    }
+}
+
 DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
     return {
         html: obj['tpen:project'] ? `<div class="is-full-width"> <h3> ... loading preview ... </h3> </div>` : ``,
         then: (elem) => {
-            if (obj['tpen:project']) {
-                fetch("http://t-pen.org/TPEN/manifest/" + obj['tpen:project'].value)
-                    .then(response => response.json())
-                    .then(ms => elem.innerHTML = `
+            if(!obj['tpen:project']?.value){ return false }
+            fetch("http://t-pen.org/TPEN/manifest/" + obj['tpen:project'].value)
+                .then(response => response.json())
+                .then(ms => elem.innerHTML = `
                 <style>
                 printed {
                         font-family:serif;
