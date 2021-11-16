@@ -1,4 +1,4 @@
-const DEV = false
+const DEV = true
 
 const baseV1 = DEV ? "http://devstore.rerum.io/":"http://store.rerum.io/"
 const tiny = DEV ? "http://tinydev.rerum.io/app/":"http://tinypaul.rerum.io/dla/"
