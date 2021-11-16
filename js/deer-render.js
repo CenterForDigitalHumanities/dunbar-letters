@@ -167,16 +167,16 @@ DEER.TEMPLATES.linky = function (obj, options = {}) {
 
 DEER.TEMPLATES.thumbs = function (obj, options = {}) {
     return {
-        html: obj["tpen://base-project"] ? `<div class="is-full-width"> <h3> ... loading images ... </h3> </div>` : ``,
+        html: obj["tpenProject"] ? `<div class="is-full-width"> <h3> ... loading images ... </h3> </div>` : ``,
         then: (elem) => {
             try {
-                fetch("http://t-pen.org/TPEN/manifest/" + obj["tpen://base-project"].value)
+                fetch("http://t-pen.org/TPEN/manifest/" + obj["tpenProject"].value)
                     .then(response => response.json())
                     .then(ms => elem.innerHTML = `
                     ${ms.sequences[0].canvases.slice(0, 10).reduce((a, b) => a += `<img class="thumbnail" src="${b.images[0].resource['@id']}">`, ``)}
             `)
             } catch {
-                console.log(`No images loaded for transcription project: ${obj["tpen://base-project"]?.value}`)
+                console.log(`No images loaded for transcription project: ${obj["tpenProject"]?.value}`)
             }
         }
     }
@@ -186,30 +186,30 @@ DEER.TEMPLATES.pageLinks = function (obj, options = {}) {
     return obj.sequences[0].canvases.reduce((a, b, i) => a += `<a class="button" href="?page=${i + 1}#${obj["@id"]}">${b.label}</a>`, ``)
 }
 
-DEER.TEMPLATES.shadow = (obj,options={})=>{
+DEER.TEMPLATES.shadow = (obj, options = {}) => {
     return {
-        html:`goop`,
-        then:(elem)=>{
+        html: `goop`,
+        then: (elem) => {
             UTILS.findByTargetId(options.link)
-            .then(extData=> {
-                const props = extData?.pop().body
-                elem.innerHTML = `<div>
-                ${props.reduce((a,b)=>a+=`<label>${Object.keys(b)[0]}</label>: ${UTILS.getValue(Object.values(b)[0],"label")}<br>`,``)}
+                .then(extData => {
+                    const props = extData?.pop().body
+                    elem.innerHTML = `<div>
+                ${props.reduce((a, b) => a += `<label>${Object.keys(b)[0]}</label>: ${UTILS.getValue(Object.values(b)[0], "label")}<br>`, ``)}
                 </div>`
-                
-            })
+
+                })
         }
     }
 }
 
 DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
     return {
-        html: obj['tpen:project'] ? `<div class="is-full-width"> <h3> ... loading preview ... </h3> </div>` : ``,
+        html: obj['tpenProject'] ? `<div class="is-full-width"> <h3> ... loading preview ... </h3> </div>` : ``,
         then: (elem) => {
-            if(!obj['tpen:project']?.value){ return false }
-            fetch("http://t-pen.org/TPEN/manifest/" + obj['tpen:project'].value)
-                .then(response => response.json())
-                .then(ms => elem.innerHTML = `
+            if (obj['tpenProject']) {
+                fetch("http://t-pen.org/TPEN/manifest/" + obj['tpenProject'].value)
+                    .then(response => response.json())
+                    .then(ms => elem.innerHTML = `
                 <style>
                 printed {
                         font-family:serif;
@@ -248,6 +248,7 @@ DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
                         `, ``)}
                         `)
             } else {
+                if (!obj) { return false }
                 function getTranscriptionProjects() {
                     // you must log in first, dude
                     // fetch(`media/tpen.json`)
@@ -256,42 +257,58 @@ DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
                         .then(list => matchTranscriptionRecords(list))
                 }
 
-                function matchTranscriptionRecords(list) {
+                async function matchTranscriptionRecords(list) {
                     let projectList = ``
-                    const metadataUri = `http://tinypaul.rerum.io/dla/proxy?url=${obj.source?.value.replace('edu/handle',"edu/rest/handle")}?expand=metadata`
+                    const metadataUri = `http://tinypaul.rerum.io/dla/proxy?url=${obj.source?.value.replace('edu/handle', "edu/rest/handle")}?expand=metadata`
                     fetch(metadataUri)
-                    .then(res=>res.ok?res.json():Promise.reject(res))
-                    .then(meta=>{
+                        .then(res => res.ok ? res.json() : Promise.reject(res))
+                        .then(meta => getFolderFromMetadata(meta.metadata))
+                        .then(folderString => folderString.split(" F").pop()) // Like "Box 3, F4"
+                        .then(folderNumber => {
+                            const matchStr = `F${folderNumber.padStart(3, '0')}`
+                            let foundMsg = []
+                            for (const f of list) {
+                                if (f.collection_code === matchStr) { 
+                                    foundMsg.push(f.id) 
+                                }
+                            }
+                            alert(foundMsg.length ? `You are looking for at TPEN project ID ${foundMsg.join(", ")}.` : `No matches found.`)
+                        })
+                }
 
-                    })
+                const getFolderFromMetadata = (metaMap) => {
+                    for (const m of metaMap) {
+                        if (m.key === "dc.identifier.other") { return m.value }
+                    }
                 }
                 getTranscriptionProjects()
             }
         }
     }
+}
 
-    DEER.TEMPLATES.osd = function (obj, options = {}) {
-        const imgURL = obj.sequences[0].canvases[options.index || 0].images[0].resource['@id']
-        return {
-            html: ``,
-            then: elem => {
-                OpenSeadragon({
-                    id: elem.id,
-                    tileSources: {
-                        type: 'image',
-                        url: imgURL,
-                        crossOriginPolicy: 'Anonymous',
-                        ajaxWithCredentials: false
-                    }
-                })
-            }
+DEER.TEMPLATES.osd = function (obj, options = {}) {
+    const imgURL = obj.sequences[0].canvases[options.index || 0].images[0].resource['@id']
+    return {
+        html: ``,
+        then: elem => {
+            OpenSeadragon({
+                id: elem.id,
+                tileSources: {
+                    type: 'image',
+                    url: imgURL,
+                    crossOriginPolicy: 'Anonymous',
+                    ajaxWithCredentials: false
+                }
+            })
         }
     }
+}
 
-    DEER.TEMPLATES.lines = function (obj, options = {}) {
-        let c = obj.sequences[0].canvases[options.index || 0]
-        return {
-            html: `
+DEER.TEMPLATES.lines = function (obj, options = {}) {
+    let c = obj.sequences[0].canvases[options.index || 0]
+    return {
+        html: `
         <div class="page">
             <h3>${c.label}</h3>
             <div class="row">
@@ -340,56 +357,55 @@ DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
                 `, ``)}
         </div>
         `,
-            then: elem => {
-                const allLines = elem.getElementsByTagName("line")
-                for (const l of allLines) { l.addEventListener("click", selectLine) }
-                function selectLine(event) {
-                    const lastClick = document.querySelector("line.just")
-                    const line = event.target.closest("line")
-                    const SHIFT = event.shiftKey
-                    if (lastClick && SHIFT) {
-                        // band-select
-                        const change = lastClick.classList.contains("selected") // change is constant
-                            ? "add"
-                            : "remove"
-                        const lookNext = parseInt(lastClick.getAttribute("index")) < parseInt(line.getAttribute("index"))
-                            ? "nextElementSibling"
-                            : "previousElementSibling"
-                        let changeLine = lastClick
-                        do {
-                            changeLine = changeLine[lookNext]
-                            if (!changeLine.classList.contains("located")) {
-                                changeLine.classList[change]("selected")
-                            }
-                        } while (changeLine !== line)
-                    } else {
-                        if (!line.classList.contains("located")) {
-                            line.classList.toggle("selected")
+        then: elem => {
+            const allLines = elem.getElementsByTagName("line")
+            for (const l of allLines) { l.addEventListener("click", selectLine) }
+            function selectLine(event) {
+                const lastClick = document.querySelector("line.just")
+                const line = event.target.closest("line")
+                const SHIFT = event.shiftKey
+                if (lastClick && SHIFT) {
+                    // band-select
+                    const change = lastClick.classList.contains("selected") // change is constant
+                        ? "add"
+                        : "remove"
+                    const lookNext = parseInt(lastClick.getAttribute("index")) < parseInt(line.getAttribute("index"))
+                        ? "nextElementSibling"
+                        : "previousElementSibling"
+                    let changeLine = lastClick
+                    do {
+                        changeLine = changeLine[lookNext]
+                        if (!changeLine.classList.contains("located")) {
+                            changeLine.classList[change]("selected")
                         }
-                    }
-                    if (lastClick) { lastClick.classList.remove("just") }
+                    } while (changeLine !== line)
+                } else {
                     if (!line.classList.contains("located")) {
-                        line.classList.add("just")
+                        line.classList.toggle("selected")
                     }
                 }
-                const controls = elem.querySelectorAll("a.tag")
-                for (const b of controls) {
-                    b.addEventListener("click", e => {
-                        const change = e.target.getAttribute("data-change")
-                        Array.from(allLines).filter(el => !el.classList.contains("located")).forEach(l => { l.classList[change]("selected"); l.classList.remove("just") })
-                    })
+                if (lastClick) { lastClick.classList.remove("just") }
+                if (!line.classList.contains("located")) {
+                    line.classList.add("just")
                 }
-                const locations = elem.querySelectorAll("a.gloss-location")
-                for (const l of locations) {
-                    l.addEventListener("click", e => {
-                        const assignment = e.target.getAttribute("data-change")
-                        const selected = elem.querySelectorAll(".selected")
-                        for (const s of selected) {
-                            s.classList.add("located", assignment.split(/\s/).reduce((response, word) => response += word.slice(0, 1), ''))
-                            s.classList.remove("just", "selected")
-                        }
-                    })
-                }
+            }
+            const controls = elem.querySelectorAll("a.tag")
+            for (const b of controls) {
+                b.addEventListener("click", e => {
+                    const change = e.target.getAttribute("data-change")
+                    Array.from(allLines).filter(el => !el.classList.contains("located")).forEach(l => { l.classList[change]("selected"); l.classList.remove("just") })
+                })
+            }
+            const locations = elem.querySelectorAll("a.gloss-location")
+            for (const l of locations) {
+                l.addEventListener("click", e => {
+                    const assignment = e.target.getAttribute("data-change")
+                    const selected = elem.querySelectorAll(".selected")
+                    for (const s of selected) {
+                        s.classList.add("located", assignment.split(/\s/).reduce((response, word) => response += word.slice(0, 1), ''))
+                        s.classList.remove("just", "selected")
+                    }
+                })
             }
         }
     }
