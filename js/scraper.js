@@ -33,7 +33,7 @@ function fetchLetters(collectionUri) {
         .then(res => res.ok ? res.json() : Promise.reject(res))
         .then(extractItems)
         .then(drawItems)
-        .then(saveItems)
+        // .then(saveItems)
         .catch(() => result.innerHTML = `Oh no, that's all wrong.`)
 }
 
@@ -182,7 +182,7 @@ function setMetadata(el, metadata) {
         }
         el.metadata[key] = data.value
     })
-    saveMetadata(el)
+    // saveMetadata(el)
 }
 
 function getTranscriptionProjects(){
