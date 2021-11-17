@@ -13,7 +13,6 @@
 
 import { default as UTILS } from './deer-utils.js'
 import { default as config } from './deer-config.js'
-import { OpenSeadragon } from './openseadragon.js'
 
 const changeLoader = new MutationObserver(renderChange)
 var DEER = config
@@ -150,7 +149,6 @@ DEER.TEMPLATES.label = function (obj, options = {}) {
         return null
     }
 }
-
 /**
  * Retreive the best label for object and return it formatted as HTML to be drawn.  
  * @param {Object} obj some obj to be labeled
@@ -283,24 +281,6 @@ DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
                 }
                 getTranscriptionProjects()
             }
-        }
-    }
-}
-
-DEER.TEMPLATES.osd = function (obj, options = {}) {
-    const imgURL = obj.sequences[0].canvases[options.index || 0].images[0].resource['@id']
-    return {
-        html: ``,
-        then: elem => {
-            OpenSeadragon({
-                id: elem.id,
-                tileSources: {
-                    type: 'image',
-                    url: imgURL,
-                    crossOriginPolicy: 'Anonymous',
-                    ajaxWithCredentials: false
-                }
-            })
         }
     }
 }

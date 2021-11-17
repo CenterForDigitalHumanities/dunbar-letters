@@ -1,7 +1,7 @@
 const DEV = true
 
-const baseV1 = DEV ? "http://devstore.rerum.io/":"http://store.rerum.io/"
-const tiny = DEV ? "http://tinydev.rerum.io/app/":"http://tinypaul.rerum.io/dla/"
+const baseV1 = DEV ? "http://devstore.rerum.io/" : "http://store.rerum.io/"
+const tiny = DEV ? "http://tinydev.rerum.io/app/" : "http://tinypaul.rerum.io/dla/"
 
 export default {
     ID: "deer-id", // attribute, URI for resource to render
@@ -30,11 +30,11 @@ export default {
 
     URLS: {
         BASE_ID: baseV1,
-        CREATE: tiny+"create",
-        UPDATE: tiny+"update",
-        OVERWRITE: tiny+"overwrite",
-        QUERY: tiny+"query",
-        SINCE: baseV1+"since"
+        CREATE: tiny + "create",
+        UPDATE: tiny + "update",
+        OVERWRITE: tiny + "overwrite",
+        QUERY: tiny + "query",
+        SINCE: baseV1 + "since"
     },
 
     EVENTS: {
@@ -43,8 +43,8 @@ export default {
         LOADED: "deer-loaded",
         NEW_VIEW: "deer-view",
         NEW_FORM: "deer-form",
-        VIEW_RENDERED : "deer-view-rendered",
-        FORM_RENDERED : "deer-form-rendered",
+        VIEW_RENDERED: "deer-view-rendered",
+        FORM_RENDERED: "deer-form-rendered",
         CLICKED: "deer-clicked"
     },
 
@@ -66,11 +66,77 @@ export default {
             if (options.list) {
                 tmpl += `<ul>`
                 obj[options.list].forEach((val, index) => {
-                    tmpl += `<li><a href="${options.link}${val['@id']}"><deer-view deer-id="${val["@id"]}" deer-template="label"></deer-view></a></li>`
+                    tmpl += `<li><a href="${options.link}${val['@id']}"><deer-view deer-id="${val["@id"]}" deer-template="label"></deer-view><deer-view deer-template="saveTPENlinks" deer-id="${val["@id"]}"> 0 </deer-view></a></li>`
                 })
                 tmpl += `</ul>`
             }
             return tmpl
+        },
+        saveTPENlinks: (obj, options = {}) => {
+
+            const DC_ROOT_ANNOTATION = {
+                "@context": "http://www.w3.org/ns/anno.jsonld",
+                "@type": "Annotation",
+                creator: "http://store.rerum.io/v1/id/618d4cfa50c86821e60b2cba",
+            }
+            const NEW_RECORD = {
+                "@context": "https://schema.org/docs/jsonldcontext.json",
+                "@type": "Text",
+                creator: "http://store.rerum.io/v1/id/618d4cfa50c86821e60b2cba",
+            }
+
+            const UTILS = importScripts('./deer-utils.js')
+            const pLimit = importScripts('./plimit.js')
+
+            return {
+                html: `<button role="button" class="addemup"></button>`,
+                then: elem => {
+                    elem.addEventListener('click', saveLink)
+                }
+            }
+
+
+            function saveLink(event) {
+                const target = event.target.closest("[deer-view]")
+                const projectIDs = event.target.getAttribute("tpen-projects")?.split("|")
+                const limiter = pLimit(4)
+
+                projectIDs.forEach((id, index) => {
+                    limiter(async () => {
+                        let t = index > 0 ? await fetc : target
+                    })
+                })
+            }
+
+            async function createCopy(id, projectID) {
+                let original = await fetch(baseV1 + "id/" + id).then(r => r.json()).then(entity => {
+                    return UTILS.expand(entity).then(expanded => {
+                        delete expanded.__rerum
+                        delete expanded['@id']
+                        delete entity.id
+                        return expanded
+                    })
+                })
+                const annoMap = {
+                    targetCollection: original.targetCollection,
+                    date: original.date,
+                    identifier: original.identifier,
+                    source: original.source,
+                    tpenProject: original.tpenProject
+                }
+
+                return limiter(() => {
+                    const anno = Object.assign({
+                        target: newID,
+                        body: Object.entries(el.metadata).map((m) => ({ [m[0]]: m[1] }))
+                    }, DC_ROOT_ANNOTATION)
+                    return fetch(tiny + "create", {
+                        method: 'POST',
+                        mode: 'cors',
+                        body: JSON.stringify(anno)
+                    }).catch(err => console.error(err))
+                })
+            }
         }
     },
     version: "alpha"
