@@ -135,9 +135,12 @@
                     let el, statusString
                     switch (status){
                         case "parsedStatus":
-                            statusString = "<span class='statusString' style='color:red;'>Not Parsed</span>"
-                            if(proj.numParsedLines > 5){
-                                statusString = "<span class='statusString' style='color:green;'>Parsed</span>"
+                            statusString = "<span class='statusString' style='color:green;'>Parsed</span>"
+                            proj.pages.forEach(page){
+                                if(page.numParsedLines < 5){
+                                    statusString = "<span title='See "+page.page_name+"' class='statusString' style='color:red;'>Not Parsed</span>"
+                                    break
+                                }
                             }
                             el =
                             `<li which="${status}">
@@ -157,9 +160,12 @@
                             </li>`   
                         break
                         case "transcribedStatus":
-                            statusString = "<span class='statusString' style='color:red;'>Not Transcribed</span>"
-                            if(proj.numTranscribedLines > 5){
-                                statusString = "<span class='statusString' style='color:green;'>Transcribed</span>"
+                            statusString = "<span class='statusString' style='color:green;'>Transcribed</span>"
+                            proj.pages.forEach(page){
+                                if(page.numTranscribedLines < 5){
+                                    statusString = "<span title='See "+page.page_name+"' class='statusString' style='color:red;'>Not Transcribed</span>"
+                                    break
+                                }
                             }
                             el =
                             `<li which="${status}">
