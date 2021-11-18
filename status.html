@@ -16,48 +16,15 @@
         </div>
     </gm-header>
     <div class="itemStatusRenderingExample">
-        <ul id="statusList">
-            <li>
-                <label class="statusLabel"> TPEN project parsed </label>
-                <div class="statusValue" id="parsedStatus">determining...</div>
-            </li>
-            <li>
-                <label class="statusLabel"> TPEN project assigned </label>
-                <div class="statusValue" id="assignedStatus">determining...</div>
-            </li>
-            <li>
-                <label class="statusLabel"> TPEN project transcribed </label>
-                <div class="statusValue" id="transcribedStatus">determining...</div>
-            </li>
-            <li>
-                <label class="statusLabel"> TPEN project proofed/finalized </label>
-                <div class="statusValue" id="finalizedStatus">determining...</div>
-            </li>
-            <li>
-                <label class="statusLabel"> DLA record minted </label>
-                <div class="statusValue" id="recordStatus">determining...</div>
-            </li>
-            <li>
-                <label class="statusLabel"> DLA record linked to Delaware </label>
-                <div class="statusValue" id="uDelLinkStatus">determining...</div>
-            </li>
-            <li>
-                <label class="statusLabel"> DLA record linked to TPEN </label>
-                <div class="statusValue" id="TPENLinkStatus">determining...</div>
-            </li>
-            <li>
-                <label class="statusLabel"> DLA record described </label>
-                <div class="statusValue" id="describedStatus" query=>determining...</div>
-            </li>
-            <li>
-                <label class="statusLabel">TPEN enveloped linked to record </label>
-                <div class="statusValue" id="linkedStatus">determining...</div>
-            </li>
-            <li>
-                <label class="statusLabel"> TPEN envelope project created </label>
-                <div class="statusValue" id="envelopeStatus">determining...</div>
-            </li>
-        </ul>
+        <input type="button" value="TPEN Project Statuses" onclick="determineStatusAgainstTPENProjects()" />
+        <input type="button" value="UDel Record Statuses" onclick="determineStatusAgainstDLArecords()" />
+        <input type="button" value="Combined Statuses" onclick="statuses()" />
+        
+        <h1>TPEN Project Centric Statuses</h1>
+        <div id="tpenProjectsStatusArea"> </div>
+
+        <h1>DLA Record Centric Statuses</h1>
+        <div id="dlaRecordsStatusArea"> </div>
     </div>
 <!--     <pre class="card bg-light">
         <deer-view-x id="frPreview" deer-template="entity">TPEN project created
@@ -92,8 +59,28 @@
     <script src="js/deer.js" type="module"></script>
     <script src="js/app.js" type="module"></script>
     <script>
-        const tpenProjects = []
-        const dlaRecords = []
+        const tpenProjects = getTranscriptionProjects()
+        const dlaRecords = getTranscriptionProjects("media/udel.json")
+
+        async function getTranscriptionProjects(){
+            fetch(`media/tpen.json`)
+            // fetch(`http://165.134.105.25:8181/TPEN28/getDunbarProjects`)
+            .then(res=>res.ok?res.json():Promise.reject(res))
+            .then(list=>tpenned.innerHTML=list)
+            .catch(err=> {
+                console.error(err)
+                return []
+            })
+        }
+
+        async function fetchLetters(collectionUri) {
+            return fetch(collectionUri)
+                .then(res => res.ok ? res.json() : [])
+                .catch(err=> {
+                    console.error(err)
+                    return []
+                })
+        }
 
 
         function broadcast(event = {}, type, element, obj = {}) {
@@ -101,84 +88,98 @@
             element.dispatchEvent(e)
         }
 
-        async function determineStatusesAgainstDLACollection(){
+        async function statuses(){
+            console.warn("Not Yet :(")
+            document.getElementById("dlaRecordsStatusArea").innerHTML = ""
+            document.getElementById("tpenProjectsStatusArea").innerHTML = ""
+        }
 
+        async function determineStatusesAgainstDLARecords(){
+            console.warn("Not Yet :(")
+            document.getElementById("dlaRecordsStatusArea").innerHTML = ""
+            dlaRecords.forEach(record =>{
+                //TODO
+            })
         }
 
         async function determineStatusesAgainstTPENProjects(){
-            let listOfThings = [] // /getDunbarProjects or something
-            listOfThings.forEach(thing =>{
+            document.getElementById("tpenProjectsStatusArea").innerHTML = ""
+            const statusesToFind = [
+                "parsedStatus",
+                "assignedStatus",
+                "transcribedStatus",
+                "finalizedStatus"
+                //"recordStatus",
+                //"uDelLinkStatus",
+                //"TPENLinkStatus",
+                //"describedStatus",
+                //"linkedStatus",
+                //"envelopeStatus"
+            ]
+            tpenProjects.forEach(proj =>{
                 //Each thing will have this suite of statuses to check for
-                let statusesToFind = [
-                    "parsedStatus",
-                    "assignedStatus",
-                    "transcribedStatus",
-                    "finalizedStatus",
-                    "recordStatus",
-                    "uDelLinkStatus",
-                    "TPENLinkStatus",
-                    "describedStatus",
-                    "linkedStatus",
-                    "envelopeStatus"
-                ]
-                //TODO Generate a ul element to track the statuses for this entity
+                //These are in the tpen objects
+                let projectArea = document.createElement("div")
+                projectArea.classList = "tpenProjectStatus"
 
-                //METHOD 1
-                //Request endpoints one at a time
-                statusesToFind.forEach(status => {
-                    //Generate a list element for this status
-                    let statusEndpoint = "/getStatus?status="+status //use tinyPaul for this
-                    await fetch(statusEndpoint)
-                    .then(statusResult => {
-                        if (statusResult.ok){
-                            //JSON result
-                            return statusResult.json()
-                        }
-                        else{
-                            //Make a JSON error object
-                            return {"error" : "boo hoo"}
-                        }
-                    })
-                    .then(statusJson => {
-                        //TODO create the li element for this status
-                    })
-                    .catch(err => {
-                        //TODO create the li element for this status determination error
-                    })
-                })
-                
-                //Method 2
-                //Generate an array of promises and Promise.all()
-                let statusPromises = statusesToFind.map(status => {
-                    let statusEndpoint = "/getStatus?status="+status //use tinyPaul for this
-                    return fetch(statusEndpoint)
-                    .then(statusResult => {
-                        if (statusResult.ok){
-                            //Store the JSON result
-                            return statusResult.json()
-                        }
-                        else{
-                            //Store a JSON result that is an Error object
-                            return {"which":status, "error" : "boo hoo"}
-                        }
-                    })
-                    .catch(err => {
-                        // Hmm might be hard to know which one to populate with the error.
-                        return {"which":status, "error" : "boo hoo"}
-                    })
-                })
+                let statusList = document.createElement("ul")
+                statusList.classList = "tpenProjectStatusList"
 
-                let statusResultsList = await Promise.all(statusPromises)
-                statusResultsList.forEach(statusJson =>{
-                    if(statusJSON.hasOwnProperty("error")){
-                        //TODO create the li element for this status
+                let projHeading = `<h3> ${proj.project_name} </h3>`
+                statusToFind.forEach(status => {
+                    let el, statusString
+                    switch (status){
+                        case "parsedStatus":
+                            statusString = "<span class='statusString' style='color:red;'>Not Parsed</span>"
+                            if(proj.numParsedLines > 5){
+                                statusString = "<span class='statusString' style='color:green;'>Parsed</span>"
+                            }
+                            el =
+                            `<li which="${status}">
+                                <label class="statusLabel" title="Check if there are more than 5 lines with width > 0"> TPEN project parsed </label>
+                                <div class="statusValue">${statusString}</div>
+                            </li>`                               
+                        break
+                        case "assignedStatus":
+                            statusString = `<span class='statusString' style='color:red;'>Not Assigned</span>`
+                            if(proj.assignees.length >= 1){
+                                statusString = `<span class='statusString' style='color:green;'>Assigned to ${proj.assignees.length} users </span>`
+                            }
+                            el =
+                            `<li which="${status}">
+                                <label class="statusLabel" title="Check if it is assigned to at least 1 user"> TPEN project parsed </label>
+                                <div class="statusValue">${statusString}</div>
+                            </li>`   
+                        break
+                        case "transcribedStatus":
+                            statusString = "<span class='statusString' style='color:red;'>Not Transcribed</span>"
+                            if(proj.numTranscribedLines > 5){
+                                statusString = "<span class='statusString' style='color:green;'>Transcribed</span>"
+                            }
+                            el =
+                            `<li which="${status}">
+                                <label class="statusLabel" title="Check if there are more than 5 lines with width > 0 that have text on each page"> TPEN project transcribed </label>
+                                <div class="statusValue">${statusString}</div>
+                            </li>`   
+                        break
+                        case "finalizedStatus":
+                            statusString = "<span class='statusString' style='color:red;'>Not Finalized</span>"
+                            if(proj.finalized === "true"){
+                                statusString = "<span class='statusString' style='color:green;'>Finalized</span>"
+                            }
+                            el =
+                            `<li which="${status}">
+                                <label class="statusLabel" title="If there are more than 5 parsed lines on each page, and each line contains text.  Logic performed in servlet and returns T/F."> TPEN project parsed </label>
+                                <div class="statusValue">${statusString}</div>
+                            </li>`   
+                        break
+                        default:
                     }
-                    else{
-                        //TODO create the li element for this status determination error
-                    }
+                    statusList.innerHTML += el
                 })
+                projectArea.innerHTML = projHeading + statusList
+                document.getElementById("tpenProjectsStatusArea").appendChild(projectArea)
             })
-        }
     </script>
 </body>
 
