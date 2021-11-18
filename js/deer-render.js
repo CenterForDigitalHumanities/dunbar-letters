@@ -494,6 +494,8 @@ export default class DeerRender {
                         }, {
                             "body.targetCollection": this.collection
                         }, {
+                            "body.targetCollection.value": this.collection
+                        }, {
                             "body.partOf": this.collection
                         }],
                         "__rerum.history.next": historyWildcard
