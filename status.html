@@ -16,8 +16,8 @@
         </div>
     </gm-header>
     <div class="itemStatusRenderingExample">
-        <input type="button" value="TPEN Project Statuses" onclick="determineStatusAgainstTPENProjects()" />
-        <input type="button" value="UDel Record Statuses" onclick="determineStatusAgainstDLArecords()" />
+        <input type="button" value="TPEN Project Statuses" onclick="determineStatusesAgainstTPENProjects()" />
+        <input type="button" value="UDel Record Statuses" onclick="determineStatusesAgainstDLARecords()" />
         <input type="button" value="Combined Statuses" onclick="statuses()" />
         
         <h1>TPEN Project Centric Statuses</h1>
@@ -59,23 +59,28 @@
     <script src="js/deer.js" type="module"></script>
     <script src="js/app.js" type="module"></script>
     <script>
-        const tpenProjects = getTranscriptionProjects()
-        const dlaRecords = getTranscriptionProjects("media/udel.json")
+        let tpenProjects = []
+        let dlaRecords = []
+        getTranscriptionProjects()
+        fetchLetters()
 
         async function getTranscriptionProjects(){
-            fetch(`media/tpen.json`)
+            tpenProjects =  await fetch(`media/tpen.json`)
             // fetch(`http://165.134.105.25:8181/TPEN28/getDunbarProjects`)
             .then(res=>res.ok?res.json():Promise.reject(res))
-            .then(list=>tpenned.innerHTML=list)
+            .then(projects=>{
+                return projects
+            })
             .catch(err=> {
                 console.error(err)
                 return []
             })
         }
 
-        async function fetchLetters(collectionUri) {
-            return fetch(collectionUri)
+        async function fetchLetters() {
+            dlaRecords = await fetch(`media/udel.json`)
                 .then(res => res.ok ? res.json() : [])
+                .then(records => {return records})
                 .catch(err=> {
                     console.error(err)
                     return []
@@ -125,8 +130,10 @@
                 let statusList = document.createElement("ul")
                 statusList.classList = "tpenProjectStatusList"
 
-                let projHeading = `<h3> ${proj.project_name} </h3>`
-                statusToFind.forEach(status => {
+                let projHeading = document.createElement("h3")
+                projHeading.innerHTML = proj.id+": "+proj.project_name
+
+                statusesToFind.forEach(status => {
                     let el, statusString
                     switch (status){
                         case "parsedStatus":
@@ -136,7 +143,7 @@
                             }
                             el =
                             `<li which="${status}">
-                                <label class="statusLabel" title="Check if there are more than 5 lines with width > 0"> TPEN project parsed </label>
+                                <label class="statusLabel" title="Check if there are more than 5 lines with width > 0"> TPEN Project Parsed </label>
                                 <div class="statusValue">${statusString}</div>
                             </li>`                               
                         break
@@ -147,7 +154,7 @@
                             }
                             el =
                             `<li which="${status}">
-                                <label class="statusLabel" title="Check if it is assigned to at least 1 user"> TPEN project parsed </label>
+                                <label class="statusLabel" title="Check if it is assigned to at least 1 user"> TPEN Project Assigned </label>
                                 <div class="statusValue">${statusString}</div>
                             </li>`   
                         break
@@ -177,9 +184,11 @@
                     }
                     statusList.innerHTML += el
                 })
-                projectArea.innerHTML = projHeading + statusList
+                projectArea.appendChild(projHeading)
+                projectArea.appendChild(statusList)
                 document.getElementById("tpenProjectsStatusArea").appendChild(projectArea)
             })
+        }
     </script>
 </body>
 
