@@ -60,17 +60,15 @@
     <script src="js/app.js" type="module"></script>
     <script>
         let tpenProjects = []
-        let dlaRecords = []
+        let dlaLettersCollection = []
         getTranscriptionProjects()
         fetchLetters()
 
         async function getTranscriptionProjects(){
             tpenProjects =  await fetch(`media/tpen.json`)
             // fetch(`http://165.134.105.25:8181/TPEN28/getDunbarProjects`)
-            .then(res=>res.ok?res.json():Promise.reject(res))
-            .then(projects=>{
-                return projects
-            })
+            .then(res=>res.ok?res.json():[])
+            .then(projects=>{return projects})
             .catch(err=> {
                 console.error(err)
                 return []
@@ -78,7 +76,7 @@
         }
 
         async function fetchLetters() {
-            dlaRecords = await fetch(`media/udel.json`)
+            dlaLettersCollection = await fetch(`media/udel.json`)
                 .then(res => res.ok ? res.json() : [])
                 .then(records => {return records})
                 .catch(err=> {
@@ -102,7 +100,7 @@
         async function determineStatusesAgainstDLARecords(){
             console.warn("Not Yet :(")
             document.getElementById("dlaRecordsStatusArea").innerHTML = ""
-            dlaRecords.forEach(record =>{
+            dlaLettersCollection.items.forEach(record =>{
                 //TODO
             })
         }
@@ -165,7 +163,7 @@
                             }
                             el =
                             `<li which="${status}">
-                                <label class="statusLabel" title="Check if there are more than 5 lines with width > 0 that have text on each page"> TPEN project transcribed </label>
+                                <label class="statusLabel" title="Check if there are more than 5 lines with width > 0 that have text on each page"> TPEN Project Transcribed </label>
                                 <div class="statusValue">${statusString}</div>
                             </li>`   
                         break
@@ -176,11 +174,12 @@
                             }
                             el =
                             `<li which="${status}">
-                                <label class="statusLabel" title="If there are more than 5 parsed lines on each page, and each line contains text.  Logic performed in servlet and returns T/F."> TPEN project parsed </label>
+                                <label class="statusLabel" title="If there are more than 5 parsed lines on each page, and every line contains text.  Logic performed in servlet and returns T/F."> TPEN Project Finalized </label>
                                 <div class="statusValue">${statusString}</div>
                             </li>`   
                         break
                         default:
+                            console.error("Uknown status "+status)
                     }
                     statusList.innerHTML += el
                 })
