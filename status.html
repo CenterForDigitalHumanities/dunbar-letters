@@ -136,12 +136,12 @@
                     switch (status){
                         case "parsedStatus":
                             statusString = "<span class='statusString' style='color:green;'>Parsed</span>"
-                            proj.pages.forEach(page){
+                            proj.pages.forEach(page => {
                                 if(page.numParsedLines < 5){
                                     statusString = "<span title='See "+page.page_name+"' class='statusString' style='color:red;'>Not Parsed</span>"
                                     break
                                 }
-                            }
+                            })
                             el =
                             `<li which="${status}">
                                 <label class="statusLabel" title="Check if there are more than 5 lines with width > 0"> TPEN Project Parsed </label>
@@ -161,12 +161,12 @@
                         break
                         case "transcribedStatus":
                             statusString = "<span class='statusString' style='color:green;'>Transcribed</span>"
-                            proj.pages.forEach(page){
+                            proj.pages.forEach(page => {
                                 if(page.numTranscribedLines < 5){
                                     statusString = "<span title='See "+page.page_name+"' class='statusString' style='color:red;'>Not Transcribed</span>"
                                     break
                                 }
-                            }
+                            })
                             el =
                             `<li which="${status}">
                                 <label class="statusLabel" title="Check if there are more than 5 lines with width > 0 that have text on each page"> TPEN Project Transcribed </label>
