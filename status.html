@@ -92,16 +92,20 @@
     <script src="js/deer.js" type="module"></script>
     <script src="js/app.js" type="module"></script>
     <script>
+        const tpenProjects = []
+        const dlaRecords = []
+
+
         function broadcast(event = {}, type, element, obj = {}) {
             let e = new CustomEvent(type, { detail: Object.assign(obj, { target: event.target }), bubbles: true })
             element.dispatchEvent(e)
         }
 
-        async function determineStatuses(){
-            //Determine status against what?
-            //A list of DLA materials?
-            //A list of TPEN projects?
-            //A list of DLA RERUM entities?
+        async function determineStatusesAgainstDLACollection(){
+
+        }
+
+        async function determineStatusesAgainstTPENProjects(){
             let listOfThings = [] // /getDunbarProjects or something
             listOfThings.forEach(thing =>{
                 //Each thing will have this suite of statuses to check for
