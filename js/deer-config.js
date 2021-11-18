@@ -3,6 +3,10 @@ const DEV = true
 const baseV1 = DEV ? "http://devstore.rerum.io/" : "http://store.rerum.io/"
 const tiny = DEV ? "http://tinydev.rerum.io/app/" : "http://tinypaul.rerum.io/dla/"
 
+import { default as UTILS } from './deer-utils.js'
+import pLimit from './plimit.js'
+const limiter = pLimit(4)
+
 export default {
     ID: "deer-id", // attribute, URI for resource to render
     TYPE: "deer-type", // attribute, JSON-LD @type
@@ -66,7 +70,7 @@ export default {
             if (options.list) {
                 tmpl += `<ul>`
                 obj[options.list].forEach((val, index) => {
-                    tmpl += `<li><a href="${options.link}${val['@id']}"><deer-view deer-id="${val["@id"]}" deer-template="label"></deer-view><deer-view deer-template="saveTPENlinks" deer-id="${val["@id"]}"> 0 </deer-view></a></li>`
+                    tmpl += `<li><deer-view deer-template="saveTPENlinks" deer-id="${val["@id"]}"> 0 </deer-view><a href="${options.link}${val['@id']}"><deer-view deer-id="${val["@id"]}" deer-template="label"></deer-view></a></li>`
                 })
                 tmpl += `</ul>`
             }
@@ -85,8 +89,6 @@ export default {
                 creator: "http://store.rerum.io/v1/id/618d4cfa50c86821e60b2cba",
             }
 
-            const UTILS = importScripts('./deer-utils.js')
-            const pLimit = importScripts('./plimit.js')
 
             return {
                 html: `<button role="button" class="addemup"></button>`,
@@ -95,20 +97,40 @@ export default {
                 }
             }
 
-
             function saveLink(event) {
-                const target = event.target.closest("[deer-view]")
+                const target = event.target.closest("[deer-id]").getAttribute("deer-id")
                 const projectIDs = event.target.getAttribute("tpen-projects")?.split("|")
-                const limiter = pLimit(4)
 
                 projectIDs.forEach((id, index) => {
                     limiter(async () => {
-                        let t = index > 0 ? await fetc : target
+                        let t = index > 0 ? await createNewRecord(target) : target
+                        createCopy(target, t, id)
                     })
                 })
             }
 
-            async function createCopy(id, projectID) {
+            async function createNewRecord(basedOn) {
+                let original = await fetch(baseV1 + "id/" + basedOn).then(r => r.json()).then(entity => {
+                    return UTILS.expand(entity).then(expanded => {
+                        delete expanded.__rerum
+                        delete expanded['@id']
+                        delete entity.id
+                        return expanded
+                    })
+                })
+                const record = Object.assign({
+                    label: original.title
+                }, NEW_RECORD)
+                return fetch(tiny + "create", {
+                    method: 'POST',
+                    mode: 'cors',
+                    body: JSON.stringify(record)
+                })
+                    .then(res => res.ok ? res.headers.get("location") ?? res.headers.get("Location") : Promise.reject(res))
+                    .catch(err => console.error(err))
+            }
+
+            async function createCopy(id, newID, projectID) {
                 let original = await fetch(baseV1 + "id/" + id).then(r => r.json()).then(entity => {
                     return UTILS.expand(entity).then(expanded => {
                         delete expanded.__rerum
@@ -117,25 +139,35 @@ export default {
                         return expanded
                     })
                 })
-                const annoMap = {
-                    targetCollection: original.targetCollection,
-                    date: original.date,
-                    identifier: original.identifier,
-                    source: original.source,
-                    tpenProject: original.tpenProject
-                }
+                const annoMap = id === newID ?
+                    {
+                        tpenProject: projectID
+                    }
+                    : {
+                        targetCollection: original.targetCollection,
+                        date: original.date,
+                        identifier: original.identifier,
+                        source: original.source,
+                        tpenProject: projectID
+                    }
 
-                return limiter(() => {
-                    const anno = Object.assign({
-                        target: newID,
-                        body: Object.entries(el.metadata).map((m) => ({ [m[0]]: m[1] }))
-                    }, DC_ROOT_ANNOTATION)
-                    return fetch(tiny + "create", {
-                        method: 'POST',
-                        mode: 'cors',
-                        body: JSON.stringify(anno)
-                    }).catch(err => console.error(err))
-                })
+                    let all=[]
+                for(const key in annoMap) {
+                    all.push(
+                        limiter(() => {
+                           const anno = Object.assign({
+                               target: newID,
+                               body: { key : {value:annoMap[key]}}
+                           }, DC_ROOT_ANNOTATION)
+                           return fetch(tiny + "create", {
+                               method: 'POST',
+                               mode: 'cors',
+                               body: JSON.stringify(anno)
+                           }).catch(err => console.error(err))
+                       })
+                    )
+                }
+                return Promise.all(all)
             }
         }
     },

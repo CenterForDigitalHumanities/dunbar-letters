@@ -13,6 +13,8 @@
 
 import { default as UTILS } from './deer-utils.js'
 import { default as config } from './deer-config.js'
+import pLimit from './plimit.js'
+const limiter = pLimit(4)
 
 const changeLoader = new MutationObserver(renderChange)
 var DEER = config
@@ -43,7 +45,7 @@ async function renderChange(mutationsList) {
                         return false
                     }
                 }
-                RENDER.element(mutation.target, obj)
+                limiter(() => RENDER.element(mutation.target, obj))
                 break
             case DEER.LISTENING:
                 let listensTo = mutation.target.getAttribute(DEER.LISTENING)
@@ -60,7 +62,6 @@ async function renderChange(mutationsList) {
 const RENDER = {}
 
 RENDER.element = function (elem, obj) {
-
     return UTILS.expand(obj).then(obj => {
         let tmplName = elem.getAttribute(DEER.TEMPLATE) || (elem.getAttribute(DEER.COLLECTION) ? "list" : "json")
         let template = DEER.TEMPLATES[tmplName] || DEER.TEMPLATES.json
@@ -266,8 +267,8 @@ DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
                             const matchStr = `F${folderNumber.padStart(3, '0')}`
                             let foundMsg = []
                             for (const f of list) {
-                                if (f.collection_code === matchStr) { 
-                                    foundMsg.push(f.id) 
+                                if (f.collection_code === matchStr) {
+                                    foundMsg.push(f.id)
                                 }
                             }
                             alert(foundMsg.length ? `You are looking for at TPEN project ID ${foundMsg.join(", ")}.` : `No matches found.`)
