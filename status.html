@@ -100,8 +100,25 @@
         async function determineStatusesAgainstDLARecords(){
             console.warn("Not Yet :(")
             document.getElementById("dlaRecordsStatusArea").innerHTML = ""
+            const statusesToFind = [
+                // "parsedStatus",
+                // "assignedStatus",
+                // "transcribedStatus",
+                // "finalizedStatus"
+                "recordStatus",
+                "uDelLinkStatus",
+                "TPENLinkStatus",
+                "describedStatus",
+                "linkedStatus",
+                "envelopeStatus"
+            ]
             dlaLettersCollection.items.forEach(record =>{
-                //TODO
+                statusesToFind.forEach(status => {
+                    let el, statusString
+                    //Each status handled as its own case.  If we are uniform in what we do we can make this part much shorter if we have a strategic statusesToFind
+                    switch (status){
+
+                    }
             })
         }
 
@@ -119,6 +136,7 @@
                 //"linkedStatus",
                 //"envelopeStatus"
             ]
+            //Go over each TPEN project and figure out the status stats.
             tpenProjects.forEach(proj =>{
                 //Each thing will have this suite of statuses to check for
                 //These are in the tpen objects
@@ -131,15 +149,17 @@
                 let projHeading = document.createElement("h3")
                 projHeading.innerHTML = proj.id+": "+proj.project_name
 
+                //We can probably make this much shorter with a better statusToFind array.
                 statusesToFind.forEach(status => {
                     let el, statusString
+                    //Each status handled as its own case.  If we are uniform in what we do we can make this part much shorter if we have a strategic statusesToFind
                     switch (status){
                         case "parsedStatus":
-                            statusString = "<span class='statusString' style='color:green;'>Parsed</span>"
+                            statusString = "<span class='statusString good'>Parsed</span>"
                             proj.pages.forEach(page => {
                                 if(page.numParsedLines < 5){
-                                    statusString = "<span title='See "+page.page_name+"' class='statusString' style='color:red;'>Not Parsed</span>"
-                                    break
+                                    statusString = "<span title='See "+page.page_name+"' class='statusString bad'>Not Parsed</span>"
+                                    return
                                 }
                             })
                             el =
@@ -149,9 +169,9 @@
                             </li>`                               
                         break
                         case "assignedStatus":
-                            statusString = `<span class='statusString' style='color:red;'>Not Assigned</span>`
+                            statusString = `<span class='statusString bad'>Not Assigned</span>`
                             if(proj.assignees.length >= 1){
-                                statusString = `<span class='statusString' style='color:green;'>Assigned to ${proj.assignees.length} users </span>`
+                                statusString = `<span class='statusString good'>Assigned to ${proj.assignees.length} users </span>`
                             }
                             el =
                             `<li which="${status}">
@@ -160,11 +180,11 @@
                             </li>`   
                         break
                         case "transcribedStatus":
-                            statusString = "<span class='statusString' style='color:green;'>Transcribed</span>"
+                            statusString = "<span class='statusString good'>Transcribed</span>"
                             proj.pages.forEach(page => {
                                 if(page.numTranscribedLines < 5){
-                                    statusString = "<span title='See "+page.page_name+"' class='statusString' style='color:red;'>Not Transcribed</span>"
-                                    break
+                                    statusString = "<span title='See "+page.page_name+"' class='statusString bad' style='color:red;'>Not Transcribed</span>"
+                                    return
                                 }
                             })
                             el =
@@ -174,9 +194,9 @@
                             </li>`   
                         break
                         case "finalizedStatus":
-                            statusString = "<span class='statusString' style='color:red;'>Not Finalized</span>"
+                            statusString = "<span class='statusString bad'>Not Finalized</span>"
                             if(proj.finalized === "true"){
-                                statusString = "<span class='statusString' style='color:green;'>Finalized</span>"
+                                statusString = "<span class='statusString good'>Finalized</span>"
                             }
                             el =
                             `<li which="${status}">
