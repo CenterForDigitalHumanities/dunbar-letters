@@ -251,8 +251,8 @@ DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
                 if (!obj) { return false }
                 function getTranscriptionProjects() {
                     // you must log in first, dude
-                    // fetch(`media/tpen.json`)
-                    fetch(`http://165.134.105.25:8181/TPEN28/getDunbarProjects`)
+                    fetch(`media/tpen.json`)
+                    //fetch(`http://165.134.105.25:8181/TPEN28/getDunbarProjects`)
                         .then(res => res.ok ? res.json() : Promise.reject(res))
                         .then(list => matchTranscriptionRecords(list))
                 }
