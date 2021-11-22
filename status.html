@@ -151,6 +151,7 @@
                 itemHeading.innerHTML = item_id+": "+item_name
                 for(status of statusesToFind){
                     let statusString = ""
+                    let el = ""
                     switch (status){
                         case "recordStatus":
                             //A record for this exists in anno store?
@@ -166,7 +167,7 @@
                             }
                             el =
                             `<li which="${status}">
-                                <label class="statusLabel"> RERUM Record Status </label>
+                                <label class="statusLabel"> RERUM Record Existence Status </label>
                                 <div class="statusValue">${statusString}</div>
                             </li>`
                         break
@@ -178,7 +179,7 @@
                             }
                             el =
                             `<li which="${status}">
-                                <label class="statusLabel"> Record Link Status </label>
+                                <label class="statusLabel"> RERUM Record Linked Status </label>
                                 <div class="statusValue">${statusString}</div>
                             </li>`
                         break
@@ -191,19 +192,17 @@
                                 for(tpenAnno of tpenProjectLinkingAnnos){
                                     tpenProjectIDs.push(tpenProjectLinkingAnnos.body.tpenProject)
                                 }
-                                statusString = "<span title='See "+tpenProjectIDs.join()+"' class='statusString good'>Record Linked</span>"
+                                statusString = "<span title='See "+tpenProjectIDs.join()+"' class='statusString good'>Found TPEN Project Link(s)</span>"
                             }
                             el =
                             `<li which="${status}">
-                                <label class="statusLabel"> Record Link Status </label>
+                                <label class="statusLabel"> T-PEN Project Linked Status </label>
                                 <div class="statusValue">${statusString}</div>
                             </li>`
                         break
-                        case "linkedStatus":
-                            //Not sure what this one is, maybe we actually already did it?
-                        break
                         case "envelopeStatus":
                             //This is probably a T-PEN check, not sure. Can we check for an annotation with body that is a certain name or a primitive name of some kind?
+                            el = ""
                         break
                         default:
                             el=""
