@@ -86,7 +86,7 @@
     <script>
         let tpenProjects = []
         let dlaCollection = []
-        const udelPrefix = "https://udspace.udel.edu/handle/"
+        const udelPrefix = "https://udspace.udel.edu/rest/handle/"
         getTranscriptionProjects()
         fetchLetters()
 
@@ -128,8 +128,9 @@
             const statusesToFind = [
                 "recordStatus",
                 "uDelLinkStatus",
+                "TPENProjectCreated",
                 "TPENprojectLinkStatus",
-                "linkedStatus",
+                //"linkedStatus",
                 "envelopeStatus"
             ]
             let handle = dlaCollection.handle
@@ -153,6 +154,19 @@
                     let statusString = ""
                     let el = ""
                     switch (status){
+                        case "TPENProjectCreated":
+                            //Can we match a T-PEN project to this record?
+                            statusString = "<span class='statusString bad'>No TPEN Project Created</span>"
+                            let found = await matchTranscriptionRecords(item)
+                            if(found.length > 0){
+                                statusString = "<span title='"+found.join()+"' class='statusString good'>"+found.length+" TPEN Projects Found</span>"
+                            }
+                            el =
+                            `<li which="${status}">
+                                <label class="statusLabel"> TPEN Transcription Project Created </label>
+                                <div class="statusValue">${statusString}</div>
+                            </li>`
+                        break
                         case "recordStatus":
                             //A record for this exists in anno store?
                             //can't check by primitive.name it is not unique...gotta check by handle...is this the same check as uDelLinkStatus?
@@ -413,6 +427,25 @@
                 console.error("No dc.identifier.other in metadata")
                 console.log(metaMap)
             }
+        }
+
+         async function matchTranscriptionRecords(dlaRecord) {
+            const metadataUri = `http://tinypaul.rerum.io/dla/proxy?url=${udelPrefix+dlaRecord.handle}?expand=metadata`
+            return await fetch(metadataUri)
+                .then(res => res.ok ? res.json() : Promise.reject(res))
+                .then(meta => getFolderFromMetadata(meta.metadata))
+                .then(folderString => folderString.split(" F").pop()) // Like "Box 3, F4"
+                .then(folderNumber => {
+                    const matchStr = `F${folderNumber.padStart(3, '0')}`
+                    let matches = []
+                    for (const f of tpenProjects) {
+                        if (f.collection_code === matchStr) { 
+                            matches.push(f.id) 
+                        }
+                    }
+                    return matches
+                })
+                .catch(err => {return []})
         }
     </script>
 </body>
