@@ -6,6 +6,11 @@ const tiny = DEV ? "http://tinydev.rerum.io/app/" : "http://tinypaul.rerum.io/dl
 import { default as UTILS } from './deer-utils.js'
 import pLimit from './plimit.js'
 const limiter = pLimit(4)
+let projects = []
+
+fetch(`http://165.134.105.25:8181/TPEN28/getDunbarProjects`,{cache:"force-cache"})
+    .then(res => res.ok ? res.json() : Promise.reject(res))
+    .then(list=>projects = list)
 
 export default {
     ID: "deer-id", // attribute, URI for resource to render
@@ -55,7 +60,7 @@ export default {
     SUPPRESS: ["__rerum", "@context"], //properties to ignore
     DELIMETERDEFAULT: ",", //Default delimeter for .split()ing and .join()ing 
     ROBUSTFEEDBACK: true, //Show warnings along with errors in the web console.  Set to false to only see errors.  
-
+    
     /**
      * Add any custom templates here through import or copy paste.
      * Templates added here will overwrite the defaults in deer-render.js.
@@ -91,8 +96,19 @@ export default {
 
 
             return {
-                html: `<button role="button" class="addemup"></button>`,
+                html: `<button role="button" class="addemup" hndl="${UTILS.getValue(obj.source)}"></button>`,
                 then: elem => {
+                    if (-1 === elem.querySelector('button')?.getAttribute('hndl')?.indexOf('/')) { 
+                        console.log("No handle here: ",elem)
+                        return 
+                    }
+                    loadUDelMetadata(elem.querySelector('button')?.getAttribute('hndl'))
+                        .then(async (metadata) => {
+                            matchTranscriptionRecords(projects, metadata)
+                                .then(projList => {
+                                    elem.setAttribute("tpen-projects", projList)
+                                })
+                        })
                     elem.addEventListener('click', saveLink)
                 }
             }
@@ -151,20 +167,20 @@ export default {
                         tpenProject: projectID
                     }
 
-                    let all=[]
-                for(const key in annoMap) {
+                let all = []
+                for (const key in annoMap) {
                     all.push(
                         limiter(() => {
-                           const anno = Object.assign({
-                               target: newID,
-                               body: { key : {value:annoMap[key]}}
-                           }, DC_ROOT_ANNOTATION)
-                           return fetch(tiny + "create", {
-                               method: 'POST',
-                               mode: 'cors',
-                               body: JSON.stringify(anno)
-                           }).catch(err => console.error(err))
-                       })
+                            const anno = Object.assign({
+                                target: newID,
+                                body: { key: { value: annoMap[key] } }
+                            }, DC_ROOT_ANNOTATION)
+                            return fetch(tiny + "create", {
+                                method: 'POST',
+                                mode: 'cors',
+                                body: JSON.stringify(anno)
+                            }).catch(err => console.error(err))
+                        })
                     )
                 }
                 return Promise.all(all)
@@ -172,4 +188,57 @@ export default {
         }
     },
     version: "alpha"
+}
+
+async function matchTranscriptionRecords(list, metadata) {
+    const getFolderFromMetadata = (metaMap) => {
+        for (const m of metaMap) {
+            if (m.identifier) { return m.identifier }
+        }
+    }
+    const folder = getFolderFromMetadata(metadata).split(" F").pop()// Like "Box 3, F4"
+    const matchStr = `F${folder.padStart(3, '0')}`
+    let foundMsg = []
+    for (const f of list) {
+        if (f.collection_code === matchStr) {
+            foundMsg.push(f.id)
+        }
+    }
+    return foundMsg.join("|")
+}
+
+async function loadUDelMetadata(handle) {
+    const historyWildcard = { "$exists": true, "$size": 0 }
+    const uDelData = {
+        target: handle,
+        "__rerum.history.next": historyWildcard
+    }
+    let results = []
+    return getPagedQuery(100)
+
+    function getPagedQuery(lim, it = 0) {
+        return limiter(() => {
+            return fetch(`${tiny}query?limit=${lim}&skip=${it}`, {
+                method: "POST",
+                mode: "cors",
+                body: JSON.stringify(uDelData)
+            }).then(response => response.json())
+                .then(list => {
+                    results.push(list)
+                    if (list.length ?? (list.length % lim === 0)) {
+                        return getPagedQuery(lim, it + list.length)
+                    } else {
+                        return results.flat().pop().body
+                    }
+                })
+        })
+    }
+}
+
+function getTranscriptionProjects(metadata) {
+    // you must log in first, dude
+    // fetch(`media/tpen.json`)
+    return fetch(`http://165.134.105.25:8181/TPEN28/getDunbarProjects`)
+        .then(res => res.ok ? res.json() : Promise.reject(res))
+        .then(list => matchTranscriptionRecords(list, metadata))
 }
