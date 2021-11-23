@@ -123,7 +123,7 @@
          * Generate the HTML element which will represent the status passed in.  
          * This is for the T-PEN projects items.
          * */
-        function generateProjectStatusElement(status){
+        async function generateProjectStatusElement(status){
             let el, statusString, Fcode = ""
             let linkingAnnos, describingAnnos = []
             //Each status handled as its own case.  If we are uniform in what we do we can make this part much shorter if we have a strategic statusesToFind
@@ -180,7 +180,7 @@
                     </li>`   
                 break
                 case "TPENLinkStatus":
-                    linkingAnnos = await fetchAnnotation({"type":"Annotation", "tpenProject":""+proj.id})
+                    linkingAnnos = await fetchQuery({"type":"Annotation", "tpenProject":""+proj.id})
                     statusString = "<span class='statusString bad'>No Linked Record</span>"
                     if(linkingAnnos.length>0){
                         statusString = "<span class='statusString good'> "+linkingAnnos.length+" Linked Record(s)</span>"
@@ -198,10 +198,10 @@
                     //Check how many annos target, and define the good/bad threshold. 
 
                     //So there are some testing ones around.  Look for tpenProject.
-                    linkingAnnos = await fetchAnnotation({"type":"Annotation", "tpenProject":""+proj.id})
+                    linkingAnnos = await fetchQuery({"type":"Annotation", "tpenProject":""+proj.id})
                     describingAnnos = []
                     if(linkingAnnos.length > 0){
-                        describingAnnos = await fetchAnnotation({"type":"Annotation", "target":linkingAnnos[0].target})
+                        describingAnnos = await fetchQuery({"type":"Annotation", "target":linkingAnnos[0].target})
                     }
                     //Grabbing to anno.targets will tell you what handle
                     statusString = "<span class='statusString bad'>Not Described</span>"
@@ -225,7 +225,7 @@
          * Generate the HTML element which will represent the status passed in.  
          * This is for the DLA items.
          * */
-        function generateDLAStatusElement(status){
+        async function generateDLAStatusElement(status){
             let statusString = ""
             switch (status){
                 case "TPENProjectCreated":
@@ -244,7 +244,7 @@
                 case "TPENProjectLinked":
                     const tpenProjectKeyWildcard = {$exists: true, $type: 'string', $ne: ''}
                     statusString = "<span class='statusString bad'>No TPEN Link</span>"
-                    let tpenProjectLinkingAnnos = await fetchAnnotation({"type":"Annotation", "target":udelPrefix+item.handle, "body.tpenProject":tpenProjectKeyWildcard})
+                    let tpenProjectLinkingAnnos = await fetchQuery({"type":"Annotation", "target":udelPrefix+item.handle, "body.tpenProject":tpenProjectKeyWildcard})
                     let tpenProjectIDs = []
                     if(tpenProjectLinkingAnnos.length > 0){
                         for(tpenAnno of tpenProjectLinkingAnnos){
@@ -269,7 +269,7 @@
                 break
                 case "uDelLinked":
                     statusString = "<span class='statusString bad'>Record Not Linked</span>"
-                    let recordHandleAnnos2 = await fetchAnnotation({"type":"Annotation", "body.source.value":udelPrefix+item.handle})
+                    let recordHandleAnnos2 = await fetchQuery({"type":"Annotation", "body.source.value":udelPrefix+item.handle})
                     if(recordHandleAnnos2.length > 0){
                         statusString = "<span title='See "+recordHandleAnnos2[0].target+"' class='statusString good'>Record Linked</span>"
                     }
@@ -312,19 +312,23 @@
                 let item_handle = item.handle
                 let item_id = item.id
                 let item_name = item.name
-                let itemArea = document.createElement("div")
-                itemArea.classList = "dlaItemStatus"
-                let statusList = document.createElement("ul")
-                statusList.classList = "dlaItemStatusList"
-                let itemHeading = document.createElement("h3")
-                itemHeading.innerHTML = item_id+": "+item_name
+                let statusListElements = ``
+                let statusListAttributes = new Array()
                 for(status of statusesToFind){
-                    let el = generateDLAStatusHTMLElement(status)
-                    statusList.innerHTML += el
+                    let el = await generateDLAStatusElement(status)
+                    if(el.indexOf("statusString good")>-1){
+                        statusListAttributes.push(status)
+                    }
+                    statusListElements += el
                 }
-                itemArea.appendChild(itemHeading)
-                itemArea.appendChild(statusList)
-                document.getElementById("dlaRecordsStatusArea").appendChild(itemArea)
+                //Can filter items by statuses in status-list
+                let itemArea = `
+                    <div class="dlaItemStatus" status-list="${statusListAttributes.join(' ')}">
+                        <h3>${item_id+": "+item_name}</h3>
+                        <ul class="dlaItemStatusList">${statusListElements}</ul>
+                    </div>
+                `
+                document.getElementById("dlaRecordsStatusArea").innerHTML += itemArea
             }
         }
 
@@ -355,20 +359,22 @@
             for(proj of tpenProjects){
                 //Each thing will have this suite of statuses to check for
                 //These are in the tpen objects
-                let projectArea = document.createElement("div")
-                projectArea.classList = "tpenProjectStatus"
-                let statusList = document.createElement("ul")
-                statusList.classList = "tpenProjectStatusList"
-                let projHeading = document.createElement("h3")
-                projHeading.innerHTML = proj.id+": "+proj.project_name+" ("+proj.metadata_name+")"
-                //We can probably make this much shorter with a better statusToFind array.
+                let statusListElements = ``
+                let statusListAttributes = new Array()
                 for(status of statusesToFind){
-                    let el = generateDLAStatusHTMLElement(status)
-                    statusList.innerHTML += el
+                    let el = await generateProjectStatusElement(status)
+                    if(el.indexOf("statusString good")>-1){
+                        statusListAttributes.push(status)
+                    }
+                    statusListElements += el
                 }
-                projectArea.appendChild(projHeading)
-                projectArea.appendChild(statusList)
-                document.getElementById("tpenProjectsStatusArea").appendChild(projectArea)
+                let projectArea = `
+                    <div class="tpenProjectStatus" status-list="${statusListAttributes.join(' ')}">
+                        <h3>${proj.id+": "+proj.project_name+" ("+proj.metadata_name+")"}</h3>
+                        <ul class="tpenProjectStatusList">${statusListElements}</ul>
+                    </div>
+                `
+                document.getElementById("tpenProjectsStatusArea").innerHTML += projectArea
             }
         }
 
