@@ -551,6 +551,7 @@ export default class DeerRender {
                         }],
                         "__rerum.history.next": historyWildcard
                     }
+
                     const listObj = {
                         name: this.collection,
                         itemListElement: []
@@ -585,33 +586,34 @@ export default class DeerRender {
                                     return getPagedQuery.bind(this)(lim, it + list.length)
                                 }
                             })
+
+                        }
                     }
                 }
-            }
-        } catch (err) {
-            let message = err
-            switch (err.code) {
-                case "NO_ID":
-                    message = `` // No DEER.ID, so leave it blank
-            }
-            elem.innerHTML = message
-        }
-
-        let listensTo = elem.getAttribute(DEER.LISTENING)
-        if (listensTo) {
-            elem.addEventListener(DEER.EVENTS.CLICKED, e => {
-                try {
-                    if (e.detail.target.closest(DEER.VIEW + "," + DEER.FORM).getAttribute("id") === listensTo) elem.setAttribute(DEER.ID, e.detail.target.closest('[' + DEER.ID + ']').getAttribute(DEER.ID))
-                } catch (err) { }
-            })
-            try {
-                window[listensTo].addEventListener("click", e => UTILS.broadcast(e, DEER.EVENTS.CLICKED, elem))
             } catch (err) {
-                console.error("There is no HTML element with id " + listensTo + " to attach an event to")
+                let message = err
+                switch (err.code) {
+                    case "NO_ID":
+                        message = `` // No DEER.ID, so leave it blank
+                }
+                elem.innerHTML = message
             }
-        }
 
-    }
+            let listensTo = elem.getAttribute(DEER.LISTENING)
+            if (listensTo) {
+                elem.addEventListener(DEER.EVENTS.CLICKED, e => {
+                    try {
+                        if (e.detail.target.closest(DEER.VIEW + "," + DEER.FORM).getAttribute("id") === listensTo) elem.setAttribute(DEER.ID, e.detail.target.closest('[' + DEER.ID + ']').getAttribute(DEER.ID))
+                    } catch (err) { }
+                })
+                try {
+                    window[listensTo].addEventListener("click", e => UTILS.broadcast(e, DEER.EVENTS.CLICKED, elem))
+                } catch (err) {
+                    console.error("There is no HTML element with id " + listensTo + " to attach an event to")
+                }
+            }
+
+        }
 }
 
 /**
