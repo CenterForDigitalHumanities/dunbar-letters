@@ -44,11 +44,7 @@
         <input type="button" value="TPEN Project Statuses" onclick="determineStatusesAgainstTPENProjects()" />
         <input type="button" value="UDel Record Statuses" onclick="determineStatusesAgainstDLARecords()" />
         <input type="button" value="Combined Statuses" onclick="statuses()" />
-        
-        <h1>TPEN Project Centric Statuses</h1>
         <div id="tpenProjectsStatusArea"> </div>
-
-        <h1>DLA Record Centric Statuses</h1>
         <div id="dlaRecordsStatusArea"> </div>
     </div>
 <!--     <pre class="card bg-light">
@@ -90,9 +86,13 @@
         getTranscriptionProjects()
         fetchLetters()
 
+        /**
+         * Hey internet, I want the Dunbar Projects out of T-PEN.
+         * */
         async function getTranscriptionProjects(){
-            tpenProjects =  await fetch(`media/tpenShort.json`)
-            // fetch(`http://165.134.105.25:8181/TPEN28/getDunbarProjects`)
+            tpenProjects =  
+            await fetch(`media/tpenShort.json`)
+            //await fetch(`http://165.134.105.25:8181/TPEN28/getDunbarProjects`)
             .then(res=>res.ok?res.json():[])
             .then(projects=>{return projects})
             .catch(err=> {
@@ -101,6 +101,9 @@
             })
         }
 
+        /**
+         * Hey internet, I want the DLA items from Delaware.
+         * */
         async function fetchLetters() {
             dlaCollection = await fetch(`media/udel.json`)
                 .then(res => res.ok ? res.json() : [])
@@ -116,112 +119,207 @@
             element.dispatchEvent(e)
         }
 
-        async function statuses(){
-            console.warn("Not Yet :(")
-            document.getElementById("dlaRecordsStatusArea").innerHTML = ""
-            document.getElementById("tpenProjectsStatusArea").innerHTML = ""
+        /**
+         * Generate the HTML element which will represent the status passed in.  
+         * This is for the T-PEN projects items.
+         * */
+        function generateProjectStatusElement(status){
+            let el, statusString, Fcode = ""
+            let linkingAnnos, describingAnnos = []
+            //Each status handled as its own case.  If we are uniform in what we do we can make this part much shorter if we have a strategic statusesToFind
+            switch (status){
+                case "parsedStatus":
+                    statusString = "<span class='statusString good'>Parsed</span>"
+                    proj.pages.forEach(page => {
+                        if(page.numParsedLines < 5){
+                            statusString = "<span title='See "+page.page_name+"' class='statusString bad'>Not Parsed</span>"
+                            return
+                        }
+                    })
+                    el =
+                    `<li which="${status}">
+                        <label class="statusLabel" title="Check if there are more than 5 lines with width > 0"> TPEN Project Parsed </label>
+                        <div class="statusValue">${statusString}</div>
+                    </li>`                               
+                break
+                case "assignedStatus":
+                    statusString = `<span class='statusString bad'>Not Assigned</span>`
+                    if(proj.assignees.length > 2){
+                        statusString = `<span class='statusString good'>Assigned to ${proj.assignees.length} users </span>`
+                    }
+                    el =
+                    `<li which="${status}">
+                        <label class="statusLabel" title="Check if it is assigned to at least 1 user"> TPEN Project Assigned </label>
+                        <div class="statusValue">${statusString}</div>
+                    </li>`   
+                break
+                case "transcribedStatus":
+                    statusString = "<span class='statusString good'>Transcribed</span>"
+                    proj.pages.forEach(page => {
+                        //We really need to think about this one.
+                        if(page.numTranscribedLines < 5){
+                            statusString = "<span title='See "+page.page_name+"' class='statusString bad'>Not Transcribed</span>"
+                            return
+                        }
+                    })
+                    el =
+                    `<li which="${status}">
+                        <label class="statusLabel" title="Check if there are more than 5 lines with width > 0 that have text on each page"> TPEN Project Transcribed </label>
+                        <div class="statusValue">${statusString}</div>
+                    </li>`   
+                break
+                case "finalizedStatus":
+                    statusString = "<span class='statusString bad'>Not Finalized</span>"
+                    if(proj.finalized === "true"){
+                        statusString = "<span class='statusString good'>Finalized</span>"
+                    }
+                    el =
+                    `<li which="${status}">
+                        <label class="statusLabel" title="If there are more than 5 parsed lines on each page, and every line contains text.  Logic performed in servlet and returns T/F."> TPEN Project Finalized </label>
+                        <div class="statusValue">${statusString}</div>
+                    </li>`   
+                break
+                case "TPENLinkStatus":
+                    linkingAnnos = await fetchAnnotation({"type":"Annotation", "tpenProject":""+proj.id})
+                    statusString = "<span class='statusString bad'>No Linked Record</span>"
+                    if(linkingAnnos.length>0){
+                        statusString = "<span class='statusString good'> "+linkingAnnos.length+" Linked Record(s)</span>"
+                    }
+                    el =
+                    `<li which="${status}">
+                        <label class="statusLabel" title=""> Linked to UDel Data </label>
+                        <div class="statusValue">${statusString}</div>
+                    </li>`   
+                break
+                case "describedStatus":
+                    //This T-PEN project would have to be linked to a UDEL record
+                    //That linking annotation has a target
+                    //If it is described, other annos will target that same target
+                    //Check how many annos target, and define the good/bad threshold. 
+
+                    //So there are some testing ones around.  Look for tpenProject.
+                    linkingAnnos = await fetchAnnotation({"type":"Annotation", "tpenProject":""+proj.id})
+                    describingAnnos = []
+                    if(linkingAnnos.length > 0){
+                        describingAnnos = await fetchAnnotation({"type":"Annotation", "target":linkingAnnos[0].target})
+                    }
+                    //Grabbing to anno.targets will tell you what handle
+                    statusString = "<span class='statusString bad'>Not Described</span>"
+                    if(describingAnnos.length>0){
+                        statusString = "<span class='statusString good'>There are "+describingAnnos.length+" descriptive annotations</span>"
+                    }
+                    el =
+                    `<li which="${status}">
+                        <label class="statusLabel" title=""> Well Described </label>
+                        <div class="statusValue">${statusString}</div>
+                    </li>`   
+                break
+                default:
+                    el=""
+                    console.error("Uknown status "+status)
+            }
+            return el
         }
 
+        /**
+         * Generate the HTML element which will represent the status passed in.  
+         * This is for the DLA items.
+         * */
+        function generateDLAStatusElement(status){
+            let statusString = ""
+            switch (status){
+                case "TPENProjectCreated":
+                    //Can we match a T-PEN project to this record?
+                    statusString = "<span class='statusString bad'>No TPEN Project Created</span>"
+                    let found = await matchTranscriptionRecords(item)
+                    if(found.length > 0){
+                        statusString = "<span title='"+found.join()+"' class='statusString good'>"+found.length+" TPEN Projects Found</span>"
+                    }
+                    el =
+                    `<li which="${status}">
+                        <label class="statusLabel"> TPEN Transcription Project Created </label>
+                        <div class="statusValue">${statusString}</div>
+                    </li>`
+                break
+                case "TPENProjectLinked":
+                    const tpenProjectKeyWildcard = {$exists: true, $type: 'string', $ne: ''}
+                    statusString = "<span class='statusString bad'>No TPEN Link</span>"
+                    let tpenProjectLinkingAnnos = await fetchAnnotation({"type":"Annotation", "target":udelPrefix+item.handle, "body.tpenProject":tpenProjectKeyWildcard})
+                    let tpenProjectIDs = []
+                    if(tpenProjectLinkingAnnos.length > 0){
+                        for(tpenAnno of tpenProjectLinkingAnnos){
+                            tpenProjectIDs.push(tpenProjectLinkingAnnos.body.tpenProject)
+                        }
+                        statusString = "<span title='See "+tpenProjectIDs.join()+"' class='statusString good'>Found TPEN Project Link(s)</span>"
+                    }
+                    el =
+                    `<li which="${status}">
+                        <label class="statusLabel"> T-PEN Project Linked Status </label>
+                        <div class="statusValue">${statusString}</div>
+                    </li>`
+                break
+                case "envelopeLinked":
+                    //This is probably a T-PEN check, not sure. Can we check for an annotation with body that is a certain name or a primitive name of some kind?
+                    statusString = "<span class='statusString good'>Under Development!</span>"
+                    el =
+                    `<li which="${status}">
+                        <label class="statusLabel"> Item Envelope </label>
+                        <div class="statusValue">${statusString}</div>
+                    </li>`
+                break
+                case "uDelLinked":
+                    statusString = "<span class='statusString bad'>Record Not Linked</span>"
+                    let recordHandleAnnos2 = await fetchAnnotation({"type":"Annotation", "body.source.value":udelPrefix+item.handle})
+                    if(recordHandleAnnos2.length > 0){
+                        statusString = "<span title='See "+recordHandleAnnos2[0].target+"' class='statusString good'>Record Linked</span>"
+                    }
+                    el =
+                    `<li which="${status}">
+                        <label class="statusLabel"> RERUM Record Linked Status </label>
+                        <div class="statusValue">${statusString}</div>
+                    </li>`
+                break
+                default:
+                    el=``
+                    console.error("Uknown status "+status)
+            }
+            return el
+        }
+
+        /**
+         * Loop through all DLA records and determine the following statuses:
+         * "uDelLinked",
+         * "TPENProjectCreated"
+         * "TPENProjectLinked"
+         * "envelopeLinked"
+         * */
         async function determineStatusesAgainstDLARecords(){
             document.getElementById("tpenProjectsStatusArea").innerHTML = ""
             document.getElementById("dlaRecordsStatusArea").innerHTML = ""
             const statusesToFind = [
-                "recordStatus",
-                "uDelLinkStatus",
+                "uDelLinked",
                 "TPENProjectCreated",
-                "TPENprojectLinkStatus",
-                //"linkedStatus",
-                "envelopeStatus"
+                "TPENProjectLinked",
+                "envelopeLinked"
             ]
             let handle = dlaCollection.handle
             let collectionID = dlaCollection.id
             let collectionName = dlaCollection.name
-
+            let numItems = dlaCollection?.items.length
+            let dlaRecordsHeading = `<h2>${collectionName} Records</h2><p>There are ${numItems} records.  Here are their details.</p>`
+            document.getElementById("dlaRecordsStatusArea").innerHTML += dlaRecordsHeading
             for (item of dlaCollection.items){
                 let item_handle = item.handle
                 let item_id = item.id
                 let item_name = item.name
-
                 let itemArea = document.createElement("div")
                 itemArea.classList = "dlaItemStatus"
-
                 let statusList = document.createElement("ul")
                 statusList.classList = "dlaItemStatusList"
-
                 let itemHeading = document.createElement("h3")
                 itemHeading.innerHTML = item_id+": "+item_name
                 for(status of statusesToFind){
-                    let statusString = ""
-                    let el = ""
-                    switch (status){
-                        case "TPENProjectCreated":
-                            //Can we match a T-PEN project to this record?
-                            statusString = "<span class='statusString bad'>No TPEN Project Created</span>"
-                            let found = await matchTranscriptionRecords(item)
-                            if(found.length > 0){
-                                statusString = "<span title='"+found.join()+"' class='statusString good'>"+found.length+" TPEN Projects Found</span>"
-                            }
-                            el =
-                            `<li which="${status}">
-                                <label class="statusLabel"> TPEN Transcription Project Created </label>
-                                <div class="statusValue">${statusString}</div>
-                            </li>`
-                        break
-                        case "recordStatus":
-                            //A record for this exists in anno store?
-                            //can't check by primitive.name it is not unique...gotta check by handle...is this the same check as uDelLinkStatus?
-                            statusString = "<span class='statusString bad'>No Record</span>"
-                            let recordHandleAnnos = await fetchAnnotation({"type":"Annotation", "body.source.value":udelPrefix+item.handle})
-                            let recordIDs = []
-                            if(recordHandleAnnos.length > 0){
-                                for(handleAnno of recordHandleAnnos){
-                                    recordIDs.push(handleAnno.target)
-                                }
-                                statusString = "<span title='See "+recordIDs.join()+"' class='statusString good'>"+recordHandleAnnos.length+" Records Detected</span>"
-                            }
-                            el =
-                            `<li which="${status}">
-                                <label class="statusLabel"> RERUM Record Existence Status </label>
-                                <div class="statusValue">${statusString}</div>
-                            </li>`
-                        break
-                        case "uDelLinkStatus":
-                            statusString = "<span class='statusString bad'>Record Not Linked</span>"
-                            let recordHandleAnnos2 = await fetchAnnotation({"type":"Annotation", "body.source.value":udelPrefix+item.handle})
-                            if(recordHandleAnnos2.length > 0){
-                                statusString = "<span title='See "+recordHandleAnnos2[0].target+"' class='statusString good'>Record Linked</span>"
-                            }
-                            el =
-                            `<li which="${status}">
-                                <label class="statusLabel"> RERUM Record Linked Status </label>
-                                <div class="statusValue">${statusString}</div>
-                            </li>`
-                        break
-                        case "TPENprojectLinkStatus":
-                            const tpenProjectKeyWildcard = {$exists: true, $type: 'string', $ne: ''}
-                            statusString = "<span class='statusString bad'>No TPEN Link</span>"
-                            let tpenProjectLinkingAnnos = await fetchAnnotation({"type":"Annotation", "target":udelPrefix+item.handle, "body.tpenProject":tpenProjectKeyWildcard})
-                            let tpenProjectIDs = []
-                            if(tpenProjectLinkingAnnos.length > 0){
-                                for(tpenAnno of tpenProjectLinkingAnnos){
-                                    tpenProjectIDs.push(tpenProjectLinkingAnnos.body.tpenProject)
-                                }
-                                statusString = "<span title='See "+tpenProjectIDs.join()+"' class='statusString good'>Found TPEN Project Link(s)</span>"
-                            }
-                            el =
-                            `<li which="${status}">
-                                <label class="statusLabel"> T-PEN Project Linked Status </label>
-                                <div class="statusValue">${statusString}</div>
-                            </li>`
-                        break
-                        case "envelopeStatus":
-                            //This is probably a T-PEN check, not sure. Can we check for an annotation with body that is a certain name or a primitive name of some kind?
-                            el = ""
-                        break
-                        default:
-                            el=""
-                            console.error("Uknown status "+status)
-                    }
+                    let el = generateDLAStatusHTMLElement(status)
                     statusList.innerHTML += el
                 }
                 itemArea.appendChild(itemHeading)
@@ -231,7 +329,13 @@
         }
 
         /**
-         * This is for what we can determine from TPEN project information
+         * Loop through all the Dunbar T-PEN projects and determine the following statuses
+         * "parsedStatus"
+         * "assignedStatus"
+         * "transcribedStatus"
+         * "finalizedStatus"
+         * "TPENLinkStatus"
+         * "describedStatus"
          * */
         async function determineStatusesAgainstTPENProjects(){
             document.getElementById("tpenProjectsStatusArea").innerHTML = ""
@@ -243,118 +347,23 @@
                 "finalizedStatus",
                 "TPENLinkStatus",
                 "describedStatus"
-                //"linkedStatus",
-                //"envelopeStatus"
             ]
             //Go over each TPEN project and figure out the status stats.
+            let numItems = tpenProjects.length
+            let dlaRecordsHeading = `<h2>Dunbar Projects in T-PEN</h2><p>There are ${numItems} records.  Here are their details.</p>`
+            document.getElementById("tpenProjectsStatusArea").innerHTML += dlaRecordsHeading
             for(proj of tpenProjects){
                 //Each thing will have this suite of statuses to check for
                 //These are in the tpen objects
                 let projectArea = document.createElement("div")
                 projectArea.classList = "tpenProjectStatus"
-
                 let statusList = document.createElement("ul")
                 statusList.classList = "tpenProjectStatusList"
-
                 let projHeading = document.createElement("h3")
                 projHeading.innerHTML = proj.id+": "+proj.project_name+" ("+proj.metadata_name+")"
-
                 //We can probably make this much shorter with a better statusToFind array.
                 for(status of statusesToFind){
-                    let el, statusString, Fcode = ""
-                    let linkingAnnos, describingAnnos = []
-                    //Each status handled as its own case.  If we are uniform in what we do we can make this part much shorter if we have a strategic statusesToFind
-                    switch (status){
-                        case "parsedStatus":
-                            statusString = "<span class='statusString good'>Parsed</span>"
-                            proj.pages.forEach(page => {
-                                if(page.numParsedLines < 5){
-                                    statusString = "<span title='See "+page.page_name+"' class='statusString bad'>Not Parsed</span>"
-                                    return
-                                }
-                            })
-                            el =
-                            `<li which="${status}">
-                                <label class="statusLabel" title="Check if there are more than 5 lines with width > 0"> TPEN Project Parsed </label>
-                                <div class="statusValue">${statusString}</div>
-                            </li>`                               
-                        break
-                        case "assignedStatus":
-                            statusString = `<span class='statusString bad'>Not Assigned</span>`
-                            if(proj.assignees.length > 2){
-                                statusString = `<span class='statusString good'>Assigned to ${proj.assignees.length} users </span>`
-                            }
-                            el =
-                            `<li which="${status}">
-                                <label class="statusLabel" title="Check if it is assigned to at least 1 user"> TPEN Project Assigned </label>
-                                <div class="statusValue">${statusString}</div>
-                            </li>`   
-                        break
-                        case "transcribedStatus":
-                            statusString = "<span class='statusString good'>Transcribed</span>"
-                            proj.pages.forEach(page => {
-                                //We really need to think about this one.
-                                if(page.numTranscribedLines < 5){
-                                    statusString = "<span title='See "+page.page_name+"' class='statusString bad'>Not Transcribed</span>"
-                                    return
-                                }
-                            })
-                            el =
-                            `<li which="${status}">
-                                <label class="statusLabel" title="Check if there are more than 5 lines with width > 0 that have text on each page"> TPEN Project Transcribed </label>
-                                <div class="statusValue">${statusString}</div>
-                            </li>`   
-                        break
-                        case "finalizedStatus":
-                            statusString = "<span class='statusString bad'>Not Finalized</span>"
-                            if(proj.finalized === "true"){
-                                statusString = "<span class='statusString good'>Finalized</span>"
-                            }
-                            el =
-                            `<li which="${status}">
-                                <label class="statusLabel" title="If there are more than 5 parsed lines on each page, and every line contains text.  Logic performed in servlet and returns T/F."> TPEN Project Finalized </label>
-                                <div class="statusValue">${statusString}</div>
-                            </li>`   
-                        break
-                        case "TPENLinkStatus":
-                            linkingAnnos = await fetchAnnotation({"type":"Annotation", "tpenProject":""+proj.id})
-                            statusString = "<span class='statusString bad'>No Linked Record</span>"
-                            if(linkingAnnos.length>0){
-                                statusString = "<span class='statusString good'> "+linkingAnnos.length+" Linked Record(s)</span>"
-                            }
-                            el =
-                            `<li which="${status}">
-                                <label class="statusLabel" title=""> Linked to UDel Data </label>
-                                <div class="statusValue">${statusString}</div>
-                            </li>`   
-                        break
-                        case "describedStatus":
-                            //This T-PEN project would have to be linked to a UDEL record
-                            //That linking annotation has a target
-                            //If it is described, other annos will target that same target
-                            //Check how many annos target, and define the good/bad threshold. 
-
-                            //So there are some testing ones around.  Look for tpenProject.
-                            linkingAnnos = await fetchAnnotation({"type":"Annotation", "tpenProject":""+proj.id})
-                            describingAnnos = []
-                            if(linkingAnnos.length > 0){
-                                describingAnnos = await fetchAnnotation({"type":"Annotation", "target":linkingAnnos[0].target})
-                            }
-                            //Grabbing to anno.targets will tell you what handle
-                            statusString = "<span class='statusString bad'>Not Described</span>"
-                            if(describingAnnos.length>0){
-                                statusString = "<span class='statusString good'>There are "+describingAnnos.length+" descriptive annotations</span>"
-                            }
-                            el =
-                            `<li which="${status}">
-                                <label class="statusLabel" title=""> Well Described </label>
-                                <div class="statusValue">${statusString}</div>
-                            </li>`   
-                        break
-                        default:
-                            el=""
-                            console.error("Uknown status "+status)
-                    }
+                    let el = generateDLAStatusHTMLElement(status)
                     statusList.innerHTML += el
                 }
                 projectArea.appendChild(projHeading)
@@ -363,7 +372,20 @@
             }
         }
 
-        async function fetchAnnotation(params){
+        /**
+         * Determine all statuses possible against the dataset, and put them together in a meaningful way.
+         * */
+        async function statuses(){
+            console.warn("Not Yet :(")
+            document.getElementById("dlaRecordsStatusArea").innerHTML = ""
+            document.getElementById("tpenProjectsStatusArea").innerHTML = ""
+        }
+
+
+        /**
+         * Perform a tiny query against the query parameter object passed in.
+         * */
+        async function fetchQuery(params){
             const historyWildcard = { $exists: true, $type: 'array', $eq: [] }
             let query = {
                 "__rerum.history.next": historyWildcard
@@ -377,10 +399,26 @@
             .then(res => res.ok ? res.json() : Promise.reject(res))
         }
 
+        /**
+         *  You have a DLA Item F-Code known from a project ID.  Get the DLA record(s) that have a matching F-Code in their metadata.
+         * */
         async function findUdelRecordWithCode(Fcode, projID) {
             // This is the Fcode that the TPEN project knew, like F158
             // Need to check that there is a udel item with this Fcode, looking through letters collection.
             const udelPrefix = "https://udspace.udel.edu/rest/handle/"
+            const getFolderFromMetadata = (metaMap) => {
+                let ok = false
+                for (const m of metaMap) {
+                    if (m.key === "dc.identifier.other") { 
+                        ok = true
+                        return m.value 
+                    }
+                }
+                if(!ok){
+                    console.error("No dc.identifier.other in metadata")
+                    console.log(metaMap)
+                }
+            }
             let match = false
             let impossible = false;
             let itemHandle = ""
@@ -415,21 +453,11 @@
             return itemHandle
         }
 
-        const getFolderFromMetadata = (metaMap) => {
-            let ok = false
-            for (const m of metaMap) {
-                if (m.key === "dc.identifier.other") { 
-                    ok = true
-                    return m.value 
-                }
-            }
-            if(!ok){
-                console.error("No dc.identifier.other in metadata")
-                console.log(metaMap)
-            }
-        }
-
-         async function matchTranscriptionRecords(dlaRecord) {
+        /**
+         * You have a DLA record.  You would like to see if any transcription projects are created that are about this record.
+         * Note this does not detect that record and project(s) are specifically linked yet.
+         * */
+        async function matchTranscriptionRecords(dlaRecord) {
             const metadataUri = `http://tinypaul.rerum.io/dla/proxy?url=${udelPrefix+dlaRecord.handle}?expand=metadata`
             return await fetch(metadataUri)
                 .then(res => res.ok ? res.json() : Promise.reject(res))

@@ -5838,7 +5838,7 @@
          {
             "page_name":"MSS0113_S01_B01_F008_02c.jpg",
             "numParsedLines":22,
-            "numTranscribedLines":12
+            "numTranscribedLines":22
          }
       ],
       "assignees":[
@@ -5848,7 +5848,7 @@
          2605,
          2606
       ],
-      "finalized":"false"
+      "finalized":"true"
    },
    {
       "id":"7323",
@@ -17437,12 +17437,12 @@
          {
             "page_name":"MSS0113_S01_B06_F154_06a.jpg",
             "numParsedLines":20,
-            "numTranscribedLines":1
+            "numTranscribedLines":16
          },
          {
             "page_name":"MSS0113_S01_B06_F154_06b.jpg",
             "numParsedLines":37,
-            "numTranscribedLines":0
+            "numTranscribedLines":37
          }
       ],
       "assignees":[
@@ -19719,7 +19719,7 @@
          },
          {
             "page_name":"MSS0113_S01_B06_F162_02b.jpg",
-            "numParsedLines":0,
+            "numParsedLines":1,
             "numTranscribedLines":0
          }
       ],
@@ -19742,7 +19742,7 @@
          {
             "page_name":"MSS0113_S01_B06_F162_03a.jpg",
             "numParsedLines":17,
-            "numTranscribedLines":16
+            "numTranscribedLines":17
          }
       ],
       "assignees":[
@@ -19752,7 +19752,7 @@
          2607,
          2621
       ],
-      "finalized":"false"
+      "finalized":"true"
    },
    {
       "id":"8113",
@@ -19941,7 +19941,7 @@
          2603,
          1021,
          2607,
-         2621
+         2623
       ],
       "finalized":"false"
    },
@@ -19955,7 +19955,7 @@
          {
             "page_name":"MSS0113_S01_B06_F163_02a.jpg",
             "numParsedLines":15,
-            "numTranscribedLines":0
+            "numTranscribedLines":15
          }
       ],
       "assignees":[
@@ -19963,9 +19963,9 @@
          2603,
          1021,
          2607,
-         2621
+         2623
       ],
-      "finalized":"false"
+      "finalized":"true"
    },
    {
       "id":"8122",
@@ -19985,7 +19985,7 @@
          2603,
          1021,
          2607,
-         2621
+         2623
       ],
       "finalized":"false"
    },
@@ -20007,7 +20007,7 @@
          2603,
          1021,
          2607,
-         2621
+         2623
       ],
       "finalized":"false"
    },
@@ -20029,7 +20029,7 @@
          2603,
          1021,
          2607,
-         2621
+         2623
       ],
       "finalized":"false"
    },
@@ -20051,7 +20051,7 @@
          2603,
          1021,
          2607,
-         2621
+         2623
       ],
       "finalized":"false"
    },
@@ -20073,7 +20073,7 @@
          2603,
          1021,
          2607,
-         2621
+         2623
       ],
       "finalized":"false"
    },
@@ -20095,7 +20095,7 @@
          2603,
          1021,
          2607,
-         2621
+         2623
       ],
       "finalized":"false"
    },
@@ -20117,7 +20117,7 @@
          2603,
          1021,
          2607,
-         2621
+         2623
       ],
       "finalized":"false"
    },
@@ -20135,11 +20135,11 @@
          }
       ],
       "assignees":[
+         2623,
          2600,
          2603,
          1021,
-         2607,
-         2621
+         2607
       ],
       "finalized":"false"
    },
@@ -20174,8 +20174,8 @@
       "pages":[
          {
             "page_name":"MSS0113_S01_B06_F164_02a.jpg",
-            "numParsedLines":31,
-            "numTranscribedLines":0
+            "numParsedLines":19,
+            "numTranscribedLines":19
          }
       ],
       "assignees":[
@@ -20185,7 +20185,7 @@
          2607,
          2622
       ],
-      "finalized":"false"
+      "finalized":"true"
    },
    {
       "id":"8132",
@@ -20196,18 +20196,18 @@
       "pages":[
          {
             "page_name":"MSS0113_S01_B06_F164_03a.jpg",
-            "numParsedLines":4,
+            "numParsedLines":27,
             "numTranscribedLines":0
          },
          {
             "page_name":"MSS0113_S01_B06_F164_03c.jpg",
-            "numParsedLines":0,
+            "numParsedLines":28,
             "numTranscribedLines":0
          },
          {
             "page_name":"MSS0113_S01_B06_F164_03e.jpg",
-            "numParsedLines":0,
-            "numTranscribedLines":0
+            "numParsedLines":19,
+            "numTranscribedLines":19
          }
       ],
       "assignees":[
@@ -20228,7 +20228,7 @@
       "pages":[
          {
             "page_name":"MSS0113_S01_B06_F164_04a.jpg",
-            "numParsedLines":18,
+            "numParsedLines":14,
             "numTranscribedLines":0
          }
       ],
@@ -20272,7 +20272,7 @@
       "pages":[
          {
             "page_name":"MSS0113_S01_B06_F164_06a.jpg",
-            "numParsedLines":39,
+            "numParsedLines":25,
             "numTranscribedLines":0
          }
       ],
@@ -20294,7 +20294,7 @@
       "pages":[
          {
             "page_name":"MSS0113_S01_B06_F164_07a.jpg",
-            "numParsedLines":12,
+            "numParsedLines":13,
             "numTranscribedLines":0
          }
       ],
@@ -20316,12 +20316,12 @@
       "pages":[
          {
             "page_name":"MSS0113_S01_B06_F165_01a.jpg",
-            "numParsedLines":18,
+            "numParsedLines":22,
             "numTranscribedLines":0
          },
          {
             "page_name":"MSS0113_S01_B06_F165_01b.jpg",
-            "numParsedLines":1,
+            "numParsedLines":2,
             "numTranscribedLines":0
          }
       ],
@@ -20330,7 +20330,7 @@
          2603,
          1021,
          2607,
-         2622
+         2605
       ],
       "finalized":"false"
    },
@@ -20348,9 +20348,9 @@
          }
       ],
       "assignees":[
+         2605,
          2600,
          2603,
-         2622,
          1021,
          2607
       ],
@@ -20374,7 +20374,7 @@
          2603,
          1021,
          2607,
-         2622
+         2605
       ],
       "finalized":"false"
    },
@@ -20401,7 +20401,7 @@
          2603,
          1021,
          2607,
-         2622
+         2605
       ],
       "finalized":"false"
    },
@@ -20423,7 +20423,7 @@
          2603,
          1021,
          2607,
-         2622
+         2605
       ],
       "finalized":"false"
    },
@@ -20445,7 +20445,7 @@
          2603,
          1021,
          2607,
-         2622
+         2605
       ],
       "finalized":"false"
    },
@@ -20458,7 +20458,7 @@
       "pages":[
          {
             "page_name":"MSS0113_S01_B06_F165_07a.jpg",
-            "numParsedLines":0,
+            "numParsedLines":38,
             "numTranscribedLines":0
          },
          {
@@ -20472,7 +20472,7 @@
          2603,
          1021,
          2607,
-         2622
+         2605
       ],
       "finalized":"false"
    },
@@ -20494,7 +20494,7 @@
          2603,
          1021,
          2607,
-         2622
+         2605
       ],
       "finalized":"false"
    },
@@ -20516,7 +20516,7 @@
          2603,
          1021,
          2607,
-         2622
+         2605
       ],
       "finalized":"false"
    },
@@ -20529,7 +20529,7 @@
       "pages":[
          {
             "page_name":"MSS0113_S01_B06_F165_10a.jpg",
-            "numParsedLines":0,
+            "numParsedLines":5,
             "numTranscribedLines":0
          }
       ],
@@ -20538,7 +20538,7 @@
          2603,
          1021,
          2607,
-         2622
+         2605
       ],
       "finalized":"false"
    },
@@ -20560,7 +20560,7 @@
          2603,
          1021,
          2607,
-         2622
+         2605
       ],
       "finalized":"false"
    },
@@ -20582,7 +20582,7 @@
          2603,
          1021,
          2607,
-         2622
+         2605
       ],
       "finalized":"false"
    },
