@@ -3,7 +3,8 @@
 
 <head>
     <title>Dunbar Letters Status</title>
-    <link rel="stylesheet" href="css/gloss.css">
+    <!-- <link rel="stylesheet" href="css/gloss.css"> -->
+    <link rel="stylesheet" href="css/status.css">
     <link href="favicon.ico" rel="icon" type="image/x-icon" />
     <style>
 
@@ -40,6 +41,7 @@
             <a href="./ms.html" id="thisMS" class="is-hidden">📖 This Manuscript</a>
         </div>
     </gm-header>
+
     <div class="itemStatusRenderingExample">
         <input type="button" value="TPEN Project Statuses" onclick="determineStatusesAgainstTPENProjects()" />
         <input type="button" value="UDel Record Statuses" onclick="determineStatusesAgainstDLARecords()" />
@@ -47,21 +49,26 @@
         <div id="tpenProjectsStatusArea"> </div>
         <div id="dlaRecordsStatusArea"> </div>
     </div>
-<!--     <pre class="card bg-light">
-        <deer-view-x id="frPreview" deer-template="entity">TPEN project created
-            TPEN project parsed
-            TPEN project assigned
-            TPEN project transcribed
-            TPEN project proofed/finalized
-            DLA record minted
-            DLA record linked to Delaware
-            DLA record linked to TPEN
-            DLA record described
-            DLA record released
-            TPEN envelope linked to record
-            TPEN envelope project created
-        </deer-view-x>
-    </pre> -->
+
+    <div id="dla_browsable" class="container reverse">
+        <div id="Documents" class="grow wrap">list loading</div>
+        <div class="sidebar">
+            <h3>Refine Results <button role="button" id="queryReset">clear all</button></h3>
+            <progress value="107" max="107">107 of 107</progress>
+            <input id="query" type="text" placeholder="type to filter">
+            <section id="facetFilter"></section>
+        </div>
+    </div>
+
+    <div id="tpen_browsable" class="container reverse hidden">
+        <div id="Documents" class="grow wrap">list loading</div>
+        <div class="sidebar">
+            <h3>Refine Results <button role="button" id="queryReset">clear all</button></h3>
+            <progress value="107" max="107">107 of 107</progress>
+            <input id="query" type="text" placeholder="type to filter">
+            <section id="facetFilter"></section>
+        </div>
+    </div>
 
     <gm-footer>
         <a href="./index.html">🏠</a>
@@ -76,13 +83,16 @@
             </svg>
         </a>
     </gm-footer>
+    
     <div id="globalFeedback" class="card is-center"></div>
     <script src="js/deer.js" type="module"></script>
     <script src="js/app.js" type="module"></script>
     <script>
         let tpenProjects = []
         let dlaCollection = []
-        const udelPrefix = "https://udspace.udel.edu/rest/handle/"
+        const udelHandlePrefix = "https://udspace.udel.edu/rest/handle/"
+        const udelIdPrefix = "https://udspace.udel.edu/rest/items/"
+        const tpenProjectPrefix = "https://t-pen.org/TPEN/project/"
         getTranscriptionProjects()
         fetchLetters()
 
@@ -244,7 +254,7 @@
                 case "TPENProjectLinked":
                     const tpenProjectKeyWildcard = {$exists: true, $type: 'string', $ne: ''}
                     statusString = "<span class='statusString bad'>No TPEN Link</span>"
-                    let tpenProjectLinkingAnnos = await fetchQuery({"type":"Annotation", "target":udelPrefix+item.handle, "body.tpenProject":tpenProjectKeyWildcard})
+                    let tpenProjectLinkingAnnos = await fetchQuery({"type":"Annotation", "target":udelHandlePrefix+item.handle, "body.tpenProject":tpenProjectKeyWildcard})
                     let tpenProjectIDs = []
                     if(tpenProjectLinkingAnnos.length > 0){
                         for(tpenAnno of tpenProjectLinkingAnnos){
@@ -269,7 +279,7 @@
                 break
                 case "uDelLinked":
                     statusString = "<span class='statusString bad'>Record Not Linked</span>"
-                    let recordHandleAnnos2 = await fetchQuery({"type":"Annotation", "body.source.value":udelPrefix+item.handle})
+                    let recordHandleAnnos2 = await fetchQuery({"type":"Annotation", "body.source.value":udelHandlePrefix+item.handle})
                     if(recordHandleAnnos2.length > 0){
                         statusString = "<span title='See "+recordHandleAnnos2[0].target+"' class='statusString good'>Record Linked</span>"
                     }
@@ -411,7 +421,6 @@
         async function findUdelRecordWithCode(Fcode, projID) {
             // This is the Fcode that the TPEN project knew, like F158
             // Need to check that there is a udel item with this Fcode, looking through letters collection.
-            const udelPrefix = "https://udspace.udel.edu/rest/handle/"
             const getFolderFromMetadata = (metaMap) => {
                 let ok = false
                 for (const m of metaMap) {
@@ -429,7 +438,7 @@
             let impossible = false;
             let itemHandle = ""
             for(item of dlaCollection.items){
-                const metadataUri = `http://tinypaul.rerum.io/dla/proxy?url=${udelPrefix+item.handle}?expand=metadata`    
+                const metadataUri = `http://tinypaul.rerum.io/dla/proxy?url=${udelHandlePrefix+item.handle}?expand=metadata`    
                 match = await fetch(metadataUri)
                     .then(res => res.ok ? res.json() : Promise.reject(res))
                     .then(meta => getFolderFromMetadata(meta.metadata))
@@ -448,11 +457,11 @@
                         return Fcode === matchStr
                     })
                 if(match){
-                    itemHandle = udelPrefix+item.handle
+                    itemHandle = udelHandlePrefix+item.handle
                     return
                 }    
                 if(impossible){
-                    console.error("Could not determine folder name for "+udelPrefix+item.handle+"?expand=metadata.  That means this TPEN project "+projID+" cannot determine if a udel record exists for code "+Fcode+".  We are skipping the check for this project.")
+                    console.error("Could not determine folder name for "+udelHandlePrefix+item.handle+"?expand=metadata.  That means this TPEN project "+projID+" cannot determine if a udel record exists for code "+Fcode+".  We are skipping the check for this project.")
                     return
                 }
             }
@@ -464,7 +473,7 @@
          * Note this does not detect that record and project(s) are specifically linked yet.
          * */
         async function matchTranscriptionRecords(dlaRecord) {
-            const metadataUri = `http://tinypaul.rerum.io/dla/proxy?url=${udelPrefix+dlaRecord.handle}?expand=metadata`
+            const metadataUri = `http://tinypaul.rerum.io/dla/proxy?url=${udelHandlePrefix+dlaRecord.handle}?expand=metadata`
             return await fetch(metadataUri)
                 .then(res => res.ok ? res.json() : Promise.reject(res))
                 .then(meta => getFolderFromMetadata(meta.metadata))
@@ -485,27 +494,65 @@
  * Render a filterable scrollable area to go over the status of each DLA item or each  T-PEN project
  * or possibly a combinations. 
  * */
-function loadInterface(elem, dlaItems, transcriptionProjects) {
-    var records = document.querySelectorAll(".record")
-    const TPEN_BASE = "http://newberry.rerum.io/paleography/"
-    const FIELDS = page_FIELDS || [
+function loadInterface(dlaItems, transcriptionProjects) {
+    let dlaAreaElem = document.getEledmentById("dla_browsable")
+    let tpenAreaElem = document.getEledmentById("tpen_browsable")
+
+    dlaAreaElem.innerHTML = `
+        <div id="Documents" class="grow wrap">list loading</div>
+        <div class="sidebar">
+            <h3>Refine Results <button role="button" id="queryReset">clear all</button></h3>
+            <progress value="107" max="107">107 of 107</progress>
+            <input id="query" type="text" placeholder="type to filter">
+            <section id="facetFilter"></section>
+        </div>
+    `
+    tpenArea.innerHTML = `
+        <div id="Documents" class="grow wrap">list loading</div>
+        <div class="sidebar">
+            <h3>Refine Results <button role="button" id="queryReset">clear all</button></h3>
+            <progress value="107" max="107">107 of 107</progress>
+            <input id="query" type="text" placeholder="type to filter">
+            <section id="facetFilter"></section>
+        </div>
+    `
+    const DLA_FIELDS = page_FIELDS || [
         "Alternative Title", "Date Issued", "Is Part Of",
         "Date Issued", "Author(s) or Contributor(s)"
         // script, decoration, physical description
     ]
-    const FILTERS = page_FILTERS || {
+
+    const TPEN_FIELDS = page_FIELDS || [
+        "Alternative Title", "Date Issued", "Is Part Of",
+        "Date Issued", "Author(s) or Contributor(s)"
+        // script, decoration, physical description
+    ]
+
+    const DLA_FILTERS = page_FILTERS || {
         "Type of Resource": "resource-type", Genre: "genre", Language: "language",
         Script: "script", "Reading Difficulty": "readability", Topic: "topic",
         Region: "region", "Time Period": "period", Repository: "repository"
     }
-    const SEARCH = page_SEARCH || [
+
+    const TPEN_FILTERS = page_FILTERS || {
+        "Type of Resource": "resource-type", Genre: "genre", Language: "language",
+        Script: "script", "Reading Difficulty": "readability", Topic: "topic",
+        Region: "region", "Time Period": "period", Repository: "repository"
+    }
+
+    const DLA_SEARCH = page_SEARCH || [
+        "Title", "Physical Description", "Note(s)", "Region",
+        "Topic", "Subject", "Repository", "Call Number", "Is Part Of"
+    ]
+
+    const TPEN_SEARCH = page_SEARCH || [
         "Title", "Physical Description", "Note(s)", "Region",
         "Topic", "Subject", "Repository", "Call Number", "Is Part Of"
     ]
 
     let listOfDLAItems = dlaItems.reduce((a, b) => a += `
-    <div class="dlaRecord" data-id="${b['@id']}">
-        <h4><a href="./record.html?id=${b['@id']}">${b.label}</a></h4>
+     <div class="dlaRecord" data-id="${udelIdPrefix+b.id}">
+        <h4><a href="${udelIdPrefix+b.id}">${b.name}</a></h4>
         <div class="row">
             <img class="thumbnail" >
             <dl>
@@ -513,9 +560,9 @@ function loadInterface(elem, dlaItems, transcriptionProjects) {
         </div>
     </div>`, ``)
 
-    let listOfTranscriptionProjects = transcriptionProjects.reduce((a, b) => a += `
-    <div class="tpenRecord" data-id="${b['@id']}">
-        <h4><a href="./record.html?id=${b['@id']}">${b.label}</a></h4>
+    let listOfTPENprojects = transcriptionProjects.reduce((a, b) => a += `
+    <div class="tpenRecord" data-id="${tpenProjectPrefix+b.id}">
+        <h4><a href="${tpenProjectPrefix+b.id}">${b.metadata_name + "("+b.project_name+")"}</a></h4>
         <div class="row">
             <img class="thumbnail" >
             <dl>
@@ -523,7 +570,8 @@ function loadInterface(elem, dlaItems, transcriptionProjects) {
         </div>
     </div>`, ``)
 
-    elem.innerHTML = list
+    dlaAreaElem.innerHTML = listOfDLAItems
+    tpenAreaElem.innerHTML = listOfTPENprojects
 
     records = document.querySelectorAll(".record")
     let facets = {}
