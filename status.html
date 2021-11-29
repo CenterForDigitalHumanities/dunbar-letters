@@ -3,6 +3,9 @@
 
 <head>
     <title>Dunbar Letters Status</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- <link rel="stylesheet" href="css/gloss.css"> -->
     <link rel="stylesheet" href="css/status.css">
     <link href="favicon.ico" rel="icon" type="image/x-icon" />
@@ -10,12 +13,10 @@
 
         .good{
             color: green;
-            font-weight: bold;
         }
 
         .bad{
             color: red;
-            font-weight: bold;
         }
 
         .statusLabel{
@@ -30,8 +31,23 @@
 
         }
 
-        #tpen_browsable, #dla_browsable{
-            display : none;
+        #dla_browsable{
+            display: none;
+        }
+
+        #tpen_browsable{
+            margin-top: 1em;
+            border-top: 3px solid green;
+            border-left: 1px solid black;
+            border-right: 1px solid black;
+        }
+
+        dt{
+            width: auto;
+        }
+
+        .record{
+            zoom:  75%;
         }
 
     </style>
@@ -64,7 +80,7 @@
         </div>
     </div>
 
-    <div id="tpen_browsable" class="container reverse hidden">
+    <div id="tpen_browsable" class="container reverse">
         <div id="TPENDocuments" class="grow wrap">list loading</div>
         <div class="sidebar">
             <h3>Refine Results <button role="button" id="queryReset">clear all</button></h3>
@@ -94,10 +110,13 @@
     <script>
         let tpenProjects = []
         let dlaCollection = []
+        let tpenRecords = []
+        let dlaRecords = []
         const udelHandlePrefix = "https://udspace.udel.edu/rest/handle/"
         const udelIdPrefix = "https://udspace.udel.edu/rest/items/"
         const tpenProjectPrefix = "http://t-pen.org/TPEN/project/"
         const TPproxy = "http://tinypaul.rerum.io/dla/proxy?url="
+        let progress = undefined
 
         getTranscriptionProjects()
         fetchLetters()
@@ -153,10 +172,9 @@
                         }
                     })
                     el =
-                    `<li which="${status}">
-                        <label class="statusLabel" title="Check if there are more than 5 lines with width > 0"> TPEN Project Parsed </label>
-                        <div class="statusValue">${statusString}</div>
-                    </li>`                               
+                    `<dt class="statusLabel" title="Check if there are more than 5 lines with width > 0"> TPEN Project Parsed </dt>
+                     <dd class="statusValue">${statusString}</dd>
+                    `                               
                 break
                 case "assignedStatus":
                     statusString = `<span class='statusString bad'>Not Assigned</span>`
@@ -164,10 +182,9 @@
                         statusString = `<span class='statusString good'>Assigned to ${proj.assignees.length} users </span>`
                     }
                     el =
-                    `<li which="${status}">
-                        <label class="statusLabel" title="Check if it is assigned to at least 1 user"> TPEN Project Assigned </label>
-                        <div class="statusValue">${statusString}</div>
-                    </li>`   
+                    `<dt class="statusLabel" title="Check if it is assigned to at least 1 user"> TPEN Project Assigned </dt>
+                     <dd class="statusValue">${statusString}</dd>
+                    `   
                 break
                 case "transcribedStatus":
                     statusString = "<span class='statusString good'>Transcribed</span>"
@@ -179,10 +196,9 @@
                         }
                     })
                     el =
-                    `<li which="${status}">
-                        <label class="statusLabel" title="Check if there are more than 5 lines with width > 0 that have text on each page"> TPEN Project Transcribed </label>
-                        <div class="statusValue">${statusString}</div>
-                    </li>`   
+                    `<dt class="statusLabel" title="Check if there are more than 5 lines with width > 0 that have text on each page"> TPEN Project Transcribed </dt>
+                     <dd class="statusValue">${statusString}</dd>
+                    `   
                 break
                 case "finalizedStatus":
                     statusString = "<span class='statusString bad'>Not Finalized</span>"
@@ -190,10 +206,9 @@
                         statusString = "<span class='statusString good'>Finalized</span>"
                     }
                     el =
-                    `<li which="${status}">
-                        <label class="statusLabel" title="If there are more than 5 parsed lines on each page, and every line contains text.  Logic performed in servlet and returns T/F."> TPEN Project Finalized </label>
-                        <div class="statusValue">${statusString}</div>
-                    </li>`   
+                    `<dt class="statusLabel" title="If there are more than 5 parsed lines on each page, and every line contains text.  Logic performed in servlet and returns T/F."> TPEN Project Finalized </dt>
+                     <dd class="statusValue">${statusString}</dd>
+                    `   
                 break
                 case "TPENLinkStatus":
                     linkingAnnos = await fetchQuery({"type":"Annotation", "tpenProject":""+proj.id})
@@ -202,10 +217,9 @@
                         statusString = "<span class='statusString good'> "+linkingAnnos.length+" Linked Record(s)</span>"
                     }
                     el =
-                    `<li which="${status}">
-                        <label class="statusLabel" title=""> Linked to UDel Data </label>
-                        <div class="statusValue">${statusString}</div>
-                    </li>`   
+                    `<dt class="statusLabel" title=""> Linked to UDel Data </dt>
+                     <dd class="statusValue">${statusString}</dd>
+                    `   
                 break
                 case "describedStatus":
                     //This T-PEN project would have to be linked to a UDEL record
@@ -225,10 +239,9 @@
                         statusString = "<span class='statusString good'>There are "+describingAnnos.length+" descriptive annotations</span>"
                     }
                     el =
-                    `<li which="${status}">
-                        <label class="statusLabel" title=""> Well Described </label>
-                        <div class="statusValue">${statusString}</div>
-                    </li>`   
+                    `<dt class="statusLabel" title=""> Well Described </dt>
+                     <dd class="statusValue">${statusString}</dd>
+                    `   
                 break
                 default:
                     el=""
@@ -550,7 +563,7 @@
                     statusListElements += el
                 }
                 a += `
-                <div class="dlaRecord" data-id="${TPproxy+udelIdPrefix+b.id}?expand=metadata" statuses="${statusListAttributes.join(" ")}">
+                <div class="dlaRecord record" data-id="${TPproxy+udelIdPrefix+b.id}?expand=metadata" statuses="${statusListAttributes.join(' ')}">
                     <h4><a href="${udelIdPrefix+b.id}">${b.name}</a></h4>
                     <ul>
                         ${statusListElements}
@@ -559,7 +572,7 @@
 
             dlaAreaElem.innerHTML = listOfDLAItems
 
-            let dlaRecords = document.querySelectorAll(".dlaRecord")
+            dlaRecords = document.querySelectorAll(".dlaRecord")
             let dla_facets = {}
             let dla_loading = []
 
@@ -593,7 +606,7 @@
                     .catch(err => { throw Error(err) })
                 )
             })
-            query.addEventListener("input", filterQuery)
+            document.getElementById("dla_query").addEventListener("input", filterQuery)
             return Promise.all(dla_loading).then(() => populateSidebar(dla_facets, DLA_FILTERS, "dla")).catch(err=>console.error(err))
         }
 
@@ -608,7 +621,7 @@
                 <div class="sidebar">
                     <h3>Refine Results <button role="button" id="tpenQueryReset">clear all</button></h3>
                     <progress value="107" max="107">107 of 107</progress>
-                    <input id="query" type="text" placeholder="type to filter">
+                    <input id="tpen_query" type="text" placeholder="type to filter">
                     <section id="tpenFacetFilter"></section>
                 </div>
             `
@@ -640,8 +653,8 @@
                 "describedStatus"
             ]
 
+            document.getElementById("TPENDocuments").innerHTML = ""
             let TPENProjectListElem = ``
-
             for(proj of tpenProjects){
                 //Each thing will have this suite of statuses to check for
                 //These are in the tpen objects
@@ -650,27 +663,27 @@
                 for(status of statusesToFind){
                     let el = await generateProjectStatusElement(status, proj)
                     if(el.indexOf("statusString good")>-1){
-                        statusListAttributes.push(statusListAttributes)
+                        statusListAttributes.push(status)
                     }
                     statusListElements += el
                 }
-                tpenAreaElem.innerHTML += `
-                    <div class="tpenRecord" data-id="${tpenProjectPrefix+proj.id}" data-status="${statusListAttributes.join(" ")}"}>
-                    <h4><a href="${tpenProjectPrefix+proj.id}">${proj["metadata_name"]}</a></h4>
+                document.getElementById("TPENDocuments").innerHTML += `
+                    <div class="tpenRecord record" data-id="${tpenProjectPrefix+proj.id}" data-status="${statusListAttributes.join(" ")}">
+                    <h3><a href="${tpenProjectPrefix+proj.id}">${proj["metadata_name"]}</a></h3>
                     <div class="row">
                         <dl>
                         </dl>
                     </div>
                     <div class="row">
-                        <ul>
+                        <dl>
                             ${statusListElements}
-                        </ul>
+                        </dl>
                     </div>
                 </div>
                 `
             }
 
-            let tpenRecords = document.querySelectorAll(".tpenRecord")
+            tpenRecords = document.querySelectorAll(".tpenRecord")
             let tpen_loading = []
             let statusSet = new Set();
             statusSet.add("parsedStatus")
@@ -693,7 +706,10 @@
                         tpenProject.metadata?.forEach(dat => {
                             metadataMap.set(dat.label, Array.isArray(dat.value) ? dat.value.join(", ") : dat.value)
                             if (TPEN_FIELDS.includes(dat.label)) {
-                                dl += `<dt>${dat.label}</dt><dd>${metadataMap.get(dat.label)}</dd>`
+                                //dl += `<dt>${dat.label}</dt><dd>${metadataMap.get(dat.label)}</dd>`// many of these are blank...
+                                if(metadataMap.get(dat.label).trim() !== ""){
+                                    dl += `<dt>${dat.label}</dt><dd>${metadataMap.get(dat.label)}</dd>`
+                                }
                             }
                         })
                         //Here we aren't filtering by metadata.  We are filtering by statuses, it is the only facet and is set above
@@ -710,6 +726,7 @@
         function populateSidebar(facets, filters, which) {
             //The facet needs to be <facet data-facet="status" data-label="parsedStatus" data-count="1"> for each status to filter by.
             let side = `<ul>`
+            let elemRoot = document.getElementById(which+"_browsable")
             for (const f in filters) {
                 if (!facets[filters[f]]) continue
                 side += `<li>${f}</li>`
@@ -718,20 +735,25 @@
             side += `</ul>`
             let facetFilter = document.getElementById(which+"FacetFilter")
             facetFilter.innerHTML = side
-            let facetsElements = document.querySelectorAll("[data-facet]")
+            let facetsElements = elemRoot.querySelectorAll("[data-facet]")
             Array.from(facetsElements).forEach(el => el.addEventListener("click", filterFacets))
-            updateCount()
-            loadQuery()
+            updateCount(which)
+            loadQuery(which)
         }
 
-        function updateCount() {
+        function updateCount(which) {
             // let visibleCount = Array.from(records).filter(el=>el.offsetParent === null).length
-            let hiddenCount = document.querySelectorAll(".record[class*='hide-']").length
-            let countBar = query.previousElementSibling
+            let elemRoot = document.getElementById(which+"_browsable")
+            let records = document.getElementsByClassName("."+which+"Record")
+            let hiddenCount = elemRoot.querySelectorAll(".record[class*='hide-']").length
+            let queryInput = document.getElementById(which+"_query")
+            let countBar = queryInput.previousElementSibling
             let countBarValue = records.length - hiddenCount
             countBar.max = records.length
             countBar.textContent = countBarValue + " of " + countBar.max
-            clearInterval(progress)
+            if(progress != undefined){
+               clearInterval(progress) 
+            }
             const notzero = countBarValue > countBar.value ? 1 : -1
             let step = parseInt((countBarValue - countBar.value) / 25) || notzero
             progress = setInterval(() => {
@@ -741,63 +763,70 @@
                     clearInterval(progress)
                 }
             }, 10)
-            let facetsElements = document.querySelectorAll("facet")
+            let facetsElements = elemRoot.querySelectorAll("facet")
             Array.from(facetsElements).forEach(f => {
                 const k = f.getAttribute("data-facet")
                 const v = f.textContent
-                let count = document.querySelectorAll(".record:not([class*='hide-'])[data-" + k + "*='" + v + "']").length
+                let count = elemRoot.querySelectorAll(".record:not([class*='hide-'])[data-" + k + "*='" + v + "']").length
                 f.setAttribute("data-count", count)
-                if (count === 0) {
-                    f.classList.add("hide-sidebar")
-                } else {
-                    f.classList.remove("hide-sidebar")
-                }
+                // if (count === 0) {
+                //     f.classList.add("hide-sidebar")
+                // } else {
+                //     f.classList.remove("hide-sidebar")
+                // }
             })
         }
 
-        const loadQuery = () => {
+        const loadQuery = (which) => {
             const params = new URLSearchParams(location.search)
+            let queryInput = document.getElementById(which+"_query")
+            let elemRoot = document.getElementById(which+"_browsable")
             params.forEach((v,k)=>{
-                document.querySelectorAll(`[data-facet="${k}"][data-label="${v}"]`)
+                elemRoot.querySelectorAll(`[data-facet="${k}"][data-label="${v}"]`)
                  .forEach(el=>el.click())
             })
             const queryString = params.get("q")
+
             if(queryString){
-                query.value = queryString
-                query.dispatchEvent(new Event('input'))
+                queryInput.value = queryString
+                queryInput.dispatchEvent(new Event('input'))
             }
         }
 
         if (window.tpenQueryReset) {
             tpenQueryReset.addEventListener("click", ev => {
-                Array.from(document.querySelectorAll(".clicked")).forEach(el => el.dispatchEvent(new Event("click")))
-                query.value = ""
-                query.dispatchEvent(new Event("input"))
+                Array.from(document.getElementById("tpen_browsable").querySelectorAll(".clicked")).forEach(el => el.dispatchEvent(new Event("click")))
+                document.getElementById("tpen_query").value = ""
+                document.getElementById("tpen_query").dispatchEvent(new Event("input"))
             })
         }
 
         if (window.dlaQueryReset) {
             dlaQueryReset.addEventListener("click", ev => {
-                Array.from(document.querySelectorAll(".clicked")).forEach(el => el.dispatchEvent(new Event("click")))
-                query.value = ""
-                query.dispatchEvent(new Event("input"))
+                Array.from(document.getElementById("dla_browsable").querySelectorAll(".clicked")).forEach(el => el.dispatchEvent(new Event("click")))
+                document.getElementById("dla_query").value = ""
+                document.getElementById("dla_query").dispatchEvent(new Event("input"))
             })
         }
 
         function filterQuery(event) {
             const queryString = event.target.value
+            let which = event.target.id.replace("_query","")
+            let records = document.getElementsByClassName("."+which+"Record")
             Array.from(records).forEach(r => new RegExp(queryString, "i").test(r.getAttribute("data-query")) ? r.classList.remove("hide-query") : r.classList.add("hide-query"))
             //Manuscripts.querySelectorAll(".record:not([data-query*='"+queryString+"'])")
-            updateCount()
+            updateCount(which)
         }
         function filterFacets(event) {
+            let which = event.target.closest("section").id.replace("FacetFilter", "")
             const clicked = event.target
             clicked.classList.toggle("clicked")
             const action = clicked.classList.contains("clicked") ? "add" : "remove"
             const k = clicked.getAttribute("data-facet")
             const v = clicked.textContent
+            let records = document.getElementsByClassName("."+which+"Record")
             Array.from(records).forEach(r => { if (!new RegExp(v, "i").test(r.getAttribute("data-" + k))) r.classList[action]("hide-facet") })
-            updateCount()
+            updateCount(which)
         }
     </script>
 </body>

@@ -176,7 +176,7 @@ progress::after {
 .record {
     display       : flex;
     flex-basis    : 100%;
-    max-width     : 30em;
+/*    max-width     : 30em;*/
     flex-direction: column;
     padding       : calc(var(--grid-gutter) / 2);
     box-shadow    : -1px -1px 3px rgba(0, 0, 0, .4);
