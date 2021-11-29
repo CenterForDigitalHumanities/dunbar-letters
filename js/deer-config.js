@@ -8,9 +8,9 @@ import pLimit from './plimit.js'
 const limiter = pLimit(4)
 let projects = []
 
-fetch(`http://165.134.105.25:8181/TPEN28/getDunbarProjects`,{cache:"force-cache"})
+fetch(`http://165.134.105.25:8181/TPEN28/getDunbarProjects`, { cache: "force-cache" })
     .then(res => res.ok ? res.json() : Promise.reject(res))
-    .then(list=>projects = list)
+    .then(list => projects = list)
 
 export default {
     ID: "deer-id", // attribute, URI for resource to render
@@ -60,7 +60,7 @@ export default {
     SUPPRESS: ["__rerum", "@context"], //properties to ignore
     DELIMETERDEFAULT: ",", //Default delimeter for .split()ing and .join()ing 
     ROBUSTFEEDBACK: true, //Show warnings along with errors in the web console.  Set to false to only see errors.  
-    
+
     /**
      * Add any custom templates here through import or copy paste.
      * Templates added here will overwrite the defaults in deer-render.js.
@@ -98,19 +98,31 @@ export default {
             return {
                 html: `<button role="button" class="addemup" hndl="${UTILS.getValue(obj.source)}"></button>`,
                 then: elem => {
-                    if (-1 === elem.querySelector('button')?.getAttribute('hndl')?.indexOf('/')) { 
-                        console.log("No handle here: ",elem)
-                        return 
+                    if (-1 === elem.querySelector('button')?.getAttribute('hndl')?.indexOf('/')) {
+                        console.log("No handle here: ", elem)
+                        return
                     }
-                    loadUDelMetadata(elem.querySelector('button')?.getAttribute('hndl'))
-                        .then(async (metadata) => {
-                            matchTranscriptionRecords(projects, metadata)
-                                .then(projList => {
-                                    elem.setAttribute("tpen-projects", projList)
-                                })
-                        })
-                    elem.addEventListener('click', saveLink)
+                    // loadUDelMetadata(elem.querySelector('button')?.getAttribute('hndl'))
+                    //     .then(async (metadata) => {
+                    //         matchTranscriptionRecords(projects, metadata)
+                    //             .then(projList => {
+                    //                 elem.setAttribute("tpen-projects", projList)
+                    //             })
+                    //     })
+                    elem.addEventListener('click', findLink)
+                    elem.addEventListener('dblclick', saveLink)
                 }
+            }
+
+            function findLink(event) {
+                const elem = event.target
+                loadUDelMetadata(elem.getAttribute('hndl'))
+                    .then(async (metadata) => {
+                        matchTranscriptionRecords(projects, metadata)
+                            .then(projList => {
+                                elem.setAttribute("tpen-projects", projList)
+                            })
+                    })
             }
 
             function saveLink(event) {
@@ -120,13 +132,13 @@ export default {
                 projectIDs.forEach((id, index) => {
                     limiter(async () => {
                         let t = index > 0 ? await createNewRecord(target) : target
-                        createCopy(target, t, id)
+                        return createCopy(target, t, id)
                     })
                 })
             }
 
             async function createNewRecord(basedOn) {
-                let original = await fetch(baseV1 + "id/" + basedOn).then(r => r.json()).then(entity => {
+                let original = await fetch(basedOn).then(r => r.json()).then(entity => {
                     return UTILS.expand(entity).then(expanded => {
                         delete expanded.__rerum
                         delete expanded['@id']
@@ -151,7 +163,7 @@ export default {
                     return UTILS.expand(entity).then(expanded => {
                         delete expanded.__rerum
                         delete expanded['@id']
-                        delete entity.id
+                        delete expanded.id
                         return expanded
                     })
                 })
@@ -170,7 +182,7 @@ export default {
                 let all = []
                 for (const key in annoMap) {
                     all.push(
-                        limiter(() => {
+                        (() => {
                             const anno = Object.assign({
                                 target: newID,
                                 body: { key: { value: annoMap[key] } }
@@ -217,23 +229,31 @@ async function loadUDelMetadata(handle) {
     return getPagedQuery(100)
 
     function getPagedQuery(lim, it = 0) {
-        return limiter(() => {
-            return fetch(`${tiny}query?limit=${lim}&skip=${it}`, {
-                method: "POST",
-                mode: "cors",
-                body: JSON.stringify(uDelData)
-            }).then(response => response.json())
-                .then(list => {
-                    results.push(list)
-                    if (list.length ?? (list.length % lim === 0)) {
-                        return getPagedQuery(lim, it + list.length)
-                    } else {
-                        return results.flat().pop().body
-                    }
-                })
-        })
+        return fetch(`${tiny}query?limit=${lim}&skip=${it}`, {
+            method: "POST",
+            mode: "cors",
+            body: JSON.stringify(uDelData)
+        }).then(response => response.json())
+            .then(list => {
+                results.push(list)
+                if (list.length ?? (list.length % lim === 0)) {
+                    return getPagedQuery(lim, it + list.length)
+                } else {
+                    return getFirstMetadataResult(results)
+                }
+            })
+    }
+    function getFirstMetadataResult(annos) {
+        if (!Array.isArray(annos)) return annos
+        for (const r of annos) {
+            const tests = r?.flat().pop().body ?? r.body
+            if (tests.length ?? tests.identifier) {
+                return tests
+            }
+        }
     }
 }
+
 
 function getTranscriptionProjects(metadata) {
     // you must log in first, dude
