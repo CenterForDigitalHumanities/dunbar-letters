@@ -47,29 +47,29 @@
     </gm-header>
 
     <div class="itemStatusRenderingExample">
-        <input type="button" value="TPEN Project Statuses" onclick="determineStatusesAgainstTPENProjects()" />
-        <input type="button" value="UDel Record Statuses" onclick="determineStatusesAgainstDLARecords()" />
-        <input type="button" value="Load Filterable Interface" onclick="loadInterface()" />
-        <div id="tpenProjectsStatusArea"> </div>
-        <div id="dlaRecordsStatusArea"> </div>
+        <input type="button" value="TPEN Project Statuses" onclick="loadInterfaceTPEN()" />
+        <input type="button" value="UDel Record Statuses" onclick="loadInterfaceDLA()" />
+        <!-- <input type="button" value="Load Filterable Interface" onclick="loadInterface()" /> -->
+        <!-- <div id="tpenProjectsStatusArea"> </div>
+        <div id="dlaRecordsStatusArea"> </div> -->
     </div>
 
     <div id="dla_browsable" class="container reverse">
-        <div id="Documents" class="grow wrap">list loading</div>
+        <div id="DLADocuments" class="grow wrap">list loading</div>
         <div class="sidebar">
             <h3>Refine Results <button role="button" id="queryReset">clear all</button></h3>
             <progress value="107" max="107">107 of 107</progress>
-            <input id="query" type="text" placeholder="type to filter">
+            <input id="dla_query" type="text" placeholder="type to filter">
             <section id="dlaFacetFilter"></section>
         </div>
     </div>
 
     <div id="tpen_browsable" class="container reverse hidden">
-        <div id="Documents" class="grow wrap">list loading</div>
+        <div id="TPENDocuments" class="grow wrap">list loading</div>
         <div class="sidebar">
             <h3>Refine Results <button role="button" id="queryReset">clear all</button></h3>
             <progress value="107" max="107">107 of 107</progress>
-            <input id="query" type="text" placeholder="type to filter">
+            <input id="tpen_query" type="text" placeholder="type to filter">
             <section id="tpenFacetFilter"></section>
         </div>
     </div>
@@ -96,7 +96,7 @@
         let dlaCollection = []
         const udelHandlePrefix = "https://udspace.udel.edu/rest/handle/"
         const udelIdPrefix = "https://udspace.udel.edu/rest/items/"
-        const tpenProjectPrefix = "https://t-pen.org/TPEN/project/"
+        const tpenProjectPrefix = "http://t-pen.org/TPEN/project/"
         const TPproxy = "http://tinypaul.rerum.io/dla/proxy?url="
 
         getTranscriptionProjects()
@@ -139,7 +139,7 @@
          * Generate the HTML element which will represent the status passed in.  
          * This is for the T-PEN projects items.
          * */
-        async function generateProjectStatusElement(status){
+        async function generateProjectStatusElement(status, proj){
             let el, statusString, Fcode = ""
             let linkingAnnos, describingAnnos = []
             //Each status handled as its own case.  If we are uniform in what we do we can make this part much shorter if we have a strategic statusesToFind
@@ -241,7 +241,7 @@
          * Generate the HTML element which will represent the status passed in.  
          * This is for the DLA items.
          * */
-        async function generateDLAStatusElement(status){
+        async function generateDLAStatusElement(status, item){
             let statusString = ""
             switch (status){
                 case "TPENProjectCreated":
@@ -331,7 +331,7 @@
                 let statusListElements = ``
                 let statusListAttributes = new Array()
                 for(status of statusesToFind){
-                    let el = await generateDLAStatusElement(status)
+                    let el = await generateDLAStatusElement(status, item)
                     if(el.indexOf("statusString good")>-1){
                         statusListAttributes.push(status)
                     }
@@ -378,7 +378,7 @@
                 let statusListElements = ``
                 let statusListAttributes = new Array()
                 for(status of statusesToFind){
-                    let el = await generateProjectStatusElement(status)
+                    let el = await generateProjectStatusElement(status, proj)
                     if(el.indexOf("statusString good")>-1){
                         statusListAttributes.push(status)
                     }
@@ -501,9 +501,9 @@
          * Render a filterable scrollable area to go over the status of each DLA item or each  T-PEN project
          * or possibly a combinations. 
          * */
-        function loadInterfaceDLA(dlaItems) {
+        async function loadInterfaceDLA() {
             let dlaAreaElem = document.getElementById("dla_browsable")
-            
+            let dlaItems = dlaCollection.items
             dlaAreaElem.innerHTML = `
                 <div id="DLADocuments" class="grow wrap">list loading</div>
                 <div class="sidebar">
@@ -513,95 +513,6 @@
                     <section id="dlaFacetFilter"></section>
                 </div>
             `
-
-            //Example Metadata
-            let exampleMet = [
-                {
-                "key": "dc.contributor.author",
-                "value": "Dunbar-Nelson, Alice",
-                "language": ""
-                },
-                {
-                "key": "dc.date.accessioned",
-                "value": "2021-02-12T16:58:45Z",
-                "language": ""
-                },
-                {
-                "key": "dc.date.available",
-                "value": "2021-02-12T16:58:45Z",
-                "language": ""
-                },
-                {
-                "key": "dc.date.issued",
-                "value": "[1898-09-18]",
-                "language": ""
-                },
-                {
-                "key": "dc.identifier.other",
-                "value": "Box 3, F77",
-                "language": ""
-                },
-                {
-                "key": "dc.identifier.uri",
-                "value": "https://udspace.udel.edu/handle/19716/28704",
-                "language": ""
-                },
-                {
-                "key": "dc.format.extent",
-                "value": "4 pages",
-                "language": ""
-                },
-                {
-                "key": "dc.language.iso",
-                "value": "en_US",
-                "language": "en_US"
-                },
-                {
-                "key": "dc.publisher",
-                "value": "University of Delaware Library. Special Collections",
-                "language": "en_US"
-                },
-                {
-                "key": "dc.rights",
-                "value": "Use of materials from this collection beyond the exceptions provided for in the Fair Use and Educational Use clauses of the U.S. Copyright Law may violate federal law. Permission to publish or reproduce is required from the copyright holder. Please contact Special Collections Department, University of Delaware Library, https://library.udel.edu/static/purl.php?askspec",
-                "language": ""
-                },
-                {
-                "key": "dc.subject",
-                "value": "Dunbar-Nelson, Alice Moore, 1875-1935",
-                "language": "en_US"
-                },
-                {
-                "key": "dc.subject",
-                "value": "Dunbar, Paul Laurence, 1872-1906",
-                "language": "en_US"
-                },
-                {
-                "key": "dc.subject",
-                "value": "African American authors--20th century",
-                "language": "en_US"
-                },
-                {
-                "key": "dc.subject",
-                "value": "Correspondence.",
-                "language": "en_US"
-                },
-                {
-                "key": "dc.title",
-                "value": "West Medford, Mass. Alice to Paul. Autograph letter signed",
-                "language": "en_US"
-                },
-                {
-                "key": "dc.identifier.collection",
-                "value": "MSS 0113",
-                "language": ""
-                },
-                {
-                "key": "dc.identifier.unique",
-                "value": "OCLC # 587446079",
-                "language": ""
-                }
-            ]
 
             const DLA_FIELDS = [
                 "Name", "Item Handle", "Item ID"
@@ -621,11 +532,18 @@
                 "Topic", "Subject", "Repository", "Call Number", "Is Part Of"
             ]
 
-            let listOfDLAItems = dlaItems.reduce((a, b) => {
+            const statusesToFind = [
+                "uDelLinked",
+                "TPENProjectCreated",
+                "TPENProjectLinked",
+                "envelopeLinked"
+            ]
+
+            let listOfDLAItems = dlaItems.reduce(async function(a, b){
                 let statusListElements = ``
                 let statusListAttributes = new Array()
                 for(status of statusesToFind){
-                    let el = await generateDLAStatusElement(status)
+                    let el = await generateDLAStatusElement(status, b)
                     if(el.indexOf("statusString good")>-1){
                         statusListAttributes.push(status)
                     }
@@ -675,7 +593,6 @@
                     .catch(err => { throw Error(err) })
                 )
             })
-
             query.addEventListener("input", filterQuery)
             return Promise.all(dla_loading).then(() => populateSidebar(dla_facets, DLA_FILTERS, "dla")).catch(err=>console.error(err))
         }
@@ -684,7 +601,7 @@
          * Render a filterable scrollable area to go over the status of each DLA item or each  T-PEN project
          * or possibly a combinations. 
          * */
-        function loadInterfaceTPEN(transcriptionProjects) {
+        async function loadInterfaceTPEN() {
             let tpenAreaElem = document.getElementById("tpen_browsable")
             tpenAreaElem.innerHTML = `
                 <div id="TPENDocuments" class="grow wrap">list loading</div>
@@ -696,82 +613,107 @@
                 </div>
             `
             const TPEN_FIELDS = [
-                "Project Name", "Alternate Name", "Number of Pages", "Assigness",
-                "Is Finalized", "Collection Code", "T-PEN Project ID"
+                "title", "subtitle", "subject", "date", "language",
+                "author", "description", "location"
             ]
 
             const TPEN_FILTERS = {
-                Status: "stauses"
+                Status: "status"
             }
 
+            // const TPEN_FILTERS = {
+            //     parsedStatus: "false", assignedStatus: "false", transcribedStatus:"false",
+            //     finalizedStatus: "false", TPENLinkStatus:"false", describedStatus:"false"
+            // }
+
             const TPEN_SEARCH = [
-                "Title", "Physical Description", "Note(s)", "Region",
-                "Topic", "Subject", "Repository", "Call Number", "Is Part Of"
+                "title", "subtitle", "subject", "date", "language",
+                "author", "description", "location"
             ]
 
-            let listOfTPENprojects = transcriptionProjects.reduce((a, b) => {
+            const statusesToFind = [
+                "parsedStatus",
+                "assignedStatus",
+                "transcribedStatus",
+                "finalizedStatus",
+                "TPENLinkStatus",
+                "describedStatus"
+            ]
+
+            let TPENProjectListElem = ``
+
+            for(proj of tpenProjects){
+                //Each thing will have this suite of statuses to check for
+                //These are in the tpen objects
                 let statusListElements = ``
                 let statusListAttributes = new Array()
                 for(status of statusesToFind){
-                    let el = await generateProjectStatusElement(status)
+                    let el = await generateProjectStatusElement(status, proj)
                     if(el.indexOf("statusString good")>-1){
-                        statusListAttributes.push(status)
+                        statusListAttributes.push(statusListAttributes)
                     }
                     statusListElements += el
                 }
-                a += `
-                <div class="dlaRecord" data-id="${tpenProjectPrefix+b.id}" statuses="${statusListAttributes.join(" ")}">
-                    <h4><a href="${udelIdPrefix+b.id}">${b.name}</a></h4>
-                    <ul>
-                        ${statusListElements}
-                    </ul>
-                </div>`}, ``)
-            tpenAreaElem.innerHTML = listOfTPENprojects
+                tpenAreaElem.innerHTML += `
+                    <div class="tpenRecord" data-id="${tpenProjectPrefix+proj.id}" data-status="${statusListAttributes.join(" ")}"}>
+                    <h4><a href="${tpenProjectPrefix+proj.id}">${proj["metadata_name"]}</a></h4>
+                    <div class="row">
+                        <dl>
+                        </dl>
+                    </div>
+                    <div class="row">
+                        <ul>
+                            ${statusListElements}
+                        </ul>
+                    </div>
+                </div>
+                `
+            }
 
             let tpenRecords = document.querySelectorAll(".tpenRecord")
-            let tpen_facets = {}
             let tpen_loading = []
-
+            let statusSet = new Set();
+            statusSet.add("parsedStatus")
+            statusSet.add("assignedStatus")
+            statusSet.add("transcribedStatus")
+            statusSet.add("finalizedStatus")
+            statusSet.add("TPENLinkStatus")
+            statusSet.add("describedStatus")
+            let tpen_facets = {
+                "status":statusSet
+            }
             Array.from(tpenRecords).forEach(r => {
                 const url = r.getAttribute("data-id")
                 let dl = ``
                 tpen_loading.push(fetch(url)
                     .then(status => { if (!status.ok) { throw Error(status) } return status })
                     .then(response => response.json())
-                    .then(manifest => {
+                    .then(tpenProject => {
                         let metadataMap = new Map()
-                        manifest.metadata?.forEach(dat => {
+                        tpenProject.metadata?.forEach(dat => {
                             metadataMap.set(dat.label, Array.isArray(dat.value) ? dat.value.join(", ") : dat.value)
                             if (TPEN_FIELDS.includes(dat.label)) {
                                 dl += `<dt>${dat.label}</dt><dd>${metadataMap.get(dat.label)}</dd>`
                             }
-                            if (TPEN_FILTERS[dat.label]) {
-                                r.setAttribute("data-" + TPEN_FILTERS[dat.label], metadataMap.get(dat.label))
-                                let values = (Array.isArray(dat.value)) ? dat.value : [dat.value]
-                                if (!tpen_facets[TPEN_FILTERS[dat.label]]) {
-                                    tpen_facets[TPEN_FILTERS[dat.label]] = new Set()
-                                }
-                                for (const v of values) {
-                                    tpen_facets[TPEN_FILTERS[dat.label]] = tpen_facets[FILTERS[dat.label]].add(v.replace(/\?/g, ""))
-                                }
-                            }
                         })
+                        //Here we aren't filtering by metadata.  We are filtering by statuses, it is the only facet and is set above
                         r.setAttribute("data-query", TPEN_SEARCH.reduce((a, b) => a += (metadataMap.has(b) ? metadataMap.get(b) : "*") + " ", ""))
                         r.querySelector("dl").innerHTML = dl
                     })
                     .catch(err => { throw Error(err) })
                 )
             })
-            query.addEventListener("input", filterQuery)
-            return Promise.all(dla_loading).then(() => populateSidebar(tpen_facets, TPEN_FILTERS, "tpen")).catch(err=>console.error(err))
+            document.getElementById("tpen_query").addEventListener("input", filterQuery)
+            return Promise.all(tpen_loading).then(() => populateSidebar(tpen_facets, TPEN_FILTERS, "tpen")).catch(err=>console.error(err))
         }
 
         function populateSidebar(facets, filters, which) {
+            //The facet needs to be <facet data-facet="status" data-label="parsedStatus" data-count="1"> for each status to filter by.
             let side = `<ul>`
-            for (const f in FILTERS) {
-                if (!facets[FILTERS[f]]) continue
+            for (const f in filters) {
+                if (!facets[filters[f]]) continue
                 side += `<li>${f}</li>`
-                side += Array.from(facets[FILTERS[f]]).reduce((a, b) => a += `<facet data-facet="${filters[f]}" data-label="${b}">${b}</facet>`, ``)
+                side += Array.from(facets[filters[f]]).reduce((a, b) => a += `<facet data-facet="${filters[f]}" data-label="${b}">${b}</facet>`, ``)
             }
             side += `</ul>`
             let facetFilter = document.getElementById(which+"FacetFilter")
