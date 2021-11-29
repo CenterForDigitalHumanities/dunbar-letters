@@ -225,7 +225,7 @@ dd p {
     padding: 0.5em 0em;
 }
 
-#Documents {
+#DLADocuments, #TPENDocuments {
     overflow: auto;
     height  : calc(100vh - 100px);
 }

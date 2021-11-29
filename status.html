@@ -30,6 +30,10 @@
 
         }
 
+        #tpen_browsable, #dla_browsable{
+            display : none;
+        }
+
     </style>
 </head>
 
@@ -56,7 +60,7 @@
             <h3>Refine Results <button role="button" id="queryReset">clear all</button></h3>
             <progress value="107" max="107">107 of 107</progress>
             <input id="query" type="text" placeholder="type to filter">
-            <section id="facetFilter"></section>
+            <section id="dlaFacetFilter"></section>
         </div>
     </div>
 
@@ -66,7 +70,7 @@
             <h3>Refine Results <button role="button" id="queryReset">clear all</button></h3>
             <progress value="107" max="107">107 of 107</progress>
             <input id="query" type="text" placeholder="type to filter">
-            <section id="facetFilter"></section>
+            <section id="tpenFacetFilter"></section>
         </div>
     </div>
 
@@ -93,6 +97,8 @@
         const udelHandlePrefix = "https://udspace.udel.edu/rest/handle/"
         const udelIdPrefix = "https://udspace.udel.edu/rest/items/"
         const tpenProjectPrefix = "https://t-pen.org/TPEN/project/"
+        const TPproxy = "http://tinypaul.rerum.io/dla/proxy?url="
+
         getTranscriptionProjects()
         fetchLetters()
 
@@ -115,7 +121,7 @@
          * Hey internet, I want the DLA items from Delaware.
          * */
         async function fetchLetters() {
-            dlaCollection = await fetch(`media/udel.json`)
+            dlaCollection = await fetch(`media/udelShort.json`)
                 .then(res => res.ok ? res.json() : [])
                 .then(records => {return records})
                 .catch(err=> {
@@ -490,189 +496,367 @@
                 })
                 .catch(err => {return []})
         }
-/**
- * Render a filterable scrollable area to go over the status of each DLA item or each  T-PEN project
- * or possibly a combinations. 
- * */
-function loadInterface(dlaItems, transcriptionProjects) {
-    let dlaAreaElem = document.getEledmentById("dla_browsable")
-    let tpenAreaElem = document.getEledmentById("tpen_browsable")
 
-    dlaAreaElem.innerHTML = `
-        <div id="Documents" class="grow wrap">list loading</div>
-        <div class="sidebar">
-            <h3>Refine Results <button role="button" id="queryReset">clear all</button></h3>
-            <progress value="107" max="107">107 of 107</progress>
-            <input id="query" type="text" placeholder="type to filter">
-            <section id="facetFilter"></section>
-        </div>
-    `
-    tpenArea.innerHTML = `
-        <div id="Documents" class="grow wrap">list loading</div>
-        <div class="sidebar">
-            <h3>Refine Results <button role="button" id="queryReset">clear all</button></h3>
-            <progress value="107" max="107">107 of 107</progress>
-            <input id="query" type="text" placeholder="type to filter">
-            <section id="facetFilter"></section>
-        </div>
-    `
-    const DLA_FIELDS = page_FIELDS || [
-        "Alternative Title", "Date Issued", "Is Part Of",
-        "Date Issued", "Author(s) or Contributor(s)"
-        // script, decoration, physical description
-    ]
+        /**
+         * Render a filterable scrollable area to go over the status of each DLA item or each  T-PEN project
+         * or possibly a combinations. 
+         * */
+        function loadInterfaceDLA(dlaItems) {
+            let dlaAreaElem = document.getElementById("dla_browsable")
+            
+            dlaAreaElem.innerHTML = `
+                <div id="DLADocuments" class="grow wrap">list loading</div>
+                <div class="sidebar">
+                    <h3>Refine Results <button role="button" id="dlaQueryReset">clear all</button></h3>
+                    <progress value="107" max="107">107 of 107</progress>
+                    <input id="query" type="text" placeholder="type to filter">
+                    <section id="dlaFacetFilter"></section>
+                </div>
+            `
 
-    const TPEN_FIELDS = page_FIELDS || [
-        "Alternative Title", "Date Issued", "Is Part Of",
-        "Date Issued", "Author(s) or Contributor(s)"
-        // script, decoration, physical description
-    ]
+            //Example Metadata
+            let exampleMet = [
+                {
+                "key": "dc.contributor.author",
+                "value": "Dunbar-Nelson, Alice",
+                "language": ""
+                },
+                {
+                "key": "dc.date.accessioned",
+                "value": "2021-02-12T16:58:45Z",
+                "language": ""
+                },
+                {
+                "key": "dc.date.available",
+                "value": "2021-02-12T16:58:45Z",
+                "language": ""
+                },
+                {
+                "key": "dc.date.issued",
+                "value": "[1898-09-18]",
+                "language": ""
+                },
+                {
+                "key": "dc.identifier.other",
+                "value": "Box 3, F77",
+                "language": ""
+                },
+                {
+                "key": "dc.identifier.uri",
+                "value": "https://udspace.udel.edu/handle/19716/28704",
+                "language": ""
+                },
+                {
+                "key": "dc.format.extent",
+                "value": "4 pages",
+                "language": ""
+                },
+                {
+                "key": "dc.language.iso",
+                "value": "en_US",
+                "language": "en_US"
+                },
+                {
+                "key": "dc.publisher",
+                "value": "University of Delaware Library. Special Collections",
+                "language": "en_US"
+                },
+                {
+                "key": "dc.rights",
+                "value": "Use of materials from this collection beyond the exceptions provided for in the Fair Use and Educational Use clauses of the U.S. Copyright Law may violate federal law. Permission to publish or reproduce is required from the copyright holder. Please contact Special Collections Department, University of Delaware Library, https://library.udel.edu/static/purl.php?askspec",
+                "language": ""
+                },
+                {
+                "key": "dc.subject",
+                "value": "Dunbar-Nelson, Alice Moore, 1875-1935",
+                "language": "en_US"
+                },
+                {
+                "key": "dc.subject",
+                "value": "Dunbar, Paul Laurence, 1872-1906",
+                "language": "en_US"
+                },
+                {
+                "key": "dc.subject",
+                "value": "African American authors--20th century",
+                "language": "en_US"
+                },
+                {
+                "key": "dc.subject",
+                "value": "Correspondence.",
+                "language": "en_US"
+                },
+                {
+                "key": "dc.title",
+                "value": "West Medford, Mass. Alice to Paul. Autograph letter signed",
+                "language": "en_US"
+                },
+                {
+                "key": "dc.identifier.collection",
+                "value": "MSS 0113",
+                "language": ""
+                },
+                {
+                "key": "dc.identifier.unique",
+                "value": "OCLC # 587446079",
+                "language": ""
+                }
+            ]
 
-    const DLA_FILTERS = page_FILTERS || {
-        "Type of Resource": "resource-type", Genre: "genre", Language: "language",
-        Script: "script", "Reading Difficulty": "readability", Topic: "topic",
-        Region: "region", "Time Period": "period", Repository: "repository"
-    }
+            const DLA_FIELDS = [
+                "Name", "Item Handle", "Item ID"
+                //"Author", "Subjects", "Publisher", "Language", 
+                //"Date Issued", "Box ID", "Number of Pages",
+                //"Collection ID", "Unique ID"
+                // script, decoration, physical description
+            ]
 
-    const TPEN_FILTERS = page_FILTERS || {
-        "Type of Resource": "resource-type", Genre: "genre", Language: "language",
-        Script: "script", "Reading Difficulty": "readability", Topic: "topic",
-        Region: "region", "Time Period": "period", Repository: "repository"
-    }
+            const DLA_FILTERS = {
+                Status: "statuses"
+            }
 
-    const DLA_SEARCH = page_SEARCH || [
-        "Title", "Physical Description", "Note(s)", "Region",
-        "Topic", "Subject", "Repository", "Call Number", "Is Part Of"
-    ]
 
-    const TPEN_SEARCH = page_SEARCH || [
-        "Title", "Physical Description", "Note(s)", "Region",
-        "Topic", "Subject", "Repository", "Call Number", "Is Part Of"
-    ]
+            const DLA_SEARCH =[
+                "Title", "Physical Description", "Note(s)", "Region",
+                "Topic", "Subject", "Repository", "Call Number", "Is Part Of"
+            ]
 
-    let listOfDLAItems = dlaItems.reduce((a, b) => a += `
-     <div class="dlaRecord" data-id="${udelIdPrefix+b.id}">
-        <h4><a href="${udelIdPrefix+b.id}">${b.name}</a></h4>
-        <div class="row">
-            <img class="thumbnail" >
-            <dl>
-            </dl>
-        </div>
-    </div>`, ``)
-
-    let listOfTPENprojects = transcriptionProjects.reduce((a, b) => a += `
-    <div class="tpenRecord" data-id="${tpenProjectPrefix+b.id}">
-        <h4><a href="${tpenProjectPrefix+b.id}">${b.metadata_name + "("+b.project_name+")"}</a></h4>
-        <div class="row">
-            <img class="thumbnail" >
-            <dl>
-            </dl>
-        </div>
-    </div>`, ``)
-
-    dlaAreaElem.innerHTML = listOfDLAItems
-    tpenAreaElem.innerHTML = listOfTPENprojects
-
-    records = document.querySelectorAll(".record")
-    let facets = {}
-    let loading = []
-    Array.from(records).forEach(r => {
-        const url = r.getAttribute("data-id")
-        let dl = ``
-        loading.push(fetch(url)
-            .then(status => { if (!status.ok) { throw Error(status) } return status })
-            .then(response => response.json())
-            .then(manifest => {
-                let metadataMap = new Map()
-                manifest.metadata?.forEach(dat => {
-                    metadataMap.set(dat.label, Array.isArray(dat.value) ? dat.value.join(", ") : dat.value)
-                    if (FIELDS.includes(dat.label)) {
-                        dl += `<dt>${dat.label}</dt><dd>${metadataMap.get(dat.label)}</dd>`
+            let listOfDLAItems = dlaItems.reduce((a, b) => {
+                let statusListElements = ``
+                let statusListAttributes = new Array()
+                for(status of statusesToFind){
+                    let el = await generateDLAStatusElement(status)
+                    if(el.indexOf("statusString good")>-1){
+                        statusListAttributes.push(status)
                     }
-                    if (FILTERS[dat.label]) {
-                        r.setAttribute("data-" + FILTERS[dat.label], metadataMap.get(dat.label))
-                        let values = (Array.isArray(dat.value)) ? dat.value : [dat.value]
-                        if (!facets[FILTERS[dat.label]]) {
-                            facets[FILTERS[dat.label]] = new Set()
-                        }
-                        for (const v of values) {
-                            facets[FILTERS[dat.label]] = facets[FILTERS[dat.label]].add(v.replace(/\?/g, ""))
-                        }
-                    }
-                })
-                r.setAttribute("data-query", SEARCH.reduce((a, b) => a += (metadataMap.has(b) ? metadataMap.get(b) : "*") + " ", ""))
-                r.querySelector("dl").innerHTML = dl
-                let middleOfTheBook = Math.floor((manifest.sequences[0].canvases.length - 1) / 2)
-                r.querySelector("img").src = manifest.sequences[0].canvases[middleOfTheBook].thumbnail['@id']
+                    statusListElements += el
+                }
+                a += `
+                <div class="dlaRecord" data-id="${TPproxy+udelIdPrefix+b.id}?expand=metadata" statuses="${statusListAttributes.join(" ")}">
+                    <h4><a href="${udelIdPrefix+b.id}">${b.name}</a></h4>
+                    <ul>
+                        ${statusListElements}
+                    </ul>
+                </div>`}, ``)
+
+            dlaAreaElem.innerHTML = listOfDLAItems
+
+            let dlaRecords = document.querySelectorAll(".dlaRecord")
+            let dla_facets = {}
+            let dla_loading = []
+
+            Array.from(dlaRecords).forEach(r => {
+                const url = r.getAttribute("data-id")
+                let dl = ``
+                dla_loading.push(fetch(url)
+                    .then(status => { if (!status.ok) { throw Error(status) } return status })
+                    .then(response => response.json())
+                    .then(manifest => {
+                        let metadataMap = new Map()
+                        manifest.metadata?.forEach(dat => {
+                            metadataMap.set(dat.label, Array.isArray(dat.value) ? dat.value.join(", ") : dat.value)
+                            if (DLA_FIELDS.includes(dat.label)) {
+                                dl += `<dt>${dat.label}</dt><dd>${metadataMap.get(dat.label)}</dd>`
+                            }
+                            if (DLA_FILTERS[dat.label]) {
+                                r.setAttribute("data-" + DLA_FILTERS[dat.label], metadataMap.get(dat.label))
+                                let values = (Array.isArray(dat.value)) ? dat.value : [dat.value]
+                                if (!dla_facets[DLA_FILTERS[dat.label]]) {
+                                    dla_facets[DLA_FILTERS[dat.label]] = new Set()
+                                }
+                                for (const v of values) {
+                                    dla_facets[DLA_FILTERS[dat.label]] = dla_facets[DLA_FILTERS[dat.label]].add(v.replace(/\?/g, ""))
+                                }
+                            }
+                        })
+                        r.setAttribute("data-query", DLA_SEARCH.reduce((a, b) => a += (metadataMap.has(b) ? metadataMap.get(b) : "*") + " ", ""))
+                        r.querySelector("dl").innerHTML = dl
+                    })
+                    .catch(err => { throw Error(err) })
+                )
             })
-            .catch(err => { throw Error(err) })
-        )
-    })
-    query.addEventListener("input", filterQuery)
-    return Promise.all(loading).then(() => populateSidebar(facets, FILTERS)).catch(err=>console.error(err))
-}
 
-function populateSidebar(facets, FILTERS) {
-    let side = `<ul>`
-    for (const f in FILTERS) {
-        if (!facets[FILTERS[f]]) continue
-        side += `<li>${f}</li>`
-        side += Array.from(facets[FILTERS[f]]).reduce((a, b) => a += `<facet data-facet="${FILTERS[f]}" data-label="${b}">${b}</facet>`, ``)
-    }
-    side += `</ul>`
-    facetFilter.innerHTML = side
-    let facetsElements = document.querySelectorAll("[data-facet]")
-    Array.from(facetsElements).forEach(el => el.addEventListener("click", filterFacets))
-    updateCount()
-    loadQuery()
-}
+            query.addEventListener("input", filterQuery)
+            return Promise.all(dla_loading).then(() => populateSidebar(dla_facets, DLA_FILTERS, "dla")).catch(err=>console.error(err))
+        }
 
-function updateCount() {
-    // let visibleCount = Array.from(records).filter(el=>el.offsetParent === null).length
-    let hiddenCount = document.querySelectorAll(".record[class*='hide-']").length
-    let countBar = query.previousElementSibling
-    let countBarValue = records.length - hiddenCount
-    countBar.max = records.length
-    countBar.textContent = countBarValue + " of " + countBar.max
-    clearInterval(progress)
-    const notzero = countBarValue > countBar.value ? 1 : -1
-    let step = parseInt((countBarValue - countBar.value) / 25) || notzero
-    progress = setInterval(() => {
-        countBar.value += step
-        if (Math.abs(countBar.value - countBarValue) < 2) {
-            countBar.value = countBarValue
+        /**
+         * Render a filterable scrollable area to go over the status of each DLA item or each  T-PEN project
+         * or possibly a combinations. 
+         * */
+        function loadInterfaceTPEN(transcriptionProjects) {
+            let tpenAreaElem = document.getElementById("tpen_browsable")
+            tpenAreaElem.innerHTML = `
+                <div id="TPENDocuments" class="grow wrap">list loading</div>
+                <div class="sidebar">
+                    <h3>Refine Results <button role="button" id="tpenQueryReset">clear all</button></h3>
+                    <progress value="107" max="107">107 of 107</progress>
+                    <input id="query" type="text" placeholder="type to filter">
+                    <section id="tpenFacetFilter"></section>
+                </div>
+            `
+            const TPEN_FIELDS = [
+                "Project Name", "Alternate Name", "Number of Pages", "Assigness",
+                "Is Finalized", "Collection Code", "T-PEN Project ID"
+            ]
+
+            const TPEN_FILTERS = {
+                Status: "stauses"
+            }
+
+            const TPEN_SEARCH = [
+                "Title", "Physical Description", "Note(s)", "Region",
+                "Topic", "Subject", "Repository", "Call Number", "Is Part Of"
+            ]
+
+            let listOfTPENprojects = transcriptionProjects.reduce((a, b) => {
+                let statusListElements = ``
+                let statusListAttributes = new Array()
+                for(status of statusesToFind){
+                    let el = await generateProjectStatusElement(status)
+                    if(el.indexOf("statusString good")>-1){
+                        statusListAttributes.push(status)
+                    }
+                    statusListElements += el
+                }
+                a += `
+                <div class="dlaRecord" data-id="${tpenProjectPrefix+b.id}" statuses="${statusListAttributes.join(" ")}">
+                    <h4><a href="${udelIdPrefix+b.id}">${b.name}</a></h4>
+                    <ul>
+                        ${statusListElements}
+                    </ul>
+                </div>`}, ``)
+            tpenAreaElem.innerHTML = listOfTPENprojects
+
+            let tpenRecords = document.querySelectorAll(".tpenRecord")
+            let tpen_facets = {}
+            let tpen_loading = []
+
+            Array.from(tpenRecords).forEach(r => {
+                const url = r.getAttribute("data-id")
+                let dl = ``
+                tpen_loading.push(fetch(url)
+                    .then(status => { if (!status.ok) { throw Error(status) } return status })
+                    .then(response => response.json())
+                    .then(manifest => {
+                        let metadataMap = new Map()
+                        manifest.metadata?.forEach(dat => {
+                            metadataMap.set(dat.label, Array.isArray(dat.value) ? dat.value.join(", ") : dat.value)
+                            if (TPEN_FIELDS.includes(dat.label)) {
+                                dl += `<dt>${dat.label}</dt><dd>${metadataMap.get(dat.label)}</dd>`
+                            }
+                            if (TPEN_FILTERS[dat.label]) {
+                                r.setAttribute("data-" + TPEN_FILTERS[dat.label], metadataMap.get(dat.label))
+                                let values = (Array.isArray(dat.value)) ? dat.value : [dat.value]
+                                if (!tpen_facets[TPEN_FILTERS[dat.label]]) {
+                                    tpen_facets[TPEN_FILTERS[dat.label]] = new Set()
+                                }
+                                for (const v of values) {
+                                    tpen_facets[TPEN_FILTERS[dat.label]] = tpen_facets[FILTERS[dat.label]].add(v.replace(/\?/g, ""))
+                                }
+                            }
+                        })
+                        r.setAttribute("data-query", TPEN_SEARCH.reduce((a, b) => a += (metadataMap.has(b) ? metadataMap.get(b) : "*") + " ", ""))
+                        r.querySelector("dl").innerHTML = dl
+                    })
+                    .catch(err => { throw Error(err) })
+                )
+            })
+            query.addEventListener("input", filterQuery)
+            return Promise.all(dla_loading).then(() => populateSidebar(tpen_facets, TPEN_FILTERS, "tpen")).catch(err=>console.error(err))
+        }
+
+        function populateSidebar(facets, filters, which) {
+            let side = `<ul>`
+            for (const f in FILTERS) {
+                if (!facets[FILTERS[f]]) continue
+                side += `<li>${f}</li>`
+                side += Array.from(facets[FILTERS[f]]).reduce((a, b) => a += `<facet data-facet="${filters[f]}" data-label="${b}">${b}</facet>`, ``)
+            }
+            side += `</ul>`
+            let facetFilter = document.getElementById(which+"FacetFilter")
+            facetFilter.innerHTML = side
+            let facetsElements = document.querySelectorAll("[data-facet]")
+            Array.from(facetsElements).forEach(el => el.addEventListener("click", filterFacets))
+            updateCount()
+            loadQuery()
+        }
+
+        function updateCount() {
+            // let visibleCount = Array.from(records).filter(el=>el.offsetParent === null).length
+            let hiddenCount = document.querySelectorAll(".record[class*='hide-']").length
+            let countBar = query.previousElementSibling
+            let countBarValue = records.length - hiddenCount
+            countBar.max = records.length
+            countBar.textContent = countBarValue + " of " + countBar.max
             clearInterval(progress)
+            const notzero = countBarValue > countBar.value ? 1 : -1
+            let step = parseInt((countBarValue - countBar.value) / 25) || notzero
+            progress = setInterval(() => {
+                countBar.value += step
+                if (Math.abs(countBar.value - countBarValue) < 2) {
+                    countBar.value = countBarValue
+                    clearInterval(progress)
+                }
+            }, 10)
+            let facetsElements = document.querySelectorAll("facet")
+            Array.from(facetsElements).forEach(f => {
+                const k = f.getAttribute("data-facet")
+                const v = f.textContent
+                let count = document.querySelectorAll(".record:not([class*='hide-'])[data-" + k + "*='" + v + "']").length
+                f.setAttribute("data-count", count)
+                if (count === 0) {
+                    f.classList.add("hide-sidebar")
+                } else {
+                    f.classList.remove("hide-sidebar")
+                }
+            })
         }
-    }, 10)
-    let facetsElements = document.querySelectorAll("facet")
-    Array.from(facetsElements).forEach(f => {
-        const k = f.getAttribute("data-facet")
-        const v = f.textContent
-        let count = document.querySelectorAll(".record:not([class*='hide-'])[data-" + k + "*='" + v + "']").length
-        f.setAttribute("data-count", count)
-        if (count === 0) {
-            f.classList.add("hide-sidebar")
-        } else {
-            f.classList.remove("hide-sidebar")
+
+        const loadQuery = () => {
+            const params = new URLSearchParams(location.search)
+            params.forEach((v,k)=>{
+                document.querySelectorAll(`[data-facet="${k}"][data-label="${v}"]`)
+                 .forEach(el=>el.click())
+            })
+            const queryString = params.get("q")
+            if(queryString){
+                query.value = queryString
+                query.dispatchEvent(new Event('input'))
+            }
         }
-    })
-}
 
-const loadQuery = () => {
-    const params = new URLSearchParams(location.search)
-    params.forEach((v,k)=>{
-        document.querySelectorAll(`[data-facet="${k}"][data-label="${v}"]`)
-         .forEach(el=>el.click())
-    })
-    const queryString = params.get("q")
-    if(queryString){
-        query.value = queryString
-        query.dispatchEvent(new Event('input'))
-    }
-}
+        if (window.tpenQueryReset) {
+            tpenQueryReset.addEventListener("click", ev => {
+                Array.from(document.querySelectorAll(".clicked")).forEach(el => el.dispatchEvent(new Event("click")))
+                query.value = ""
+                query.dispatchEvent(new Event("input"))
+            })
+        }
 
+        if (window.dlaQueryReset) {
+            dlaQueryReset.addEventListener("click", ev => {
+                Array.from(document.querySelectorAll(".clicked")).forEach(el => el.dispatchEvent(new Event("click")))
+                query.value = ""
+                query.dispatchEvent(new Event("input"))
+            })
+        }
 
+        function filterQuery(event) {
+            const queryString = event.target.value
+            Array.from(records).forEach(r => new RegExp(queryString, "i").test(r.getAttribute("data-query")) ? r.classList.remove("hide-query") : r.classList.add("hide-query"))
+            //Manuscripts.querySelectorAll(".record:not([data-query*='"+queryString+"'])")
+            updateCount()
+        }
+        function filterFacets(event) {
+            const clicked = event.target
+            clicked.classList.toggle("clicked")
+            const action = clicked.classList.contains("clicked") ? "add" : "remove"
+            const k = clicked.getAttribute("data-facet")
+            const v = clicked.textContent
+            Array.from(records).forEach(r => { if (!new RegExp(v, "i").test(r.getAttribute("data-" + k))) r.classList[action]("hide-facet") })
+            updateCount()
+        }
     </script>
 </body>
-
 </html>
