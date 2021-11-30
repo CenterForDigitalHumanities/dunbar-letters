@@ -8,9 +8,6 @@ const tpenProjectPrefix = "http://t-pen.org/TPEN/project/"// This is good, but w
 const TPproxy = "http://tinypaul.rerum.io/dla/proxy?url="
 let progress = undefined
 
-getTranscriptionProjects()
-fetchLetters()
-
 /**
  * Hey internet, I want the Dunbar Projects out of T-PEN.
  * */
@@ -19,9 +16,16 @@ async function getTranscriptionProjects(){
     await fetch(`cache/tpenShort.json`)
     //await fetch(`http://165.134.105.25:8181/TPEN28/getDunbarProjects`)
     .then(res=>res.ok?res.json():[])
-    .then(projects=>{return projects})
+    .then(projects=>{
+        let e = new CustomEvent("tpen-information-success", { "detail:" { "projects": projects }, "bubbles": true })
+        document.dispatchEvent(e)
+        return projects
+    })
     .catch(err=> {
         console.error(err)
+        let e = new CustomEvent("tpen-information-failure", { "detail": { "err": err }, "bubbles": true })
+        document.dispatchEvent(e)
+        return projects
         return []
     })
 }
@@ -32,9 +36,15 @@ async function getTranscriptionProjects(){
 async function fetchLetters() {
     dlaCollection = await fetch(`cache/udelShort.json`)
         .then(res => res.ok ? res.json() : [])
-        .then(records => {return records})
+        .then(records => {
+            let e = new CustomEvent("dla-information-success", { "detail:" { "records": records }, "bubbles": true })
+            document.dispatchEvent(e)
+            return records
+        })
         .catch(err=> {
             console.error(err)
+            let e = new CustomEvent("tpen-information-failure", { "detail": { "err": err }, "bubbles": true })
+            document.dispatchEvent(e)
             return []
         })
 }

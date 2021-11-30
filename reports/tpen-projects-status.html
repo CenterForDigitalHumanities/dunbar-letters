@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="css/status.css">
     <link href="../favicon.ico" rel="icon" type="image/x-icon" />
     <style>
-
         .good{
             color: green;
         }
@@ -29,10 +28,6 @@
 
         .tpenProjectStatusList{
 
-        }
-
-        #dla_browsable{
-            display: none;
         }
 
         #tpen_browsable{
@@ -62,23 +57,8 @@
         </div>
     </gm-header>
 
-    <div class="itemStatusRenderingExample">
-        <input type="button" value="TPEN Project Statuses" onclick="loadInterfaceTPEN()" />
-        <input type="button" value="UDel Record Statuses" onclick="loadInterfaceDLA()" />
-        <!-- <input type="button" value="Load Filterable Interface" onclick="loadInterface()" /> -->
-        <!-- <div id="tpenProjectsStatusArea"> </div>
-        <div id="dlaRecordsStatusArea"> </div> -->
-    </div>
-
-    <div id="dla_browsable" class="container reverse">
-        <div id="DLADocuments" class="grow wrap">list loading</div>
-        <div class="sidebar">
-            <h3>Refine Results <button role="button" id="queryReset">clear all</button></h3>
-            <progress value="107" max="107">107 of 107</progress>
-            <input id="dla_query" type="text" placeholder="type to filter">
-            <section id="dlaFacetFilter"></section>
-        </div>
-    </div>
+    <input type="button" value="TPEN Project Statuses" onclick="loadInterfaceTPEN()" />
+    <input type="button" value="UDel Record Statuses" onclick="loadInterfaceDLA()" />
 
     <div id="tpen_browsable" class="container reverse">
         <div id="TPENDocuments" class="grow wrap">list loading</div>
@@ -104,5 +84,15 @@
         </a>
     </gm-footer>
     <script src="js/status.js"></script>
+    <script>
+        getTranscriptionProjects()
+        document.addEventListener('tpen-information-success', event => {
+            loadInterfaceTPEN()    
+        })
+
+        document.addEventListener('tpen-information-fail', event => {
+            alert(event.detail.err)
+        })
+    </script>
 </body>
 </html>
