@@ -110,7 +110,7 @@ export default {
                     //             })
                     //     })
                     elem.addEventListener('click', findLink)
-                    elem.addEventListener('dblclick', saveLink)
+                    elem.addEventListener('dblclick', saveLinks)
                 }
             }
 
@@ -125,29 +125,25 @@ export default {
                     })
             }
 
-            function saveLink(event) {
+            function saveLinks(event) {
+                document.querySelectorAll("[tpen-projects]").forEach(elem => saveLink({ target: elem }))
+            }
+
+            async function saveLink(event) {
                 const target = event.target.closest("[deer-id]").getAttribute("deer-id")
                 const projectIDs = event.target.getAttribute("tpen-projects")?.split("|")
 
-                projectIDs.forEach((id, index) => {
-                    limiter(async () => {
+                projectIDs.forEach(async (id, index) => {
                         let t = index > 0 ? await createNewRecord(target) : target
-                        return createCopy(target, t, id)
+                        limiter(() => createCopy(target, t, id))
                     })
-                })
             }
 
+
             async function createNewRecord(basedOn) {
-                let original = await fetch(basedOn).then(r => r.json()).then(entity => {
-                    return UTILS.expand(entity).then(expanded => {
-                        delete expanded.__rerum
-                        delete expanded['@id']
-                        delete entity.id
-                        return expanded
-                    })
-                })
+                let original = await UTILS.expand(basedOn).then(stripIDs)
                 const record = Object.assign({
-                    label: original.title
+                    label: original.title ?? original.label
                 }, NEW_RECORD)
                 return fetch(tiny + "create", {
                     method: 'POST',
@@ -159,14 +155,7 @@ export default {
             }
 
             async function createCopy(id, newID, projectID) {
-                let original = await fetch(baseV1 + "id/" + id).then(r => r.json()).then(entity => {
-                    return UTILS.expand(entity).then(expanded => {
-                        delete expanded.__rerum
-                        delete expanded['@id']
-                        delete expanded.id
-                        return expanded
-                    })
-                })
+                let original = await UTILS.expand(id).then(stripIDs)
                 const annoMap = id === newID ?
                     {
                         tpenProject: projectID
@@ -181,18 +170,15 @@ export default {
 
                 let all = []
                 for (const key in annoMap) {
-                    all.push(
-                        (() => {
-                            const anno = Object.assign({
-                                target: newID,
-                                body: { key: { value: annoMap[key] } }
-                            }, DC_ROOT_ANNOTATION)
-                            return fetch(tiny + "create", {
-                                method: 'POST',
-                                mode: 'cors',
-                                body: JSON.stringify(anno)
-                            }).catch(err => console.error(err))
-                        })
+                    const anno = Object.assign({
+                        target: newID,
+                        body: { key: { value: annoMap[key] } }
+                    }, DC_ROOT_ANNOTATION)
+                    all.push(fetch(tiny + "create", {
+                        method: 'POST',
+                        mode: 'cors',
+                        body: JSON.stringify(anno)
+                    }).catch(err => console.error(err))
                     )
                 }
                 return Promise.all(all)
@@ -261,4 +247,11 @@ function getTranscriptionProjects(metadata) {
     return fetch(`http://165.134.105.25:8181/TPEN28/getDunbarProjects`)
         .then(res => res.ok ? res.json() : Promise.reject(res))
         .then(list => matchTranscriptionRecords(list, metadata))
+}
+
+const stripIDs = async (expanded) => {
+    delete expanded.__rerum
+    delete expanded['@id']
+    delete expanded.id
+    return expanded
 }
