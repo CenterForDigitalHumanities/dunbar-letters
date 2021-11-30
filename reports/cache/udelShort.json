@@ -1,0 +1,479 @@
+{
+    "expand": [
+       "parentCommunityList",
+       "parentCommunity",
+       "license",
+       "logo",
+       "all"
+    ],
+    "handle": "19716/28181",
+    "id": "599",
+    "name": "I.1. Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar",
+    "type": "collection",
+    "copyrightText": "",
+    "introductoryText": "",
+    "items": [
+       {
+          "expand": [
+             "metadata",
+             "parentCollection",
+             "parentCollectionList",
+             "parentCommunityList",
+             "bitstreams",
+             "all"
+          ],
+          "handle": "19716/28242",
+          "id": "29512",
+          "name": "Dayton. Autograph letter signed",
+          "type": "item",
+          "archived": "true",
+          "lastModified": "2021-08-05 08:30:35.816",
+          "withdrawn": "false"
+       },
+       {
+          "expand": [
+             "metadata",
+             "parentCollection",
+             "parentCollectionList",
+             "parentCommunityList",
+             "bitstreams",
+             "all"
+          ],
+          "handle": "19716/28243",
+          "id": "29514",
+          "name": "Indianapolis. Autograph letter signed",
+          "type": "item",
+          "archived": "true",
+          "lastModified": "2021-08-05 08:30:35.25",
+          "withdrawn": "false"
+       },
+       {
+          "expand": [
+             "metadata",
+             "parentCollection",
+             "parentCollectionList",
+             "parentCommunityList",
+             "bitstreams",
+             "all"
+          ],
+          "handle": "19716/28244",
+          "id": "29515",
+          "name": "Indianapolis. Autograph letter signed",
+          "type": "item",
+          "archived": "true",
+          "lastModified": "2021-08-05 08:30:34.773",
+          "withdrawn": "false"
+       },
+       {
+          "expand": [
+             "metadata",
+             "parentCollection",
+             "parentCollectionList",
+             "parentCommunityList",
+             "bitstreams",
+             "all"
+          ],
+          "handle": "19716/28245",
+          "id": "29516",
+          "name": "Indianapolis. Autograph letter signed",
+          "type": "item",
+          "archived": "true",
+          "lastModified": "2021-08-05 08:30:34.061",
+          "withdrawn": "false"
+       },
+       {
+          "expand": [
+             "metadata",
+             "parentCollection",
+             "parentCollectionList",
+             "parentCommunityList",
+             "bitstreams",
+             "all"
+          ],
+          "handle": "19716/28246",
+          "id": "29517",
+          "name": "Indianapolis. Autograph letter signed",
+          "type": "item",
+          "archived": "true",
+          "lastModified": "2021-08-05 08:30:49.62",
+          "withdrawn": "false"
+       },
+       {
+          "expand": [
+             "metadata",
+             "parentCollection",
+             "parentCollectionList",
+             "parentCommunityList",
+             "bitstreams",
+             "all"
+          ],
+          "handle": "19716/28247",
+          "id": "29518",
+          "name": "Dayton. Autograph letter signed",
+          "type": "item",
+          "archived": "true",
+          "lastModified": "2021-08-05 08:30:49.164",
+          "withdrawn": "false"
+       },
+       {
+          "expand": [
+             "metadata",
+             "parentCollection",
+             "parentCollectionList",
+             "parentCommunityList",
+             "bitstreams",
+             "all"
+          ],
+          "handle": "19716/28248",
+          "id": "29519",
+          "name": "Eagle Lake, Ind. Autograph letter signed",
+          "type": "item",
+          "archived": "true",
+          "lastModified": "2021-08-05 08:30:48.539",
+          "withdrawn": "false"
+       },
+       {
+          "expand": [
+             "metadata",
+             "parentCollection",
+             "parentCollectionList",
+             "parentCommunityList",
+             "bitstreams",
+             "all"
+          ],
+          "handle": "19716/28249",
+          "id": "29520",
+          "name": "Lakeside, Ohio. Autograph letter signed",
+          "type": "item",
+          "archived": "true",
+          "lastModified": "2021-08-05 08:30:47.068",
+          "withdrawn": "false"
+       },
+       {
+          "expand": [
+             "metadata",
+             "parentCollection",
+             "parentCollectionList",
+             "parentCommunityList",
+             "bitstreams",
+             "all"
+          ],
+          "handle": "19716/28250",
+          "id": "29521",
+          "name": "Dayton. Autograph letter signed",
+          "type": "item",
+          "archived": "true",
+          "lastModified": "2021-08-05 08:30:46.378",
+          "withdrawn": "false"
+       },
+       {
+          "expand": [
+             "metadata",
+             "parentCollection",
+             "parentCollectionList",
+             "parentCommunityList",
+             "bitstreams",
+             "all"
+          ],
+          "handle": "19716/28251",
+          "id": "29522",
+          "name": "Dayton. Autograph letter signed",
+          "type": "item",
+          "archived": "true",
+          "lastModified": "2021-08-05 08:30:43.668",
+          "withdrawn": "false"
+       },
+       {
+          "expand": [
+             "metadata",
+             "parentCollection",
+             "parentCollectionList",
+             "parentCommunityList",
+             "bitstreams",
+             "all"
+          ],
+          "handle": "19716/28252",
+          "id": "29523",
+          "name": "Dayton. Autograph letter signed",
+          "type": "item",
+          "archived": "true",
+          "lastModified": "2021-08-05 08:30:43.124",
+          "withdrawn": "false"
+       },
+       {
+          "expand": [
+             "metadata",
+             "parentCollection",
+             "parentCollectionList",
+             "parentCommunityList",
+             "bitstreams",
+             "all"
+          ],
+          "handle": "19716/28253",
+          "id": "29524",
+          "name": "Dayton. Autograph letter signed",
+          "type": "item",
+          "archived": "true",
+          "lastModified": "2021-08-05 08:30:41.952",
+          "withdrawn": "false"
+       },
+       {
+          "expand": [
+             "metadata",
+             "parentCollection",
+             "parentCollectionList",
+             "parentCommunityList",
+             "bitstreams",
+             "all"
+          ],
+          "handle": "19716/28254",
+          "id": "29525",
+          "name": "Dayton. Autograph letter signed",
+          "type": "item",
+          "archived": "true",
+          "lastModified": "2021-08-05 08:30:41.694",
+          "withdrawn": "false"
+       },
+       {
+          "expand": [
+             "metadata",
+             "parentCollection",
+             "parentCollectionList",
+             "parentCommunityList",
+             "bitstreams",
+             "all"
+          ],
+          "handle": "19716/28255",
+          "id": "29526",
+          "name": "Dayton. Autograph letter signed",
+          "type": "item",
+          "archived": "true",
+          "lastModified": "2021-08-05 08:30:38.512",
+          "withdrawn": "false"
+       },
+       {
+          "expand": [
+             "metadata",
+             "parentCollection",
+             "parentCollectionList",
+             "parentCommunityList",
+             "bitstreams",
+             "all"
+          ],
+          "handle": "19716/28256",
+          "id": "29527",
+          "name": "Dayton. Autograph letter signed",
+          "type": "item",
+          "archived": "true",
+          "lastModified": "2021-08-05 08:30:37.931",
+          "withdrawn": "false"
+       },
+       {
+          "expand": [
+             "metadata",
+             "parentCollection",
+             "parentCollectionList",
+             "parentCommunityList",
+             "bitstreams",
+             "all"
+          ],
+          "handle": "19716/28257",
+          "id": "29528",
+          "name": "Dayton. Autograph letter signed",
+          "type": "item",
+          "archived": "true",
+          "lastModified": "2021-08-05 08:30:37.776",
+          "withdrawn": "false"
+       },
+       {
+          "expand": [
+             "metadata",
+             "parentCollection",
+             "parentCollectionList",
+             "parentCommunityList",
+             "bitstreams",
+             "all"
+          ],
+          "handle": "19716/28258",
+          "id": "29529",
+          "name": "Indianapolis. Autograph letter signed",
+          "type": "item",
+          "archived": "true",
+          "lastModified": "2021-08-05 08:30:37.066",
+          "withdrawn": "false"
+       },
+       {
+          "expand": [
+             "metadata",
+             "parentCollection",
+             "parentCollectionList",
+             "parentCommunityList",
+             "bitstreams",
+             "all"
+          ],
+          "handle": "19716/28259",
+          "id": "29530",
+          "name": "Dayton. Autograph letter signed",
+          "type": "item",
+          "archived": "true",
+          "lastModified": "2021-08-05 08:30:36.911",
+          "withdrawn": "false"
+       },
+       {
+          "expand": [
+             "metadata",
+             "parentCollection",
+             "parentCollectionList",
+             "parentCommunityList",
+             "bitstreams",
+             "all"
+          ],
+          "handle": "19716/28260",
+          "id": "29531",
+          "name": "Toledo. Autograph letter signed",
+          "type": "item",
+          "archived": "true",
+          "lastModified": "2021-08-05 08:30:35.929",
+          "withdrawn": "false"
+       },
+       {
+          "expand": [
+             "metadata",
+             "parentCollection",
+             "parentCollectionList",
+             "parentCommunityList",
+             "bitstreams",
+             "all"
+          ],
+          "handle": "19716/28261",
+          "id": "29532",
+          "name": "Dayton. Autograph letter signed",
+          "type": "item",
+          "archived": "true",
+          "lastModified": "2021-08-05 08:30:35.449",
+          "withdrawn": "false"
+       },
+       {
+          "expand": [
+             "metadata",
+             "parentCollection",
+             "parentCollectionList",
+             "parentCommunityList",
+             "bitstreams",
+             "all"
+          ],
+          "handle": "19716/28262",
+          "id": "29533",
+          "name": "[Dayton, Ohio]. Autograph letter signed",
+          "type": "item",
+          "archived": "true",
+          "lastModified": "2021-08-05 08:30:33.905",
+          "withdrawn": "false"
+       },
+       {
+          "expand": [
+             "metadata",
+             "parentCollection",
+             "parentCollectionList",
+             "parentCommunityList",
+             "bitstreams",
+             "all"
+          ],
+          "handle": "19716/28263",
+          "id": "29534",
+          "name": "Dayton. Autograph letter signed",
+          "type": "item",
+          "archived": "true",
+          "lastModified": "2021-08-05 08:30:33.408",
+          "withdrawn": "false"
+       },
+       {
+          "expand": [
+             "metadata",
+             "parentCollection",
+             "parentCollectionList",
+             "parentCommunityList",
+             "bitstreams",
+             "all"
+          ],
+          "handle": "19716/28264",
+          "id": "29535",
+          "name": "New York. Autograph letter signed",
+          "type": "item",
+          "archived": "true",
+          "lastModified": "2021-08-05 08:30:48.819",
+          "withdrawn": "false"
+       },
+       {
+          "expand": [
+             "metadata",
+             "parentCollection",
+             "parentCollectionList",
+             "parentCommunityList",
+             "bitstreams",
+             "all"
+          ],
+          "handle": "19716/28265",
+          "id": "29536",
+          "name": "New York. Autograph letter signed",
+          "type": "item",
+          "archived": "true",
+          "lastModified": "2021-08-05 08:30:48.438",
+          "withdrawn": "false"
+       },
+       {
+          "expand": [
+             "metadata",
+             "parentCollection",
+             "parentCollectionList",
+             "parentCommunityList",
+             "bitstreams",
+             "all"
+          ],
+          "handle": "19716/28266",
+          "id": "29537",
+          "name": "Dayton. Autograph letter signed",
+          "type": "item",
+          "archived": "true",
+          "lastModified": "2021-08-05 08:30:47.967",
+          "withdrawn": "false"
+       },
+       {
+          "expand": [
+             "metadata",
+             "parentCollection",
+             "parentCollectionList",
+             "parentCommunityList",
+             "bitstreams",
+             "all"
+          ],
+          "handle": "19716/28267",
+          "id": "29538",
+          "name": "Washington, D.C., Autograph letter signed",
+          "type": "item",
+          "archived": "true",
+          "lastModified": "2021-08-05 08:30:46.814",
+          "withdrawn": "false"
+       },
+       {
+          "expand": [
+             "metadata",
+             "parentCollection",
+             "parentCollectionList",
+             "parentCommunityList",
+             "bitstreams",
+             "all"
+          ],
+          "handle": "19716/28276",
+          "id": "29548",
+          "name": "Steamship \"UMBRIA.\" Autograph letter signed",
+          "type": "item",
+          "archived": "true",
+          "lastModified": "2021-08-05 08:30:44.035",
+          "withdrawn": "false"
+       }
+    ],
+    "numberItems": "244",
+    "shortDescription": "Unless indicated otherwise, letters are from Paul Laurence Dunbar and addressed to Alice Moore, and following their marriage to Alice Moore Dunbar. Letters from Alice Moore Dunbar to Paul Laurence Dunbar are identified as \"Alice to Paul.\" Note: original mailing envelopes are shelved separately at the end of the collection in Box 31. 380 items.",
+    "sidebarText": ""
+ }
