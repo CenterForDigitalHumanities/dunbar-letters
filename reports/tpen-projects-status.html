@@ -41,10 +41,26 @@
             width: 100%;
         }
 
-        .record{
-            zoom:  75%;
+        dl{
+            padding:  0px 10px;
         }
 
+        .record{
+            background-color: lightgray;
+            font-size: 75%;
+        }
+
+        .record h3{
+            background-color: rgba(255,255,255, 0.25);
+        }
+
+        .uppercase{
+            text-transform: capitalize;
+        }
+
+        /*.uppercase:first-letter {
+            text-transform: uppercase;
+        }*/
     </style>
 </head>
 
@@ -60,7 +76,7 @@
     <div id="tpen_browsable" class="container reverse">
         <div id="TPENDocuments" class="grow wrap">list loading</div>
         <div class="sidebar">
-            <h3>Refine Results <button role="button" id="queryReset">clear all</button></h3>
+            <h3>Refine Results <button role="button" id="tpenQueryReset">clear all</button></h3>
             <progress value="107" max="107">107 of 107</progress>
             <input id="tpen_query" type="text" placeholder="type to filter">
             <section id="tpenFacetFilter"></section>

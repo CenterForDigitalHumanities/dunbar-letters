@@ -2,8 +2,10 @@ let tpenProjects = []
 let dlaCollection = []
 let tpenRecords = []
 let dlaRecords = []
+let assigneeSet = new Set()
 const udelHandlePrefix = "https://udspace.udel.edu/rest/handle/"
 const udelIdPrefix = "https://udspace.udel.edu/rest/items/"
+const tpenManifestPrefix = "http://t-pen.org/TPEN/project/"// This is good, but we also need to link into the transcription.html
 const tpenProjectPrefix = "http://t-pen.org/TPEN/transcription.html?projectID="// This is good, but we also need to link into the transcription.html
 const TPproxy = "http://tinypaul.rerum.io/dla/proxy?url="
 let progress = undefined
@@ -98,7 +100,11 @@ async function generateProjectStatusElement(status, proj){
         break
         case "T-PEN Project Assigned":
             statusString = `<span class='statusString bad'>${status}</span>`
-            if(proj.assignees.length > 2){
+            if(proj.assignees.length && proj.assignees.length > 2){
+                for(a of proj.assignees){
+                    //a is a T-PEN user ID.  It could be more complex with more info if desired.
+                    assigneeSet.add(a)
+                }
                 statusString = `<span class='statusString good'>${status} to ${proj.assignees.length} users </span>`
             }
             el =
@@ -406,23 +412,26 @@ async function loadInterfaceDLA() {
  * or possibly a combinations. 
  * */
 async function loadInterfaceTPEN() {
+    assigneeSet = new Set()
     let tpenAreaElem = document.getElementById("tpen_browsable")
-    tpenAreaElem.innerHTML = `
-        <div id="TPENDocuments" class="grow wrap">list loading</div>
-        <div class="sidebar">
-            <h3>Refine Results <button role="button" id="tpenQueryReset">clear all</button></h3>
-            <progress value="107" max="107">107 of 107</progress>
-            <input id="tpen_query" type="text" placeholder="type to filter">
-            <section id="tpenFacetFilter"></section>
-        </div>
-    `
+
+    // tpenAreaElem.innerHTML = `
+    //     <div id="TPENDocuments" class="grow wrap">list loading</div>
+    //     <div class="sidebar">
+    //         <h3>Refine Results <button role="button" id="tpenQueryReset">clear all</button></h3>
+    //         <progress value="107" max="107">107 of 107</progress>
+    //         <input id="tpen_query" type="text" placeholder="type to filter">
+    //         <section id="tpenFacetFilter"></section>
+    //     </div>
+    // `
     const TPEN_FIELDS = [
         "title", "subtitle", "subject", "date", "language",
         "author", "description", "location"
     ]
 
     const TPEN_FILTERS = {
-        Status: "status"
+        Status: "status",
+        Assignee : "assignees"
     }
 
     // const TPEN_FILTERS = {
@@ -447,11 +456,10 @@ async function loadInterfaceTPEN() {
     document.getElementById("TPENDocuments").innerHTML = ""
     let TPENProjectListElem = ``
     for(proj of tpenProjects){
-        //Each thing will have this suite of statuses to check for
-        //These are in the tpen objects
         let statusListElements = ``
         let statusListAttributes = new Array()
         for(status of statusesToFind){
+            //Note that the assignee status will populate the assigneeSet
             let el = await generateProjectStatusElement(status, proj)
             if(el.indexOf("statusString good")>-1){
                 statusListAttributes.push(status)
@@ -459,12 +467,17 @@ async function loadInterfaceTPEN() {
             statusListElements += el
         }
         document.getElementById("TPENDocuments").innerHTML += `
-            <div class="tpenRecord record" data-id="${tpenProjectPrefix+proj.id}" data-status="${statusListAttributes.join(" ")}">
-            <h3><a href="${tpenProjectPrefix+proj.id}">${proj["metadata_name"]}</a></h3>
+            <div class="tpenRecord record" data-id="${tpenManifestPrefix+proj.id}" 
+              data-assignees="${Array.from(assigneeSet).join(" ")}" 
+              data-status="${statusListAttributes.join(" ")}"
+            >
+            <h3><a target="_blank" href="${tpenProjectPrefix+proj.id}">${proj["metadata_name"]}</a></h3>
+            <!--
             <div class="row">
                 <dl>
                 </dl>
             </div>
+            -->
             <div class="row">
                 <dl>
                     ${statusListElements}
@@ -484,7 +497,8 @@ async function loadInterfaceTPEN() {
     statusSet.add("T-PEN Project Linked to Delaware Record(s)")
     statusSet.add("Well Described")
     let tpen_facets = {
-        "status":statusSet
+        "status":statusSet,
+        "assignees":assigneeSet
     }
     Array.from(tpenRecords).forEach(r => {
         const url = r.getAttribute("data-id")
@@ -495,17 +509,20 @@ async function loadInterfaceTPEN() {
             .then(tpenProject => {
                 let metadataMap = new Map()
                 tpenProject.metadata?.forEach(dat => {
-                    metadataMap.set(dat.label, Array.isArray(dat.value) ? dat.value.join(", ") : dat.value)
+                    //Note this does not know the Project.name, it knows the Metadata.title
+                    if((Array.isArray(dat.value) && dat.value.length > 1) || dat.value.trim() !== ""){
+                        //No blanks
+                        metadataMap.set(dat.label, Array.isArray(dat.value) ? dat.value.join(", ") : dat.value)
+                    }
                     if (TPEN_FIELDS.includes(dat.label)) {
-                        //dl += `<dt>${dat.label}</dt><dd>${metadataMap.get(dat.label)}</dd>`// many of these are blank...
-                        if(metadataMap.get(dat.label).trim() !== ""){
-                            dl += `<dt>${dat.label}</dt><dd>${metadataMap.get(dat.label)}</dd>`
-                        }
+                        //don't need to show any of these for the status.  Label is already showing.
+                        //dl += `<dt class="uppercase">${dat.label}</dt><dd>${metadataMap.get(dat.label)}</dd>`
                     }
                 })
-                //Here we aren't filtering by metadata.  We are filtering by statuses, it is the only facet and is set above
+                //Here we aren't filtering by metadata, so we don't need to build facets off the metadata
                 r.setAttribute("data-query", TPEN_SEARCH.reduce((a, b) => a += (metadataMap.has(b) ? metadataMap.get(b) : "*") + " ", ""))
-                r.querySelector("dl").innerHTML = dl
+                //Not building this dl object out right now
+                //r.querySelector("dl").innerHTML = dl
             })
             .catch(err => { throw Error(err) })
         )
