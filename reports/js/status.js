@@ -4,28 +4,28 @@ let tpenRecords = []
 let dlaRecords = []
 const udelHandlePrefix = "https://udspace.udel.edu/rest/handle/"
 const udelIdPrefix = "https://udspace.udel.edu/rest/items/"
-const tpenProjectPrefix = "http://t-pen.org/TPEN/project/"// This is good, but we also need to link into the transcription.html
+const tpenProjectPrefix = "http://t-pen.org/TPEN/transcription.html?projectID="// This is good, but we also need to link into the transcription.html
 const TPproxy = "http://tinypaul.rerum.io/dla/proxy?url="
 let progress = undefined
 
 /**
  * Hey internet, I want the Dunbar Projects out of T-PEN.
  * */
-async function getTranscriptionProjects(){
-    tpenProjects =  
+async function getTranscriptionProjects(){  
     await fetch(`cache/tpenShort.json`)
     //await fetch(`http://165.134.105.25:8181/TPEN28/getDunbarProjects`)
     .then(res=>res.ok?res.json():[])
     .then(projects=>{
-        let e = new CustomEvent("tpen-information-success", { "detail:" { "projects": projects }, "bubbles": true })
+        tpenProjects = projects
+        let e = new CustomEvent("tpen-information-success", { detail: { projects: projects }, bubbles: true })
         document.dispatchEvent(e)
         return projects
     })
     .catch(err=> {
         console.error(err)
-        let e = new CustomEvent("tpen-information-failure", { "detail": { "err": err }, "bubbles": true })
+        tpenProjects = []
+        let e = new CustomEvent("tpen-information-failure", { detail: { err: err }, bubbles: true })
         document.dispatchEvent(e)
-        return projects
         return []
     })
 }
@@ -37,13 +37,15 @@ async function fetchLetters() {
     dlaCollection = await fetch(`cache/udelShort.json`)
         .then(res => res.ok ? res.json() : [])
         .then(records => {
-            let e = new CustomEvent("dla-information-success", { "detail:" { "records": records }, "bubbles": true })
+            dlaRecords = records
+            let e = new CustomEvent("dla-information-success", { detail: { records: records }, bubbles: true })
             document.dispatchEvent(e)
             return records
         })
         .catch(err=> {
             console.error(err)
-            let e = new CustomEvent("tpen-information-failure", { "detail": { "err": err }, "bubbles": true })
+            dlaRecords = []
+            let e = new CustomEvent("tpen-information-failure", { detail: { err: err }, bubbles: true })
             document.dispatchEvent(e)
             return []
         })
@@ -60,65 +62,60 @@ async function generateProjectStatusElement(status, proj){
     let linkingAnnos, describingAnnos = []
     //Each status handled as its own case.  If we are uniform in what we do we can make this part much shorter if we have a strategic statusesToFind
     switch (status){
-        case "parsedStatus":
-            statusString = "<span class='statusString good'>Parsed</span>"
+        case "T-PEN Project Fully Parsed":
+            statusString = `<span class='statusString good'>${status}</span>`
             proj.pages.forEach(page => {
                 if(page.numParsedLines < 5){
-                    statusString = "<span title='See "+page.page_name+"' class='statusString bad'>Not Parsed</span>"
+                    statusString = `<span title='See ${page.page_name}' class='statusString bad'>${status}</span>`
                     return
                 }
             })
             el =
-            `<dt class="statusLabel" title="Check if there are more than 5 lines with width > 0"> TPEN Project Parsed </dt>
-             <dd class="statusValue">${statusString}</dd>
+            `<dt class="statusLabel" title="Check if there are more than 5 lines with width > 0"> ${statusString} </dt>
             `                               
         break
-        case "assignedStatus":
-            statusString = `<span class='statusString bad'>Not Assigned</span>`
-            if(proj.assignees.length > 2){
-                statusString = `<span class='statusString good'>Assigned to ${proj.assignees.length} users </span>`
-            }
-            el =
-            `<dt class="statusLabel" title="Check if it is assigned to at least 1 user"> TPEN Project Assigned </dt>
-             <dd class="statusValue">${statusString}</dd>
-            `   
-        break
-        case "transcribedStatus":
-            statusString = "<span class='statusString good'>Transcribed</span>"
+        case "T-PEN Project Partially Transcribed":
+            statusString = `<span class='statusString good'>${status}</span>`
             proj.pages.forEach(page => {
                 //We really need to think about this one.
                 if(page.numTranscribedLines < 5){
-                    statusString = "<span title='See "+page.page_name+"' class='statusString bad'>Not Transcribed</span>"
+                    statusString = `<span title='See ${page.page_name}' class='statusString bad'>${status}</span>`
                     return
                 }
             })
             el =
-            `<dt class="statusLabel" title="Check if there are more than 5 lines with width > 0 that have text on each page"> TPEN Project Transcribed </dt>
-             <dd class="statusValue">${statusString}</dd>
+            `<dt class="statusLabel" title="Check if there are more than 5 lines with width > 0 that have text on each page"> ${statusString} </dt>
             `   
         break
-        case "finalizedStatus":
-            statusString = "<span class='statusString bad'>Not Finalized</span>"
+        case "T-PEN Project Fully Transcribed":
+            statusString = `<span class='statusString bad'>${status}</span>`
             if(proj.finalized === "true"){
-                statusString = "<span class='statusString good'>Finalized</span>"
+                statusString = `<span class='statusString good'>${status}</span>`
             }
             el =
-            `<dt class="statusLabel" title="If there are more than 5 parsed lines on each page, and every line contains text.  Logic performed in servlet and returns T/F."> TPEN Project Finalized </dt>
-             <dd class="statusValue">${statusString}</dd>
+            `<dt class="statusLabel" title="If there are more than 5 parsed lines on each page, and every line contains text.  Logic performed in servlet and returns T/F."> ${statusString} </dt>
             `   
         break
-        case "TPENLinkStatus":
+        case "T-PEN Project Assigned":
+            statusString = `<span class='statusString bad'>${status}</span>`
+            if(proj.assignees.length > 2){
+                statusString = `<span class='statusString good'>${status} to ${proj.assignees.length} users </span>`
+            }
+            el =
+            `<dt class="statusLabel" title="Check if it is assigned to at least 2 usera"> ${statusString} </dt>
+            `   
+        break     
+        case "T-PEN Project Linked to Delaware Record(s)":
             linkingAnnos = await fetchQuery({"type":"Annotation", "tpenProject":""+proj.id})
-            statusString = "<span class='statusString bad'>No Linked Record</span>"
+            statusString = `<span class='statusString bad'>${status}</span>`
             if(linkingAnnos.length>0){
-                statusString = "<span class='statusString good'> "+linkingAnnos.length+" Linked Record(s)</span>"
+                statusString = `<span class='statusString good'> ${linkingAnnos.length} Linked Record(s)</span>`
             }
             el =
-            `<dt class="statusLabel" title=""> Linked to UDel Data </dt>
-             <dd class="statusValue">${statusString}</dd>
+            `<dt class="statusLabel" title="">${statusString}</dt>
             `   
         break
-        case "describedStatus":
+        case "Well Described":
             //This T-PEN project would have to be linked to a UDEL record
             //That linking annotation has a target
             //If it is described, other annos will target that same target
@@ -131,13 +128,12 @@ async function generateProjectStatusElement(status, proj){
                 describingAnnos = await fetchQuery({"type":"Annotation", "target":linkingAnnos[0].target})
             }
             //Grabbing to anno.targets will tell you what handle
-            statusString = "<span class='statusString bad'>Not Described</span>"
+            statusString = `<span class='statusString bad'>${status}</span>`
             if(describingAnnos.length>0){
-                statusString = "<span class='statusString good'>There are "+describingAnnos.length+" descriptive annotations</span>"
+                statusString = `<span class='statusString good'>${status} by ${describingAnnos.length} data points</span>`
             }
             el =
-            `<dt class="statusLabel" title=""> Well Described </dt>
-             <dd class="statusValue">${statusString}</dd>
+            `<dt class="statusLabel" title=""> ${statusString} </dt>
             `   
         break
         default:
@@ -430,8 +426,8 @@ async function loadInterfaceTPEN() {
     }
 
     // const TPEN_FILTERS = {
-    //     parsedStatus: "false", assignedStatus: "false", transcribedStatus:"false",
-    //     finalizedStatus: "false", TPENLinkStatus:"false", describedStatus:"false"
+    //     T-PEN Project Fully Parsed: "false", T-PEN Project Assigned: "false", T-PEN Project Partially Transcribed:"false",
+    //     T-PEN Project Fully Transcribed: "false", T-PEN Project Linked to Delaware Record(s):"false", Well Described:"false"
     // }
 
     const TPEN_SEARCH = [
@@ -440,12 +436,12 @@ async function loadInterfaceTPEN() {
     ]
 
     const statusesToFind = [
-        "parsedStatus",
-        "assignedStatus",
-        "transcribedStatus",
-        "finalizedStatus",
-        "TPENLinkStatus",
-        "describedStatus"
+        "T-PEN Project Fully Parsed",
+        "T-PEN Project Assigned",
+        "T-PEN Project Partially Transcribed",
+        "T-PEN Project Fully Transcribed",
+        "T-PEN Project Linked to Delaware Record(s)",
+        "Well Described"
     ]
 
     document.getElementById("TPENDocuments").innerHTML = ""
@@ -481,12 +477,12 @@ async function loadInterfaceTPEN() {
     tpenRecords = document.querySelectorAll(".tpenRecord")
     let tpen_loading = []
     let statusSet = new Set();
-    statusSet.add("parsedStatus")
-    statusSet.add("assignedStatus")
-    statusSet.add("transcribedStatus")
-    statusSet.add("finalizedStatus")
-    statusSet.add("TPENLinkStatus")
-    statusSet.add("describedStatus")
+    statusSet.add("T-PEN Project Fully Parsed")
+    statusSet.add("T-PEN Project Assigned")
+    statusSet.add("T-PEN Project Partially Transcribed")
+    statusSet.add("T-PEN Project Fully Transcribed")
+    statusSet.add("T-PEN Project Linked to Delaware Record(s)")
+    statusSet.add("Well Described")
     let tpen_facets = {
         "status":statusSet
     }
@@ -519,7 +515,7 @@ async function loadInterfaceTPEN() {
 }
 
 function populateSidebar(facets, filters, which) {
-    //The facet needs to be <facet data-facet="status" data-label="parsedStatus" data-count="1"> for each status to filter by.
+    //The facet needs to be <facet data-facet="status" data-label="T-PEN Project Fully Parsed" data-count="1"> for each status to filter by.
     let side = `<ul>`
     let elemRoot = document.getElementById(which+"_browsable")
     for (const f in filters) {
