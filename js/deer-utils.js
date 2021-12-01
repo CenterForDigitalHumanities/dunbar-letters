@@ -11,6 +11,8 @@
  */
 
 import { default as DEER } from './deer-config.js'
+import pLimit from './plimit.js'
+const limiter = pLimit(4)
 
 export default {
     listFromCollection: function (collectionId) {
@@ -118,86 +120,88 @@ export default {
             return entity
         }
         let getVal = UTILS.getValue
-        return fetch(findId).then(response => response.json())
-            .then(obj => UTILS.findByTargetId(findId)
-                .then(function (annos) {
-                    for (let i = 0; i < annos.length; i++) {
-                        let body
-                        try {
-                            body = annos[i].body
-                        } catch (err) { continue }
-                        if (!body) { continue }
-                        if (body.evidence) {
-                            obj.evidence = (typeof body.evidence === "object") ? body.evidence["@id"] : body.evidence;
-                        }
-                        if (!Array.isArray(body)) {
-                            body = [body]
-                        }
-                        Leaf: for (let j = 0; j < body.length; j++) {
+        return limiter(() => {
+            return fetch(findId).then(response => response.json())
+                .then(obj => UTILS.findByTargetId(findId)
+                    .then(function (annos) {
+                        for (let i = 0; i < annos.length; i++) {
+                            let body
                             try {
-                                if (!checkMatch(obj, annos[i], matchOn)) {
-                                    // this is not recognized as an annotation of interest by the interface
-                                    continue Leaf
-                                }
-                                if (annos[i].hasOwnProperty("__rerum") && annos[i].__rerum.history.next.length) {
-                                    // this may not be the most recent available
-                                    // TODO: this is incorrect. There could be an unrelated @id in the .next and isUpdatedBy() will never fire
-                                    continue Leaf;
-                                }
-                                let assertion = body[j]
-                                let keys = Object.keys(assertion)
-                                let k = keys[0]
-                                if (keys.length > 1 || k === 0) {
-                                    console.warn("This assertion is not as expected and may not have been interpreted correctly.", assertion)
-                                }
-                                let val = assertion[k]
-                                val = buildValueObject(val, annos[i])
-                                // Assign this to the main object.
-                                if (obj.hasOwnProperty(k)) {
-                                    // It may be already there as an Array with some various labels
-                                    if (typeof obj[k] === "string") {
-                                        // This is probably a primitive and may be updated/replaced.
-                                        console.log('Updating primitive value "' + obj[k] + '" with annotation.', annos[i])
-                                        obj[k] = buildValueObject(val, annos[i])
-                                    } else if (Array.isArray(obj[k])) {
-                                        if (isUpdatedBy(obj[k].source.citationSource, annos[i])) {
-                                            const annoValues = (Array.isArray(val)) ? val : [val]
-                                            annoValues.forEach(a => {
-                                                // TODO: This is a brute force and not great.
-                                                for (const v of obj[k]) {
-                                                    try {
-                                                        if (isUpdatedBy(v.source.citationSource), a) {
-                                                            v = a
+                                body = annos[i].body
+                            } catch (err) { continue }
+                            if (!body) { continue }
+                            if (body.evidence) {
+                                obj.evidence = (typeof body.evidence === "object") ? body.evidence["@id"] : body.evidence;
+                            }
+                            if (!Array.isArray(body)) {
+                                body = [body]
+                            }
+                            Leaf: for (let j = 0; j < body.length; j++) {
+                                try {
+                                    if (!checkMatch(obj, annos[i], matchOn)) {
+                                        // this is not recognized as an annotation of interest by the interface
+                                        continue Leaf
+                                    }
+                                    if (annos[i].hasOwnProperty("__rerum") && annos[i].__rerum.history.next.length) {
+                                        // this may not be the most recent available
+                                        // TODO: this is incorrect. There could be an unrelated @id in the .next and isUpdatedBy() will never fire
+                                        continue Leaf;
+                                    }
+                                    let assertion = body[j]
+                                    let keys = Object.keys(assertion)
+                                    let k = keys[0]
+                                    if (keys.length > 1 || k === 0) {
+                                        console.warn("This assertion is not as expected and may not have been interpreted correctly.", assertion)
+                                    }
+                                    let val = assertion[k]
+                                    val = buildValueObject(val, annos[i])
+                                    // Assign this to the main object.
+                                    if (obj.hasOwnProperty(k)) {
+                                        // It may be already there as an Array with some various labels
+                                        if (typeof obj[k] === "string") {
+                                            // This is probably a primitive and may be updated/replaced.
+                                            console.log('Updating primitive value "' + obj[k] + '" with annotation.', annos[i])
+                                            obj[k] = buildValueObject(val, annos[i])
+                                        } else if (Array.isArray(obj[k])) {
+                                            if (isUpdatedBy(obj[k].source.citationSource, annos[i])) {
+                                                const annoValues = (Array.isArray(val)) ? val : [val]
+                                                annoValues.forEach(a => {
+                                                    // TODO: This is a brute force and not great.
+                                                    for (const v of obj[k]) {
+                                                        try {
+                                                            if (isUpdatedBy(v.source.citationSource), a) {
+                                                                v = a
+                                                            }
+                                                        } catch (err) {
+                                                            console.warn("I think a primitive got buried in here, but I'm moving on.")
                                                         }
-                                                    } catch (err) {
-                                                        console.warn("I think a primitive got buried in here, but I'm moving on.")
                                                     }
-                                                }
-                                            })
+                                                })
+                                            } else {
+                                                obj[k].push(buildValueObject(val, annos[i]))
+                                            }
                                         } else {
-                                            obj[k].push(buildValueObject(val, annos[i]))
+                                            if (isUpdatedBy(obj[k].source.citationSource, annos[i])) {
+                                                // update value without creating an array
+                                                obj[k] = buildValueObject(val, annos[i])
+                                            } else {
+                                                // Serialize both existing and new value as an Array
+                                                obj[k] = [obj[k], buildValueObject(val, annos[i])]
+                                            }
                                         }
                                     } else {
-                                        if (isUpdatedBy(obj[k].source.citationSource, annos[i])) {
-                                            // update value without creating an array
-                                            obj[k] = buildValueObject(val, annos[i])
-                                        } else {
-                                            // Serialize both existing and new value as an Array
-                                            obj[k] = [obj[k], buildValueObject(val, annos[i])]
-                                        }
+                                        // or just tack it on
+                                        obj[k] = buildValueObject(val, annos[i])
                                     }
-                                } else {
-                                    // or just tack it on
-                                    obj[k] = buildValueObject(val, annos[i])
-                                }
-                            } catch (err_1) { }
+                                } catch (err_1) { }
+                            }
                         }
-                    }
-                    return obj
-                })).catch(err => {
-                    console.error("Error expanding object:" + err)
-                    return err
-                })
+                        return obj
+                    })).catch(err => {
+                        console.error("Error expanding object:" + err)
+                        return err
+                    })
+        })
         /**
          * Test if the metadata states that the second is an update to the first.
          * @param String assertion URI of the existing source of the assertion
@@ -502,7 +506,7 @@ export default {
      * @see https://stackoverflow.com/questions/1454913/regular-expression-to-find-a-string-included-between-two-characters-while-exclud
      * @param contextStringValue This is the value from the DEER.CONTEXT attribute on an HTML form.  It is a string.
     **/
-    processContextSyntax: function processContextSyntax(contextStringValue){
+    processContextSyntax: function processContextSyntax(contextStringValue) {
         /**
          * Note the intricacies of this regex, that perhaps could be improved.
          *
@@ -510,18 +514,18 @@ export default {
          * b.match(/(?<=\[)(.*?)(?=\])/g)
          * ["URL_", "URL_2", "URL[_3"]
         */
-        if(typeof contextStringValue === "string"){
+        if (typeof contextStringValue === "string") {
             contextStringValue = contextStringValue.trim()
-            if(contextStringValue.indexOf("http:") === 0 || contextStringValue.indexOf("https:") === 0){
+            if (contextStringValue.indexOf("http:") === 0 || contextStringValue.indexOf("https:") === 0) {
                 return contextStringValue
             }
-            else{
+            else {
                 let processedValue = contextStringValue.match(/(?<=\[)(.*?)(?=\])/g)
-                return (processedValue.length>1) ? processedValue : processedValue[0] ? processedValue[0] : ""
+                return (processedValue.length > 1) ? processedValue : processedValue[0] ? processedValue[0] : ""
             }
         }
-        else{
-            console.error("This method expects a 'string' parameter, not "+typeof contextStringValue)
+        else {
+            console.error("This method expects a 'string' parameter, not " + typeof contextStringValue)
             return ""
         }
     }

@@ -13,7 +13,8 @@
 
 import { default as UTILS } from './deer-utils.js'
 import { default as config } from './deer-config.js'
-import { OpenSeadragon } from './openseadragon.js'
+import pLimit from './plimit.js'
+const limiter = pLimit(4)
 
 const changeLoader = new MutationObserver(renderChange)
 var DEER = config
@@ -44,7 +45,7 @@ async function renderChange(mutationsList) {
                         return false
                     }
                 }
-                RENDER.element(mutation.target, obj)
+                limiter(() => RENDER.element(mutation.target, obj))
                 break
             case DEER.LISTENING:
                 let listensTo = mutation.target.getAttribute(DEER.LISTENING)
@@ -61,7 +62,6 @@ async function renderChange(mutationsList) {
 const RENDER = {}
 
 RENDER.element = function (elem, obj) {
-
     return UTILS.expand(obj).then(obj => {
         let tmplName = elem.getAttribute(DEER.TEMPLATE) || (elem.getAttribute(DEER.COLLECTION) ? "list" : "json")
         let template = DEER.TEMPLATES[tmplName] || DEER.TEMPLATES.json
@@ -150,7 +150,6 @@ DEER.TEMPLATES.label = function (obj, options = {}) {
         return null
     }
 }
-
 /**
  * Retreive the best label for object and return it formatted as HTML to be drawn.  
  * @param {Object} obj some obj to be labeled
@@ -287,22 +286,51 @@ DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
     }
 }
 
-DEER.TEMPLATES.osd = function (obj, options = {}) {
-    const imgURL = obj.sequences[0].canvases[options.index || 0].images[0].resource['@id']
-    return {
-        html: ``,
-        then: elem => {
-            OpenSeadragon({
-                id: elem.id,
-                tileSources: {
-                    type: 'image',
-                    url: imgURL,
-                    crossOriginPolicy: 'Anonymous',
-                    ajaxWithCredentials: false
-                }
-            })
+function getTranscriptionProjects() {
+    // you must log in first, dude
+    // fetch(`media/tpen.json`)
+    fetch(`http://165.134.105.25:8181/TPEN28/getDunbarProjects`)
+        .then(res => res.ok ? res.json() : Promise.reject(res))
+        .then(list => matchTranscriptionRecords(list))
+}
+async function matchTranscriptionRecords(list) {
+    const getFolderFromMetadata = (metaMap) => {
+        for (const m of metaMap) {
+            if (m.key === "dc.identifier.other") { return m.value }
         }
     }
+    let projectList = ``
+    const metadataUri = `http://tinypaul.rerum.io/dla/proxy?url=${obj.source?.value.replace('edu/handle', "edu/rest/handle")}?expand=metadata`
+    fetch(metadataUri)
+        .then(res => res.ok ? res.json() : Promise.reject(res))
+        .then(meta => getFolderFromMetadata(meta.metadata))
+        .then(folderString => folderString.split(" F").pop()) // Like "Box 3, F4"
+        .then(folderNumber => {
+            const matchStr = `F${folderNumber.padStart(3, '0')}`
+            let foundMsg = []
+            for (const f of list) {
+                if (f.collection_code === matchStr) {
+                    foundMsg.push(f.id)
+                }
+            }
+            alert(foundMsg.length ? `You are looking for at TPEN project ID ${foundMsg.join(", ")}.` : `No matches found.`)
+        })
+}
+
+async function loadUDelMetadata(handle) {
+    const historyWildcard = { "$exists": true, "$size": 0 }
+    const uDelData = {
+        target: handle,
+        "__rerum.history.next": historyWildcard
+    }
+    fetch(DEER.URLS.QUERY, {
+        method: "POST",
+        mode: "cors",
+        body: JSON.stringify(uDelData)
+    }).then(response => response.ok ? response.json() : Promise.reject(response))
+        .then(data => {
+            externalData.innerHTML = data
+        })
 }
 
 DEER.TEMPLATES.lines = function (obj, options = {}) {

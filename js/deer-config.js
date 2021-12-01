@@ -1,6 +1,15 @@
-const DEV = true // false or comment to turn off
-const baseV1 = DEV ? "http://devstore.rerum.io/":"http://store.rerum.io/"
-const tiny = DEV ? "http://tinydev.rerum.io/app/":"http://tinypaul.rerum.io/dla/"
+const DEV = true
+const baseV1 = DEV ? "http://devstore.rerum.io/" : "http://store.rerum.io/"
+const tiny = DEV ? "http://tinydev.rerum.io/app/" : "http://tinypaul.rerum.io/dla/"
+
+import { default as UTILS } from './deer-utils.js'
+import pLimit from './plimit.js'
+const limiter = pLimit(4)
+let projects = []
+
+fetch(`http://165.134.105.25:8181/TPEN28/getDunbarProjects`, { cache: "force-cache" })
+    .then(res => res.ok ? res.json() : Promise.reject(res))
+    .then(list => projects = list)
 
 export default {
     ID: "deer-id", // attribute, URI for resource to render
@@ -29,11 +38,11 @@ export default {
 
     URLS: {
         BASE_ID: baseV1,
-        CREATE: tiny+"create",
-        UPDATE: tiny+"update",
-        OVERWRITE: tiny+"overwrite",
-        QUERY: tiny+"query",
-        SINCE: baseV1+"since"
+        CREATE: tiny + "create",
+        UPDATE: tiny + "update",
+        OVERWRITE: tiny + "overwrite",
+        QUERY: tiny + "query",
+        SINCE: baseV1 + "since"
     },
 
     EVENTS: {
@@ -42,8 +51,8 @@ export default {
         LOADED: "deer-loaded",
         NEW_VIEW: "deer-view",
         NEW_FORM: "deer-form",
-        VIEW_RENDERED : "deer-view-rendered",
-        FORM_RENDERED : "deer-form-rendered",
+        VIEW_RENDERED: "deer-view-rendered",
+        FORM_RENDERED: "deer-form-rendered",
         CLICKED: "deer-clicked"
     },
 
@@ -65,12 +74,183 @@ export default {
             if (options.list) {
                 tmpl += `<ul>`
                 obj[options.list].forEach((val, index) => {
-                    tmpl += `<li><a href="${options.link}${val['@id']}"><deer-view deer-id="${val["@id"]}" deer-template="label"></deer-view></a></li>`
+                    tmpl += `<li><deer-view deer-template="saveTPENlinks" deer-id="${val["@id"]}"> 0 </deer-view><a href="${options.link}${val['@id']}"><deer-view deer-id="${val["@id"]}" deer-template="label"></deer-view></a></li>`
                 })
                 tmpl += `</ul>`
             }
             return tmpl
+        },
+        saveTPENlinks: (obj, options = {}) => {
+
+            const DC_ROOT_ANNOTATION = {
+                "@context": "http://www.w3.org/ns/anno.jsonld",
+                "@type": "Annotation",
+                creator: "http://store.rerum.io/v1/id/618d4cfa50c86821e60b2cba",
+            }
+            const NEW_RECORD = {
+                "@context": "https://schema.org/docs/jsonldcontext.json",
+                "@type": "Text",
+                creator: "http://store.rerum.io/v1/id/618d4cfa50c86821e60b2cba",
+            }
+
+
+            return {
+                html: `<button role="button" class="addemup" hndl="${UTILS.getValue(obj.source)}"></button>`,
+                then: elem => {
+                    if (-1 === elem.querySelector('button')?.getAttribute('hndl')?.indexOf('/')) {
+                        console.log("No handle here: ", elem)
+                        return
+                    }
+                    // loadUDelMetadata(elem.querySelector('button')?.getAttribute('hndl'))
+                    //     .then(async (metadata) => {
+                    //         matchTranscriptionRecords(projects, metadata)
+                    //             .then(projList => {
+                    //                 elem.setAttribute("tpen-projects", projList)
+                    //             })
+                    //     })
+                    elem.addEventListener('click', findLink)
+                    elem.addEventListener('dblclick', saveLinks)
+                }
+            }
+
+            function findLink(event) {
+                const elem = event.target
+                loadUDelMetadata(elem.getAttribute('hndl'))
+                    .then(async (metadata) => {
+                        matchTranscriptionRecords(projects, metadata)
+                            .then(projList => {
+                                elem.setAttribute("tpen-projects", projList)
+                            })
+                    })
+            }
+
+            function saveLinks(event) {
+                document.querySelectorAll("[tpen-projects]").forEach(elem => saveLink({ target: elem }))
+            }
+
+            async function saveLink(event) {
+                const target = event.target.closest("[deer-id]").getAttribute("deer-id")
+                const projectIDs = event.target.getAttribute("tpen-projects")?.split("|")
+
+                projectIDs.forEach(async (id, index) => {
+                        let t = index > 0 ? await createNewRecord(target) : target
+                        limiter(() => createCopy(target, t, id))
+                    })
+            }
+
+
+            async function createNewRecord(basedOn) {
+                let original = await UTILS.expand(basedOn).then(stripIDs)
+                const record = Object.assign({
+                    label: original.title ?? original.label
+                }, NEW_RECORD)
+                return fetch(tiny + "create", {
+                    method: 'POST',
+                    mode: 'cors',
+                    body: JSON.stringify(record)
+                })
+                    .then(res => res.ok ? res.headers.get("location") ?? res.headers.get("Location") : Promise.reject(res))
+                    .catch(err => console.error(err))
+            }
+
+            async function createCopy(id, newID, projectID) {
+                let original = await UTILS.expand(id).then(stripIDs)
+                const annoMap = id === newID ?
+                    {
+                        tpenProject: projectID
+                    }
+                    : {
+                        targetCollection: original.targetCollection,
+                        date: original.date,
+                        identifier: original.identifier,
+                        source: original.source,
+                        tpenProject: projectID
+                    }
+
+                let all = []
+                for (const key in annoMap) {
+                    const anno = Object.assign({
+                        target: newID,
+                        body: { key: { value: annoMap[key] } }
+                    }, DC_ROOT_ANNOTATION)
+                    all.push(fetch(tiny + "create", {
+                        method: 'POST',
+                        mode: 'cors',
+                        body: JSON.stringify(anno)
+                    }).catch(err => console.error(err))
+                    )
+                }
+                return Promise.all(all)
+            }
         }
     },
     version: "alpha"
+}
+
+async function matchTranscriptionRecords(list, metadata) {
+    const getFolderFromMetadata = (metaMap) => {
+        for (const m of metaMap) {
+            if (m.identifier) { return m.identifier }
+        }
+    }
+    const folder = getFolderFromMetadata(metadata).split(" F").pop()// Like "Box 3, F4"
+    const matchStr = `F${folder.padStart(3, '0')}`
+    let foundMsg = []
+    for (const f of list) {
+        if (f.collection_code === matchStr) {
+            foundMsg.push(f.id)
+        }
+    }
+    return foundMsg.join("|")
+}
+
+async function loadUDelMetadata(handle) {
+    const historyWildcard = { "$exists": true, "$size": 0 }
+    const uDelData = {
+        target: handle,
+        "__rerum.history.next": historyWildcard
+    }
+    let results = []
+    return getPagedQuery(100)
+
+    function getPagedQuery(lim, it = 0) {
+        return fetch(`${tiny}query?limit=${lim}&skip=${it}`, {
+            method: "POST",
+            mode: "cors",
+            body: JSON.stringify(uDelData)
+        }).then(response => response.json())
+            .then(list => {
+                results.push(list)
+                if (list.length ?? (list.length % lim === 0)) {
+                    return getPagedQuery(lim, it + list.length)
+                } else {
+                    return getFirstMetadataResult(results)
+                }
+            })
+    }
+    function getFirstMetadataResult(annos) {
+        if (!Array.isArray(annos)) return annos
+        for (const r of annos) {
+            const tests = r?.flat().pop().body ?? r.body
+            if (tests.length ?? tests.identifier) {
+                return tests
+            }
+        }
+    }
+}
+
+
+function getTranscriptionProjects(metadata) {
+    // you must log in first, dude
+    // fetch(`media/tpen.json`)
+    return fetch(`http://165.134.105.25:8181/TPEN28/getDunbarProjects`)
+        .then(res => res.ok ? res.json() : Promise.reject(res))
+        .then(list => matchTranscriptionRecords(list, metadata))
+}
+
+const stripIDs = async (expanded) => {
+    delete expanded.__rerum
+    delete expanded['@id']
+    delete expanded.id
+    return expanded
 }
