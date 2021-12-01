@@ -3,7 +3,8 @@ let dlaCollection = []
 let tpenRecords = []
 let dlaRecords = []
 let assigneeSet = new Set()
-const udelHandlePrefix = "https://udspace.udel.edu/rest/handle/"
+const udelHandlePrefix = "https://udspace.udel.edu/handle/"
+const udelRestHandlePrefix = "https://udspace.udel.edu/rest/handle/"
 const udelIdPrefix = "https://udspace.udel.edu/rest/items/"
 const tpenManifestPrefix = "http://t-pen.org/TPEN/project/"// This is good, but we also need to link into the transcription.html
 const tpenProjectPrefix = "http://t-pen.org/TPEN/transcription.html?projectID="// This is good, but we also need to link into the transcription.html
@@ -14,7 +15,7 @@ let progress = undefined
  * Hey internet, I want the Dunbar Projects out of T-PEN.
  * */
 async function getTranscriptionProjects(){  
-    await fetch(`cache/tpenShort.json`)
+    await fetch(`cache/tpen.json`)
     //await fetch(`http://165.134.105.25:8181/TPEN28/getDunbarProjects`)
     .then(res=>res.ok?res.json():[])
     .then(projects=>{
@@ -38,15 +39,15 @@ async function getTranscriptionProjects(){
 async function fetchLetters() {
     dlaCollection = await fetch(`cache/udelShort.json`)
         .then(res => res.ok ? res.json() : [])
-        .then(records => {
-            dlaRecords = records
-            let e = new CustomEvent("dla-information-success", { detail: { records: records }, bubbles: true })
+        .then(coll => {
+            dlaCollection = coll
+            let e = new CustomEvent("dla-information-success", { detail: { collection: dlaCollection }, bubbles: true })
             document.dispatchEvent(e)
-            return records
+            return coll
         })
         .catch(err=> {
             console.error(err)
-            dlaRecords = []
+            dlaCollection = {"items":[]}
             let e = new CustomEvent("tpen-information-failure", { detail: { err: err }, bubbles: true })
             document.dispatchEvent(e)
             return []
@@ -129,19 +130,6 @@ async function generateProjectStatusElement(status, proj){
             //Check how many annos target, and define the good/bad threshold. 
 
             //So there are some testing ones around.  Look for tpenProject.
-            let historyWildcard = { "$exists": true, "$size": 0 }
-                    let queryObj = {
-                        $or: [{
-                            "targetCollection": this.collection
-                        }, {
-                            "body.targetCollection": this.collection
-                        }, {
-                            "body.targetCollection.value": this.collection
-                        }, {
-                            "body.partOf": this.collection
-                        }],
-                        "__rerum.history.next": historyWildcard
-                    }
             linkingAnnos = await fetchQuery({$or:[{"@type":"Annotation"}, {"type":"Annotation"}], "body.tpenProject.value":""+proj.id})
             describingAnnos = []
             if(linkingAnnos.length > 0){
@@ -170,56 +158,51 @@ async function generateProjectStatusElement(status, proj){
 async function generateDLAStatusElement(status, item){
     let statusString = ""
     switch (status){
-        case "TPENProjectCreated":
+        case "TPEN Project(s) Created":
             //Can we match a T-PEN project to this record?
-            statusString = "<span class='statusString bad'>No TPEN Project Created</span>"
+            statusString = `<span class='statusString bad'>${status}</span>`
             let found = await matchTranscriptionRecords(item)
             if(found.length > 0){
-                statusString = "<span title='"+found.join()+"' class='statusString good'>"+found.length+" TPEN Projects Found</span>"
+                statusString = `<span title="${found.join()}" class='statusString good'>${found.length} TPEN Projects Found</span>`
             }
             el =
-            `<li which="${status}">
-                <label class="statusLabel"> TPEN Transcription Project Created </label>
-                <div class="statusValue">${statusString}</div>
-            </li>`
+            `<dt class="statusLabel" title=""> ${statusString} </dt>
+            ` 
         break
-        case "TPENProjectLinked":
+        case "TPEN Project(s) Linked":
+            //Not sure what to do here.  The body.tpenProject.value is a projectID.  The target is the RERUM ID for the current item.
             const tpenProjectKeyWildcard = {$exists: true, $type: 'string', $ne: ''}
-            statusString = "<span class='statusString bad'>No TPEN Link</span>"
-            let tpenProjectLinkingAnnos = await fetchQuery({$or:[{"@type":"Annotation"}, {"type":"Annotation"}], "target":udelHandlePrefix+item.handle, "body.tpenProject.value":tpenProjectKeyWildcard})
+            statusString = `<span class='statusString bad'>No ${status}</span>`
+            let tpenProjectLinkingAnnos = await fetchQuery({$or:[{"@type":"Annotation"}, {"type":"Annotation"}], "body.source.value":udelHandlePrefix+item.handle})
             let tpenProjectIDs = []
             if(tpenProjectLinkingAnnos.length > 0){
-                for(tpenAnno of tpenProjectLinkingAnnos){
-                    tpenProjectIDs.push(tpenProjectLinkingAnnos.body.tpenProject.value)
+                let target = tpenProjectLinkingAnnos[0].target
+                let linkedProjects = await fetchQuery({$or:[{"@type":"Annotation"}, {"type":"Annotation"}], "target":target, "body.tpenProject.value":tpenProjectKeyWildcard})
+                if(linkedProjects.length > 0){
+                    for(tpenAnno of linkedProjects){
+                        tpenProjectIDs.push(tpenProjectLinkingAnnos.body.tpenProject.value)
+                    }
+                    statusString = `<span title='See ${tpenProjectIDs.join()}' class='statusString good'>${tpenProjectIDs.length} ${status}</span>`
+                    
                 }
-                statusString = "<span title='See "+tpenProjectIDs.join()+"' class='statusString good'>Found TPEN Project Link(s)</span>"
             }
-            el =
-            `<li which="${status}">
-                <label class="statusLabel"> T-PEN Project Linked Status </label>
-                <div class="statusValue">${statusString}</div>
-            </li>`
+            el =`<dt class="statusLabel" title=""> ${statusString} </dt>`
         break
-        case "envelopeLinked":
-            //This is probably a T-PEN check, not sure. Can we check for an annotation with body that is a certain name or a primitive name of some kind?
-            statusString = "<span class='statusString good'>Under Development!</span>"
-            el =
-            `<li which="${status}">
-                <label class="statusLabel"> Item Envelope </label>
-                <div class="statusValue">${statusString}</div>
-            </li>`
-        break
-        case "uDelLinked":
-            statusString = "<span class='statusString bad'>Record Not Linked</span>"
+        case "Delaware Record Linked":
+            statusString = `<span class='statusString bad'>${status}</span>`
             let recordHandleAnnos2 = await fetchQuery({$or:[{"@type":"Annotation"}, {"type":"Annotation"}], "body.source.value":udelHandlePrefix+item.handle})
             if(recordHandleAnnos2.length > 0){
-                statusString = "<span title='See "+recordHandleAnnos2[0].target+"' class='statusString good'>Record Linked</span>"
+                statusString = `<span title='See ${recordHandleAnnos2[0]["@id"]}' class='statusString good'>${status}</span>`
             }
             el =
-            `<li which="${status}">
-                <label class="statusLabel"> RERUM Record Linked Status </label>
-                <div class="statusValue">${statusString}</div>
-            </li>`
+            `<dt class="statusLabel" title=""> ${statusString} </dt>`
+        break
+        case "Envelope Linked":
+            //This is probably a T-PEN check, not sure. Can we check for an annotation with body that is a certain name or a primitive name of some kind?
+            // statusString = "<span class='statusString bad'>Under Development!</span>"
+            // el =
+            // `<dt class="statusLabel" title=""> ${statusString} </dt>`
+            el=``
         break
         default:
             el=``
@@ -245,30 +228,31 @@ async function fetchQuery(params){
     .then(res => res.ok ? res.json() : Promise.reject(res))
 }
 
+function getFolderFromMetadata(metaMap){
+    let ok = false
+    for (const m of metaMap) {
+        if (m.key === "dc.identifier.other") { 
+            ok = true
+            return m.value 
+        }
+    }
+    if(!ok){
+        console.error("No dc.identifier.other in metadata")
+        console.log(metaMap)
+    }
+}
+
 /**
  *  You have a DLA Item F-Code known from a project ID.  Get the DLA record(s) that have a matching F-Code in their metadata.
  * */
 async function findUdelRecordWithCode(Fcode, projID) {
     // This is the Fcode that the TPEN project knew, like F158
     // Need to check that there is a udel item with this Fcode, looking through letters collection.
-    const getFolderFromMetadata = (metaMap) => {
-        let ok = false
-        for (const m of metaMap) {
-            if (m.key === "dc.identifier.other") { 
-                ok = true
-                return m.value 
-            }
-        }
-        if(!ok){
-            console.error("No dc.identifier.other in metadata")
-            console.log(metaMap)
-        }
-    }
     let match = false
     let impossible = false;
     let itemHandle = ""
     for(item of dlaCollection.items){
-        const metadataUri = `http://tinypaul.rerum.io/dla/proxy?url=${udelHandlePrefix+item.handle}?expand=metadata`    
+        const metadataUri = `http://tinypaul.rerum.io/dla/proxy?url=${udelRestHandlePrefix+item.handle}?expand=metadata`    
         match = await fetch(metadataUri)
             .then(res => res.ok ? res.json() : Promise.reject(res))
             .then(meta => getFolderFromMetadata(meta.metadata))
@@ -303,7 +287,7 @@ async function findUdelRecordWithCode(Fcode, projID) {
  * Note this does not detect that record and project(s) are specifically linked yet.
  * */
 async function matchTranscriptionRecords(dlaRecord) {
-    const metadataUri = `http://tinypaul.rerum.io/dla/proxy?url=${udelHandlePrefix+dlaRecord.handle}?expand=metadata`
+    const metadataUri = `http://tinypaul.rerum.io/dla/proxy?url=${udelRestHandlePrefix+dlaRecord.handle}?expand=metadata`
     return await fetch(metadataUri)
         .then(res => res.ok ? res.json() : Promise.reject(res))
         .then(meta => getFolderFromMetadata(meta.metadata))
@@ -327,19 +311,18 @@ async function matchTranscriptionRecords(dlaRecord) {
  * */
 async function loadInterfaceDLA() {
     let dlaAreaElem = document.getElementById("dla_browsable")
-    let dlaItems = dlaCollection.items
-    dlaAreaElem.innerHTML = `
-        <div id="DLADocuments" class="grow wrap">list loading</div>
-        <div class="sidebar">
-            <h3>Refine Results <button role="button" id="dlaQueryReset">clear all</button></h3>
-            <progress value="107" max="107">107 of 107</progress>
-            <input id="query" type="text" placeholder="type to filter">
-            <section id="dlaFacetFilter"></section>
-        </div>
-    `
+    // dlaAreaElem.innerHTML = `
+    //     <div id="DLADocuments" class="grow wrap">list loading</div>
+    //     <div class="sidebar">
+    //         <h3>Refine Results <button role="button" id="dlaQueryReset">clear all</button></h3>
+    //         <progress value="107" max="107">107 of 107</progress>
+    //         <input id="query" type="text" placeholder="type to filter">
+    //         <section id="dlaFacetFilter"></section>
+    //     </div>
+    // `
 
     const DLA_FIELDS = [
-        "Name", "Item Handle", "Item ID"
+        "name", "id", "handle"
         //"Author", "Subjects", "Publisher", "Language", 
         //"Date Issued", "Box ID", "Number of Pages",
         //"Collection ID", "Unique ID"
@@ -352,40 +335,61 @@ async function loadInterfaceDLA() {
 
 
     const DLA_SEARCH =[
-        "Title", "Physical Description", "Note(s)", "Region",
-        "Topic", "Subject", "Repository", "Call Number", "Is Part Of"
+        "name", "id", "handle"
+        //"Author", "Subjects", "Publisher", "Language", 
+        //"Date Issued", "Box ID", "Number of Pages",
+        //"Collection ID", "Unique ID"
+        // script, decoration, physical description
     ]
 
     const statusesToFind = [
-        "uDelLinked",
-        "TPENProjectCreated",
-        "TPENProjectLinked",
-        "envelopeLinked"
+        "Delaware Record Linked",
+        "TPEN Project(s) Created",
+        "TPEN Project(s) Linked",
+        "Envelope Linked"
     ]
 
-    let listOfDLAItems = dlaItems.reduce(async function(a, b){
+    document.getElementById("DLADocuments").innerHTML = ""
+
+    for(record of dlaCollection.items){
         let statusListElements = ``
         let statusListAttributes = new Array()
         for(status of statusesToFind){
-            let el = await generateDLAStatusElement(status, b)
+            //Note that the assignee status will populate the assigneeSet
+            let el = await generateDLAStatusElement(status, record)
             if(el.indexOf("statusString good")>-1){
                 statusListAttributes.push(status)
             }
             statusListElements += el
         }
-        a += `
-        <div class="dlaRecord record" data-id="${TPproxy+udelIdPrefix+b.id}?expand=metadata" statuses="${statusListAttributes.join(' ')}">
-            <h4><a href="${udelIdPrefix+b.id}">${b.name}</a></h4>
-            <ul>
-                ${statusListElements}
-            </ul>
-        </div>`}, ``)
-
-    dlaAreaElem.innerHTML = listOfDLAItems
+        document.getElementById("DLADocuments").innerHTML += `
+            <div class="dlaRecord record" data-id="${TPproxy+udelIdPrefix+record.id}?expand=metadata" >
+            <h3><a target="_blank" href="${udelIdPrefix+record.id}">${record.name}</a></h3>
+            <!--
+            <div class="row">
+                <dl>
+                </dl>
+            </div>
+            -->
+            <div class="row">
+                <dl>
+                    ${statusListElements}
+                </dl>
+            </div>
+        </div>
+        `
+    }
 
     dlaRecords = document.querySelectorAll(".dlaRecord")
-    let dla_facets = {}
     let dla_loading = []
+    let statusSet = new Set();
+    statusSet.add("Delaware Record Linked")
+    statusSet.add("TPEN Project(s) Created")
+    statusSet.add("TPEN Project(s) Linked")
+    statusSet.add("Envelope Linked")
+    let dla_facets = {
+        "status":statusSet
+    }
 
     Array.from(dlaRecords).forEach(r => {
         const url = r.getAttribute("data-id")
@@ -393,26 +397,21 @@ async function loadInterfaceDLA() {
         dla_loading.push(fetch(url)
             .then(status => { if (!status.ok) { throw Error(status) } return status })
             .then(response => response.json())
-            .then(manifest => {
+            .then(dlaRecordInfo => {
                 let metadataMap = new Map()
-                manifest.metadata?.forEach(dat => {
+                dlaRecordInfo.metadata?.forEach(dat => {
                     metadataMap.set(dat.label, Array.isArray(dat.value) ? dat.value.join(", ") : dat.value)
-                    if (DLA_FIELDS.includes(dat.label)) {
-                        dl += `<dt>${dat.label}</dt><dd>${metadataMap.get(dat.label)}</dd>`
+                    if((Array.isArray(dat.value) && dat.value.length > 1) || dat.value.trim() !== ""){
+                        //No blanks
+                        metadataMap.set(dat.label, Array.isArray(dat.value) ? dat.value.join(", ") : dat.value)
                     }
-                    if (DLA_FILTERS[dat.label]) {
-                        r.setAttribute("data-" + DLA_FILTERS[dat.label], metadataMap.get(dat.label))
-                        let values = (Array.isArray(dat.value)) ? dat.value : [dat.value]
-                        if (!dla_facets[DLA_FILTERS[dat.label]]) {
-                            dla_facets[DLA_FILTERS[dat.label]] = new Set()
-                        }
-                        for (const v of values) {
-                            dla_facets[DLA_FILTERS[dat.label]] = dla_facets[DLA_FILTERS[dat.label]].add(v.replace(/\?/g, ""))
-                        }
+                    if (DLA_FIELDS.includes(dat.label)) {
+                        //don't need to show any of these for the status.  Label is already showing.
+                        //dl += `<dt class="uppercase">${dat.label}</dt><dd>${metadataMap.get(dat.label)}</dd>`
                     }
                 })
                 r.setAttribute("data-query", DLA_SEARCH.reduce((a, b) => a += (metadataMap.has(b) ? metadataMap.get(b) : "*") + " ", ""))
-                r.querySelector("dl").innerHTML = dl
+                //r.querySelector("dl").innerHTML = dl
             })
             .catch(err => { throw Error(err) })
         )
@@ -468,7 +467,6 @@ async function loadInterfaceTPEN() {
     ]
 
     document.getElementById("TPENDocuments").innerHTML = ""
-    let TPENProjectListElem = ``
     for(proj of tpenProjects){
         let statusListElements = ``
         let statusListAttributes = new Array()

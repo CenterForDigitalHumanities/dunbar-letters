@@ -6,7 +6,6 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- <link rel="stylesheet" href="css/gloss.css"> -->
     <link rel="stylesheet" href="css/status.css">
     <link href="../favicon.ico" rel="icon" type="image/x-icon" />
     <style>
@@ -24,16 +23,36 @@
         }
 
         #dla_browsable{
-            display: none;
+            margin-top: 1em;
+            border-top: 3px solid green;
+            border-left: 1px solid black;
+            border-right: 1px solid black;
         }
 
         dt{
             width: 100%;
         }
 
-        .record{
-            zoom:  75%;
+        dl{
+            padding:  0px 10px;
         }
+
+        .record{
+            background-color: lightgray;
+            font-size: 75%;
+        }
+
+        .record h3{
+            background-color: rgba(255,255,255, 0.25);
+        }
+
+        .uppercase{
+            text-transform: capitalize;
+        }
+
+        /*.uppercase:first-letter {
+            text-transform: uppercase;
+        }*/
 
     </style>
 </head>
@@ -73,8 +92,13 @@
     <script src="js/status.js"></script>
     <script>
         getTranscriptionProjects()
+        
+        document.addEventListener('tpen-information-success', event => {
+            fetchLetters()   
+        })
+
         document.addEventListener('dla-information-success', event => {
-            fetchLetters()    
+            loadInterfaceDLA()    
         })
 
         document.addEventListener('dla-information-fail', event => {
