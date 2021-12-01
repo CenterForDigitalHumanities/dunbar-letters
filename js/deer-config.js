@@ -1,4 +1,4 @@
-const DEV = true
+const DEV = false
 
 const baseV1 = DEV ? "http://devstore.rerum.io/" : "http://store.rerum.io/"
 const tiny = DEV ? "http://tinydev.rerum.io/app/" : "http://tinypaul.rerum.io/dla/"
@@ -172,8 +172,9 @@ export default {
                 for (const key in annoMap) {
                     const anno = Object.assign({
                         target: newID,
-                        body: { key: { value: annoMap[key] } }
+                        body: { [key]: { value: annoMap[key] } }
                     }, DC_ROOT_ANNOTATION)
+                    if(!key || !annoMap[key]) continue
                     all.push(fetch(tiny + "create", {
                         method: 'POST',
                         mode: 'cors',
@@ -194,7 +195,7 @@ async function matchTranscriptionRecords(list, metadata) {
             if (m.identifier) { return m.identifier }
         }
     }
-    const folder = getFolderFromMetadata(metadata).split(" F").pop()// Like "Box 3, F4"
+    const folder = getFolderFromMetadata(metadata)?.split(" F").pop()// Like "Box 3, F4"
     const matchStr = `F${folder.padStart(3, '0')}`
     let foundMsg = []
     for (const f of list) {
@@ -222,7 +223,7 @@ async function loadUDelMetadata(handle) {
         }).then(response => response.json())
             .then(list => {
                 results.push(list)
-                if (list.length ?? (list.length % lim === 0)) {
+                if (list.length && (list.length % lim === 0)) {
                     return getPagedQuery(lim, it + list.length)
                 } else {
                     return getFirstMetadataResult(results)
@@ -232,14 +233,13 @@ async function loadUDelMetadata(handle) {
     function getFirstMetadataResult(annos) {
         if (!Array.isArray(annos)) return annos
         for (const r of annos) {
-            const tests = r?.flat().pop().body ?? r.body
+            const tests = r?.flat().pop()?.body ?? r.body
             if (tests.length ?? tests.identifier) {
                 return tests
             }
         }
     }
 }
-
 
 function getTranscriptionProjects(metadata) {
     // you must log in first, dude
