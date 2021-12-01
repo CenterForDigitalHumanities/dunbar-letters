@@ -103,7 +103,6 @@ async function generateProjectStatusElement(status, proj){
             statusString = `<span class='statusString bad'>${status}</span>`
             if(proj.assignees.length && proj.assignees.length > 2){
                 for(a of proj.assignees){
-                    //a is a T-PEN user ID.  It could be more complex with more info if desired.
                     //This has a.username and a.userid
                     assigneeSet.add(a.username)
                 }
@@ -157,6 +156,7 @@ async function generateProjectStatusElement(status, proj){
  * */
 async function generateDLAStatusElement(status, item){
     let statusString = ""
+    let linkingAnnos, describingAnnos = []
     switch (status){
         case "TPEN Project(s) Created":
             //Can we match a T-PEN project to this record?
@@ -203,6 +203,22 @@ async function generateDLAStatusElement(status, item){
             // el =
             // `<dt class="statusLabel" title=""> ${statusString} </dt>`
             el=``
+        break
+        case "Well Described":
+            //This DLA record handle should exists in the body of an Annotation.  Get the target of that annotation.
+            //Are other Annotations targeting this target?  If there are, how many does it take to meet the threshold for 'Well Described'
+            linkingAnnos = await fetchQuery({$or:[{"@type":"Annotation"}, {"type":"Annotation"}], "body.source.value":udelHandlePrefix+item.handle})
+            describingAnnos = []
+            if(linkingAnnos.length > 0){
+                describingAnnos = await fetchQuery({$or:[{"@type":"Annotation"}, {"type":"Annotation"}], "target":linkingAnnos[0].target})
+            }
+            statusString = `<span class='statusString bad'>${status}</span>`
+            if(describingAnnos.length>1){
+                statusString = `<span class='statusString good'>${status} by ${describingAnnos.length} data points</span>`
+            }
+            el =
+            `<dt class="statusLabel" title=""> ${statusString} </dt>
+            `   
         break
         default:
             el=``
@@ -346,7 +362,8 @@ async function loadInterfaceDLA() {
         "Delaware Record Linked",
         "TPEN Project(s) Created",
         "TPEN Project(s) Linked",
-        "Envelope Linked"
+        "Envelope Linked",
+        "Well Described"
     ]
 
     document.getElementById("DLADocuments").innerHTML = ""
