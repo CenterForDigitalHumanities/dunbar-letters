@@ -406,6 +406,7 @@ async function loadInterfaceDLA() {
     statusSet.add("TPEN Project(s) Created")
     statusSet.add("TPEN Project(s) Linked")
     statusSet.add("Envelope Linked")
+    statusSet.add("Well Described")
     let dla_facets = {
         "status":statusSet
     }
