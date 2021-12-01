@@ -1,69 +1,5 @@
 [
    {
-      "id":"7304",
-      "project_name":"Delaware, DLA F002",
-      "metadata_name":"F002-01 letter from Paul to Alice: New Orleans, La (2-13-3)",
-      "collection_code":"F002",
-      "entry_code":"01",
-      "pages":[
-         {
-            "page_name":"MSS0113_S01_B01_F002_01a.jpg",
-            "numParsedLines":20,
-            "numTranscribedLines":20
-         },
-         {
-            "page_name":"MSS0113_S01_B01_F002_01c.jpg",
-            "numParsedLines":21,
-            "numTranscribedLines":21
-         },
-         {
-            "page_name":"MSS0113_S01_B01_F002_01e.jpg",
-            "numParsedLines":20,
-            "numTranscribedLines":20
-         },
-         {
-            "page_name":"MSS0113_S01_B01_F002_01g.jpg",
-            "numParsedLines":12,
-            "numTranscribedLines":12
-         }
-      ],
-      "assignees":[
-         2604,
-         11,
-         2600,
-         2607,
-         2605
-      ],
-      "finalized":"true"
-   },
-   {
-      "id":"7305",
-      "project_name":"Delaware, DLA F002-02",
-      "metadata_name":"F002-02 letter from Paul: Indianapolis, Ind  (2/13/6)",
-      "collection_code":"F002",
-      "entry_code":"02",
-      "pages":[
-         {
-            "page_name":"MSS0113_S01_B01_F002_02a.jpg",
-            "numParsedLines":20,
-            "numTranscribedLines":18
-         },
-         {
-            "page_name":"MSS0113_S01_B01_F002_02c.jpg",
-            "numParsedLines":12,
-            "numTranscribedLines":11
-         }
-      ],
-      "assignees":[
-         11,
-         2604,
-         2600,
-         2607,
-         2606
-      ],
-      "finalized":"false"
-   },
-   {
       "id":"7306",
       "project_name":"Delaware, DLA F003-01",
       "metadata_name":"F003-01 letter from Paul: Indianapolis, Ind (2/13/10)",
@@ -82,13 +18,29 @@
          }
       ],
       "assignees":[
-         11,
-         2600,
-         2604,
-         2607,
-         2605
+         {
+            "userid":11,
+            "username":"cubap@slu.edu"
+         },
+         {
+            "userid":2600,
+            "username":"mdanielcox1@udayton.edu"
+         },
+         {
+            "userid":2604,
+            "username":"zhangy124@udayton.edu"
+         },
+         {
+            "userid":2607,
+            "username":"hinesanthonyt1@udayton.edu"
+         },
+         {
+            "userid":2605,
+            "username":"kaisera4@udayton.edu"
+         }
       ],
-      "finalized":"false"
+      "finalized":"false",
+      "thumbnail":"http://165.134.105.25:8181/TPEN28/pageImage?folio=13252823"
    },
    {
       "id":"7307",
@@ -119,13 +71,29 @@
          }
       ],
       "assignees":[
-         11,
-         2604,
-         2600,
-         2607,
-         2606
+         {
+            "userid":11,
+            "username":"cubap@slu.edu"
+         },
+         {
+            "userid":2604,
+            "username":"zhangy124@udayton.edu"
+         },
+         {
+            "userid":2600,
+            "username":"mdanielcox1@udayton.edu"
+         },
+         {
+            "userid":2607,
+            "username":"hinesanthonyt1@udayton.edu"
+         },
+         {
+            "userid":2606,
+            "username":"bryantw1@udayton.edu"
+         }
       ],
-      "finalized":"false"
+      "finalized":"false",
+      "thumbnail":"http://165.134.105.25:8181/TPEN28/pageImage?folio=13252827"
    },
    {
       "id":"7308",
@@ -151,13 +119,29 @@
          }
       ],
       "assignees":[
-         11,
-         2604,
-         2600,
-         2607,
-         2605
+         {
+            "userid":11,
+            "username":"cubap@slu.edu"
+         },
+         {
+            "userid":2604,
+            "username":"zhangy124@udayton.edu"
+         },
+         {
+            "userid":2600,
+            "username":"mdanielcox1@udayton.edu"
+         },
+         {
+            "userid":2607,
+            "username":"hinesanthonyt1@udayton.edu"
+         },
+         {
+            "userid":2605,
+            "username":"kaisera4@udayton.edu"
+         }
       ],
-      "finalized":"true"
+      "finalized":"true",
+      "thumbnail":"http://165.134.105.25:8181/TPEN28/pageImage?folio=13252830"
    },
    {
       "id":"7309",
@@ -173,13 +157,29 @@
          }
       ],
       "assignees":[
-         11,
-         2600,
-         2604,
-         2607,
-         2605
+         {
+            "userid":11,
+            "username":"cubap@slu.edu"
+         },
+         {
+            "userid":2600,
+            "username":"mdanielcox1@udayton.edu"
+         },
+         {
+            "userid":2604,
+            "username":"zhangy124@udayton.edu"
+         },
+         {
+            "userid":2607,
+            "username":"hinesanthonyt1@udayton.edu"
+         },
+         {
+            "userid":2605,
+            "username":"kaisera4@udayton.edu"
+         }
       ],
-      "finalized":"false"
+      "finalized":"false",
+      "thumbnail":"http://165.134.105.25:8181/TPEN28/pageImage?folio=13252832"
    },
    {
       "id":"7310",
@@ -200,13 +200,29 @@
          }
       ],
       "assignees":[
-         11,
-         2604,
-         2600,
-         2605,
-         2607
+         {
+            "userid":11,
+            "username":"cubap@slu.edu"
+         },
+         {
+            "userid":2604,
+            "username":"zhangy124@udayton.edu"
+         },
+         {
+            "userid":2600,
+            "username":"mdanielcox1@udayton.edu"
+         },
+         {
+            "userid":2605,
+            "username":"kaisera4@udayton.edu"
+         },
+         {
+            "userid":2607,
+            "username":"hinesanthonyt1@udayton.edu"
+         }
       ],
-      "finalized":"true"
+      "finalized":"true",
+      "thumbnail":"http://165.134.105.25:8181/TPEN28/pageImage?folio=13252833"
    },
    {
       "id":"7311",
@@ -222,13 +238,29 @@
          }
       ],
       "assignees":[
-         11,
-         2604,
-         2600,
-         2607,
-         2606
+         {
+            "userid":11,
+            "username":"cubap@slu.edu"
+         },
+         {
+            "userid":2604,
+            "username":"zhangy124@udayton.edu"
+         },
+         {
+            "userid":2600,
+            "username":"mdanielcox1@udayton.edu"
+         },
+         {
+            "userid":2607,
+            "username":"hinesanthonyt1@udayton.edu"
+         },
+         {
+            "userid":2606,
+            "username":"bryantw1@udayton.edu"
+         }
       ],
-      "finalized":"true"
+      "finalized":"true",
+      "thumbnail":"http://165.134.105.25:8181/TPEN28/pageImage?folio=13252835"
    },
    {
       "id":"7312",
@@ -254,13 +286,29 @@
          }
       ],
       "assignees":[
-         11,
-         2604,
-         2600,
-         2607,
-         2605
+         {
+            "userid":11,
+            "username":"cubap@slu.edu"
+         },
+         {
+            "userid":2604,
+            "username":"zhangy124@udayton.edu"
+         },
+         {
+            "userid":2600,
+            "username":"mdanielcox1@udayton.edu"
+         },
+         {
+            "userid":2607,
+            "username":"hinesanthonyt1@udayton.edu"
+         },
+         {
+            "userid":2605,
+            "username":"kaisera4@udayton.edu"
+         }
       ],
-      "finalized":"true"
+      "finalized":"true",
+      "thumbnail":"http://165.134.105.25:8181/TPEN28/pageImage?folio=13252838"
    },
    {
       "id":"7313",
@@ -276,165 +324,171 @@
          }
       ],
       "assignees":[
-         11
-      ],
-      "finalized":"false"
-   },
-   {
-      "id":"7314",
-      "project_name":"Delaware, DLA F005-1",
-      "metadata_name":"F005-01 letter from Paul: Dayton, OH to Alice-Medford, Mass.(10/13/1895)",
-      "collection_code":"F005",
-      "entry_code":"01",
-      "pages":[
          {
-            "page_name":"MSS0113_S01_B01_F005_01a.jpg",
-            "numParsedLines":23,
-            "numTranscribedLines":23
-         },
-         {
-            "page_name":"MSS0113_S01_B01_F005_01b.jpg",
-            "numParsedLines":14,
-            "numTranscribedLines":1
+            "userid":11,
+            "username":"cubap@slu.edu"
          }
       ],
-      "assignees":[
-         11,
-         2600,
-         2604,
-         2606,
-         2607
-      ],
-      "finalized":"false"
+      "finalized":"false",
+      "thumbnail":"http://165.134.105.25:8181/TPEN28/pageImage?folio=13252839"
    },
    {
-      "id":"7418",
-      "project_name":"Delaware, DLA F053-01",
-      "metadata_name":"F053-01 letter DLA ()",
-      "collection_code":"F053",
+      "id":"7499",
+      "project_name":"Delaware, DLA F077-01",
+      "metadata_name":"F077-01 letter DLA ()",
+      "collection_code":"F077",
       "entry_code":"01",
       "pages":[
          {
-            "page_name":"MSS0113_S01_B02_F053_01a.jpg",
-            "numParsedLines":14,
+            "page_name":"MSS0113_S01_B03_F077_01a.jpg",
+            "numParsedLines":0,
             "numTranscribedLines":0
          },
          {
-            "page_name":"MSS0113_S01_B02_F053_01c.jpg",
+            "page_name":"MSS0113_S01_B03_F077_01c.jpg",
+            "numParsedLines":0,
+            "numTranscribedLines":0
+         },
+         {
+            "page_name":"MSS0113_S01_B03_F077_01e.jpg",
             "numParsedLines":0,
             "numTranscribedLines":0
          }
       ],
       "assignees":[
-         2604,
-         2600
+         {
+            "userid":2604,
+            "username":"zhangy124@udayton.edu"
+         },
+         {
+            "userid":2600,
+            "username":"mdanielcox1@udayton.edu"
+         }
       ],
-      "finalized":"false"
+      "finalized":"false",
+      "thumbnail":"http://165.134.105.25:8181/TPEN28/pageImage?folio=13253358"
    },
    {
-      "id":"7419",
-      "project_name":"Delaware, DLA F053-02",
-      "metadata_name":"F053-02 letter DLA ()",
-      "collection_code":"F053",
+      "id":"7382",
+      "project_name":"Delaware, DLA F037-01",
+      "metadata_name":"F037-01 letter DLA ()",
+      "collection_code":"F037",
+      "entry_code":"01",
+      "pages":[
+         {
+            "page_name":"MSS0113_S01_B02_F037_01a.jpg",
+            "numParsedLines":0,
+            "numTranscribedLines":0
+         },
+         {
+            "page_name":"MSS0113_S01_B02_F037_01c.jpg",
+            "numParsedLines":0,
+            "numTranscribedLines":0
+         },
+         {
+            "page_name":"MSS0113_S01_B02_F037_01e.jpg",
+            "numParsedLines":0,
+            "numTranscribedLines":0
+         },
+         {
+            "page_name":"MSS0113_S01_B02_F037_01g.jpg",
+            "numParsedLines":0,
+            "numTranscribedLines":0
+         },
+         {
+            "page_name":"MSS0113_S01_B02_F037_01i.jpg",
+            "numParsedLines":0,
+            "numTranscribedLines":0
+         }
+      ],
+      "assignees":[
+         {
+            "userid":2604,
+            "username":"zhangy124@udayton.edu"
+         },
+         {
+            "userid":2600,
+            "username":"mdanielcox1@udayton.edu"
+         }
+      ],
+      "finalized":"false",
+      "thumbnail":"http://165.134.105.25:8181/TPEN28/pageImage?folio=13253044"
+   },
+   {
+      "id":"7383",
+      "project_name":"Delaware, DLA F037-02",
+      "metadata_name":"F037-02 letter DLA ()",
+      "collection_code":"F037",
       "entry_code":"02",
       "pages":[
          {
-            "page_name":"MSS0113_S01_B02_F053_02a.jpg",
+            "page_name":"MSS0113_S01_B02_F037_02a.jpg",
             "numParsedLines":0,
             "numTranscribedLines":0
          },
          {
-            "page_name":"MSS0113_S01_B02_F053_02c.jpg",
+            "page_name":"MSS0113_S01_B02_F037_02c.jpg",
             "numParsedLines":0,
             "numTranscribedLines":0
          },
          {
-            "page_name":"MSS0113_S01_B02_F053_02e.jpg",
+            "page_name":"MSS0113_S01_B02_F037_02d.jpg",
+            "numParsedLines":0,
+            "numTranscribedLines":0
+         },
+         {
+            "page_name":"MSS0113_S01_B02_F037_02e.jpg",
             "numParsedLines":0,
             "numTranscribedLines":0
          }
       ],
       "assignees":[
-         2604,
-         2600
+         {
+            "userid":2604,
+            "username":"zhangy124@udayton.edu"
+         },
+         {
+            "userid":2600,
+            "username":"mdanielcox1@udayton.edu"
+         }
       ],
-      "finalized":"false"
+      "finalized":"false",
+      "thumbnail":"http://165.134.105.25:8181/TPEN28/pageImage?folio=13253049"
    },
    {
-      "id":"7420",
-      "project_name":"Delaware, DLA F053-03",
-      "metadata_name":"F053-03 letter DLA ()",
-      "collection_code":"F053",
+      "id":"7551",
+      "project_name":"Delaware, DLA F037-03",
+      "metadata_name":"F037-03 letter DLA ()",
+      "collection_code":"F037",
       "entry_code":"03",
       "pages":[
          {
-            "page_name":"MSS0113_S01_B02_F053_03a.jpg",
+            "page_name":"MSS0113_S01_B02_F037_03a.jpg",
             "numParsedLines":0,
             "numTranscribedLines":0
          },
          {
-            "page_name":"MSS0113_S01_B02_F053_03c.jpg",
+            "page_name":"MSS0113_S01_B02_F037_03b-copy.jpg",
+            "numParsedLines":0,
+            "numTranscribedLines":0
+         },
+         {
+            "page_name":"MSS0113_S01_B02_F037_03b.jpg",
             "numParsedLines":0,
             "numTranscribedLines":0
          }
       ],
       "assignees":[
-         2604,
-         2600
-      ],
-      "finalized":"false"
-   },
-   {
-      "id":"7421",
-      "project_name":"Delaware, DLA F053-04",
-      "metadata_name":"F053-04 letter DLA ()",
-      "collection_code":"F053",
-      "entry_code":"04",
-      "pages":[
          {
-            "page_name":"MSS0113_S01_B02_F053_04a.jpg",
-            "numParsedLines":0,
-            "numTranscribedLines":0
+            "userid":2604,
+            "username":"zhangy124@udayton.edu"
          },
          {
-            "page_name":"MSS0113_S01_B02_F053_04b.jpg",
-            "numParsedLines":0,
-            "numTranscribedLines":0
+            "userid":2600,
+            "username":"mdanielcox1@udayton.edu"
          }
       ],
-      "assignees":[
-         2604,
-         2600
-      ],
-      "finalized":"false"
-   },
-   {
-      "id":"7561",
-      "project_name":"Delaware, DLA F053-05",
-      "metadata_name":"F053-05 letter DLA ()",
-      "collection_code":"F053",
-      "entry_code":"05",
-      "pages":[
-         {
-            "page_name":"MSS0113_S01_B02_F053_05a.jpg",
-            "numParsedLines":0,
-            "numTranscribedLines":0
-         },
-         {
-            "page_name":"MSS0113_S01_B02_F053_05b-copy.jpg",
-            "numParsedLines":0,
-            "numTranscribedLines":0
-         },
-         {
-            "page_name":"MSS0113_S01_B02_F053_05b.jpg",
-            "numParsedLines":0,
-            "numTranscribedLines":0
-         }
-      ],
-      "assignees":[
-         2604,
-         2600
-      ],
-      "finalized":"false"
+      "finalized":"false",
+      "thumbnail":"http://165.134.105.25:8181/TPEN28/pageImage?folio=13253502"
    }
 ]

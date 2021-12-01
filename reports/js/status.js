@@ -103,16 +103,17 @@ async function generateProjectStatusElement(status, proj){
             if(proj.assignees.length && proj.assignees.length > 2){
                 for(a of proj.assignees){
                     //a is a T-PEN user ID.  It could be more complex with more info if desired.
-                    assigneeSet.add(a)
+                    //This has a.username and a.userid
+                    assigneeSet.add(a.username)
                 }
-                statusString = `<span class='statusString good'>${status} to ${proj.assignees.length} users </span>`
+                statusString = `<span title="${Array.from(assigneeSet).join(" ")}" class='statusString good'>${status} to ${proj.assignees.length} users </span>`
             }
             el =
             `<dt class="statusLabel" title="Check if it is assigned to at least 2 usera"> ${statusString} </dt>
             `   
         break     
         case "T-PEN Project Linked to Delaware Record(s)":
-            linkingAnnos = await fetchQuery({"type":"Annotation", "tpenProject":""+proj.id})
+            linkingAnnos = await fetchQuery({$or:[{"@type":"Annotation"}, {"type":"Annotation"}], "body.tpenProject.value":""+proj.id})
             statusString = `<span class='statusString bad'>${status}</span>`
             if(linkingAnnos.length>0){
                 statusString = `<span class='statusString good'> ${linkingAnnos.length} Linked Record(s)</span>`
@@ -128,10 +129,23 @@ async function generateProjectStatusElement(status, proj){
             //Check how many annos target, and define the good/bad threshold. 
 
             //So there are some testing ones around.  Look for tpenProject.
-            linkingAnnos = await fetchQuery({"type":"Annotation", "tpenProject":""+proj.id})
+            let historyWildcard = { "$exists": true, "$size": 0 }
+                    let queryObj = {
+                        $or: [{
+                            "targetCollection": this.collection
+                        }, {
+                            "body.targetCollection": this.collection
+                        }, {
+                            "body.targetCollection.value": this.collection
+                        }, {
+                            "body.partOf": this.collection
+                        }],
+                        "__rerum.history.next": historyWildcard
+                    }
+            linkingAnnos = await fetchQuery({$or:[{"@type":"Annotation"}, {"type":"Annotation"}], "body.tpenProject.value":""+proj.id})
             describingAnnos = []
             if(linkingAnnos.length > 0){
-                describingAnnos = await fetchQuery({"type":"Annotation", "target":linkingAnnos[0].target})
+                describingAnnos = await fetchQuery({$or:[{"@type":"Annotation"}, {"type":"Annotation"}], "target":linkingAnnos[0].target})
             }
             //Grabbing to anno.targets will tell you what handle
             statusString = `<span class='statusString bad'>${status}</span>`
@@ -172,11 +186,11 @@ async function generateDLAStatusElement(status, item){
         case "TPENProjectLinked":
             const tpenProjectKeyWildcard = {$exists: true, $type: 'string', $ne: ''}
             statusString = "<span class='statusString bad'>No TPEN Link</span>"
-            let tpenProjectLinkingAnnos = await fetchQuery({"type":"Annotation", "target":udelHandlePrefix+item.handle, "body.tpenProject":tpenProjectKeyWildcard})
+            let tpenProjectLinkingAnnos = await fetchQuery({$or:[{"@type":"Annotation"}, {"type":"Annotation"}], "target":udelHandlePrefix+item.handle, "body.tpenProject.value":tpenProjectKeyWildcard})
             let tpenProjectIDs = []
             if(tpenProjectLinkingAnnos.length > 0){
                 for(tpenAnno of tpenProjectLinkingAnnos){
-                    tpenProjectIDs.push(tpenProjectLinkingAnnos.body.tpenProject)
+                    tpenProjectIDs.push(tpenProjectLinkingAnnos.body.tpenProject.value)
                 }
                 statusString = "<span title='See "+tpenProjectIDs.join()+"' class='statusString good'>Found TPEN Project Link(s)</span>"
             }
@@ -197,7 +211,7 @@ async function generateDLAStatusElement(status, item){
         break
         case "uDelLinked":
             statusString = "<span class='statusString bad'>Record Not Linked</span>"
-            let recordHandleAnnos2 = await fetchQuery({"type":"Annotation", "body.source.value":udelHandlePrefix+item.handle})
+            let recordHandleAnnos2 = await fetchQuery({$or:[{"@type":"Annotation"}, {"type":"Annotation"}], "body.source.value":udelHandlePrefix+item.handle})
             if(recordHandleAnnos2.length > 0){
                 statusString = "<span title='See "+recordHandleAnnos2[0].target+"' class='statusString good'>Record Linked</span>"
             }
@@ -223,7 +237,7 @@ async function fetchQuery(params){
         "__rerum.history.next": historyWildcard
     }
     let queryObj = Object.assign(query, params)
-    return fetch("http://tinydev.rerum.io/app/query", {
+    return fetch("http://tinydev.rerum.io/app/query?limit=100&skip=0", {
         method: 'POST',
         mode: 'cors',
         body: JSON.stringify(queryObj)
@@ -479,6 +493,7 @@ async function loadInterfaceTPEN() {
             </div>
             -->
             <div class="row">
+                <img class="thumbnail" src="${proj.thumbnail}" >
                 <dl>
                     ${statusListElements}
                 </dl>
