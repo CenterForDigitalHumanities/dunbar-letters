@@ -346,7 +346,7 @@ async function loadInterfaceDLA() {
     ]
 
     const DLA_FILTERS = {
-        Status: "statuses"
+        Status: "status"
     }
 
 
@@ -380,7 +380,9 @@ async function loadInterfaceDLA() {
             statusListElements += el
         }
         document.getElementById("DLADocuments").innerHTML += `
-            <div class="dlaRecord record" data-id="${TPproxy+udelIdPrefix+record.id}?expand=metadata" >
+            <div class="dlaRecord record" data-id="${TPproxy+udelIdPrefix+record.id}?expand=metadata" 
+            data-status="${statusListAttributes.join(" ")}"
+            >
             <h3><a target="_blank" href="${udelIdPrefix+record.id}">${record.name}</a></h3>
             <!--
             <div class="row">
