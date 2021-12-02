@@ -89,20 +89,22 @@
             </svg>
         </a>
     </gm-footer>
-    <script src="js/status.js"></script>
+    <script src="js/status.js" type="module"></script>
     <script>
-        getTranscriptionProjects()
-        
-        document.addEventListener('tpen-information-success', event => {
-            fetchLetters()   
+        document.addEventListener('all-information-success', event => {
+              
         })
 
-        document.addEventListener('dla-information-success', event => {
-            loadInterfaceDLA()    
-        })
-
-        document.addEventListener('dla-information-fail', event => {
+        document.addEventListener('tpen-information-failure', event => {
             alert(event.detail.err)
+        })
+
+        document.addEventListener('dla-information-failure', event => {
+            alert(event.detail.err)
+        })
+
+        document.addEventListener('dla-information-loaded', event => {
+              
         })
     </script>
 </body>

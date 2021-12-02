@@ -1,3 +1,5 @@
+import { default as UTILS } from './deer-utils.js'
+
 let tpenProjects = []
 let dlaCollection = []
 let tpenRecords = []
@@ -10,17 +12,38 @@ const tpenManifestPrefix = "http://t-pen.org/TPEN/project/"// This is good, but 
 const tpenProjectPrefix = "http://t-pen.org/TPEN/transcription.html?projectID="// This is good, but we also need to link into the transcription.html
 const TPproxy = "http://tinypaul.rerum.io/dla/proxy?url="
 let progress = undefined
+gatherBaseData()
+
+async function gatherBaseData(){
+    tpenProjects = await getTranscriptionProjects()
+    dlaCollection = await fetchLetters()
+    let e
+    if(dlaCollection.itemListElement.length && tpenProjects.length){
+        e = new CustomEvent("all-info-success", { detail: { dla:dlaCollection, tpen:tpenProjects }, bubbles: true })
+        document.dispatchEvent(e)
+        if(document.location.href.indexOf("dla-records")>-1){
+            loadInterfaceDLA()
+        }
+        else if(document.location.href.indexOf("tpen-projects")>-1){
+            loadInterfaceTPEN()
+        }
+    }
+    else{
+        e = new CustomEvent("tpen-information-failure", { detail: { err: err }, bubbles: true })
+    }
+    document.dispatchEvent(e)
+}
 
 /**
  * Hey internet, I want the Dunbar Projects out of T-PEN.
  * */
 async function getTranscriptionProjects(){  
-    await fetch(`cache/tpen.json`)
+    return fetch(`cache/tpenShort.json`)
     //await fetch(`http://165.134.105.25:8181/TPEN28/getDunbarProjects`)
     .then(res=>res.ok?res.json():[])
     .then(projects=>{
         tpenProjects = projects
-        let e = new CustomEvent("tpen-information-success", { detail: { projects: projects }, bubbles: true })
+        let e = new CustomEvent("tpen-information-success", { detail: { tpen: projects }, bubbles: true })
         document.dispatchEvent(e)
         return projects
     })
@@ -37,20 +60,18 @@ async function getTranscriptionProjects(){
  * Hey internet, I want the DLA items from Delaware.
  * */
 async function fetchLetters() {
-    dlaCollection = await fetch(`cache/udelShort.json`)
-        .then(res => res.ok ? res.json() : [])
+    return fetch(`cache/letterCollection.json`)
+        .then(res => res.ok ? res.json() : {"itemListElement":[]})
         .then(coll => {
-            dlaCollection = coll
-            let e = new CustomEvent("dla-information-success", { detail: { collection: dlaCollection }, bubbles: true })
+            let e = new CustomEvent("dla-information-success", { detail: { dla: dlaCollection }, bubbles: true })
             document.dispatchEvent(e)
             return coll
         })
         .catch(err=> {
             console.error(err)
-            dlaCollection = {"items":[]}
             let e = new CustomEvent("tpen-information-failure", { detail: { err: err }, bubbles: true })
             document.dispatchEvent(e)
-            return []
+            return {"itemListElement":[]}
         })
 }
 
@@ -102,7 +123,7 @@ async function generateProjectStatusElement(status, proj){
         case "T-PEN Project Assigned":
             statusString = `<span class='statusString bad'>${status}</span>`
             if(proj.assignees.length && proj.assignees.length > 2){
-                for(a of proj.assignees){
+                for(const a of proj.assignees){
                     //This has a.username and a.userid
                     assigneeSet.add(a.username)
                 }
@@ -155,13 +176,15 @@ async function generateProjectStatusElement(status, proj){
  * This is for the DLA items.
  * */
 async function generateDLAStatusElement(status, item){
+    //YOU ARE USING THE WRONG COLLECTION DUMMY
     let statusString = ""
+    let el = ``
     let linkingAnnos, describingAnnos = []
     switch (status){
         case "TPEN Project(s) Created":
             //Can we match a T-PEN project to this record?
             statusString = `<span class='statusString bad'>${status}</span>`
-            let found = await matchTranscriptionRecords(item)
+            let found = item?.source?.value ? await matchTranscriptionRecords(item) : []
             if(found.length > 0){
                 statusString = `<span title="${found.join()}" class='statusString good'>${found.length} TPEN Projects Found</span>`
             }
@@ -173,13 +196,15 @@ async function generateDLAStatusElement(status, item){
             //Not sure what to do here.  The body.tpenProject.value is a projectID.  The target is the RERUM ID for the current item.
             const tpenProjectKeyWildcard = {$exists: true, $type: 'string', $ne: ''}
             statusString = `<span class='statusString bad'>No ${status}</span>`
-            let tpenProjectLinkingAnnos = await fetchQuery({$or:[{"@type":"Annotation"}, {"type":"Annotation"}], "body.source.value":udelHandlePrefix+item.handle})
+            let tpenProjectLinkingAnnos = await fetchQuery({$or:[{"@type":"Annotation"}, {"type":"Annotation"}], "body.source.value":item?.source?.value})
             let tpenProjectIDs = []
+            //Should
             if(tpenProjectLinkingAnnos.length > 0){
+                //Just this one, don't need to get line 176
                 let target = tpenProjectLinkingAnnos[0].target
                 let linkedProjects = await fetchQuery({$or:[{"@type":"Annotation"}, {"type":"Annotation"}], "target":target, "body.tpenProject.value":tpenProjectKeyWildcard})
                 if(linkedProjects.length > 0){
-                    for(tpenAnno of linkedProjects){
+                    for(const tpenAnno of linkedProjects){
                         tpenProjectIDs.push(tpenProjectLinkingAnnos.body.tpenProject.value)
                     }
                     statusString = `<span title='See ${tpenProjectIDs.join()}' class='statusString good'>${tpenProjectIDs.length} ${status}</span>`
@@ -190,7 +215,7 @@ async function generateDLAStatusElement(status, item){
         break
         case "Delaware Record Linked":
             statusString = `<span class='statusString bad'>${status}</span>`
-            let recordHandleAnnos2 = await fetchQuery({$or:[{"@type":"Annotation"}, {"type":"Annotation"}], "body.source.value":udelHandlePrefix+item.handle})
+            let recordHandleAnnos2 = await fetchQuery({$or:[{"@type":"Annotation"}, {"type":"Annotation"}], "body.source.value":item?.source?.value})
             if(recordHandleAnnos2.length > 0){
                 statusString = `<span title='See ${recordHandleAnnos2[0]["@id"]}' class='statusString good'>${status}</span>`
             }
@@ -207,7 +232,8 @@ async function generateDLAStatusElement(status, item){
         case "Well Described":
             //This DLA record handle should exists in the body of an Annotation.  Get the target of that annotation.
             //Are other Annotations targeting this target?  If there are, how many does it take to meet the threshold for 'Well Described'
-            linkingAnnos = await fetchQuery({$or:[{"@type":"Annotation"}, {"type":"Annotation"}], "body.source.value":udelHandlePrefix+item.handle})
+            //More of a moving target.  There is a value for date and label
+            linkingAnnos = await fetchQuery({$or:[{"@type":"Annotation"}, {"type":"Annotation"}], "body.source.value":item?.source?.value})
             describingAnnos = []
             if(linkingAnnos.length > 0){
                 describingAnnos = await fetchQuery({$or:[{"@type":"Annotation"}, {"type":"Annotation"}], "target":linkingAnnos[0].target})
@@ -267,8 +293,8 @@ async function findUdelRecordWithCode(Fcode, projID) {
     let match = false
     let impossible = false;
     let itemHandle = ""
-    for(item of dlaCollection.items){
-        const metadataUri = `http://tinypaul.rerum.io/dla/proxy?url=${udelRestHandlePrefix+item.handle}?expand=metadata`    
+    for(const item of dlaCollection.itemListElement){
+        const metadataUri = TPproxy + item?.source?.value.replace("edu/handle", "edu/rest/handle")
         match = await fetch(metadataUri)
             .then(res => res.ok ? res.json() : Promise.reject(res))
             .then(meta => getFolderFromMetadata(meta.metadata))
@@ -287,11 +313,11 @@ async function findUdelRecordWithCode(Fcode, projID) {
                 return Fcode === matchStr
             })
         if(match){
-            itemHandle = udelHandlePrefix+item.handle
+            itemHandle = udelHandlePrefix+item?.source?.value
             return
         }    
         if(impossible){
-            console.error("Could not determine folder name for "+udelHandlePrefix+item.handle+"?expand=metadata.  That means this TPEN project "+projID+" cannot determine if a udel record exists for code "+Fcode+".  We are skipping the check for this project.")
+            console.error("Could not determine folder name for "+item?.source?.value+"?expand=metadata.  That means this TPEN project "+projID+" cannot determine if a udel record exists for code "+Fcode+".  We are skipping the check for this project.")
             return
         }
     }
@@ -303,7 +329,7 @@ async function findUdelRecordWithCode(Fcode, projID) {
  * Note this does not detect that record and project(s) are specifically linked yet.
  * */
 async function matchTranscriptionRecords(dlaRecord) {
-    const metadataUri = `http://tinypaul.rerum.io/dla/proxy?url=${udelRestHandlePrefix+dlaRecord.handle}?expand=metadata`
+    const metadataUri = TPproxy + dlaRecord?.source?.value.replace("edu/handle", "edu/rest/handle")
     return await fetch(metadataUri)
         .then(res => res.ok ? res.json() : Promise.reject(res))
         .then(meta => getFolderFromMetadata(meta.metadata))
@@ -368,22 +394,23 @@ async function loadInterfaceDLA() {
 
     document.getElementById("DLADocuments").innerHTML = ""
 
-    for(record of dlaCollection.items){
+    for(const record of dlaCollection.itemListElement){
         let statusListElements = ``
         let statusListAttributes = new Array()
+        let expandedRecord = await UTILS.expand(record["@id"])
         for(status of statusesToFind){
             //Note that the assignee status will populate the assigneeSet
-            let el = await generateDLAStatusElement(status, record)
+            let el = await generateDLAStatusElement(status, expandedRecord)
             if(el.indexOf("statusString good")>-1){
                 statusListAttributes.push(status)
             }
             statusListElements += el
         }
         document.getElementById("DLADocuments").innerHTML += `
-            <div class="dlaRecord record" data-id="${TPproxy+udelIdPrefix+record.id}?expand=metadata" 
+            <div class="dlaRecord record" data-id="${TPproxy+expandedRecord?.source?.value}?expand=metadata" 
             data-status="${statusListAttributes.join(" ")}"
             >
-            <h3><a target="_blank" href="${udelIdPrefix+record.id}">${record.name}</a></h3>
+            <h3><a target="_blank" href="${TPproxy+expandedRecord?.source?.value}">${UTILS.getLabel(expandedRecord)}</a></h3>
             <!--
             <div class="row">
                 <dl>
@@ -437,7 +464,13 @@ async function loadInterfaceDLA() {
         )
     })
     document.getElementById("dla_query").addEventListener("input", filterQuery)
-    return Promise.all(dla_loading).then(() => populateSidebar(dla_facets, DLA_FILTERS, "dla")).catch(err=>console.error(err))
+    return Promise.all(dla_loading).
+    then(() => {
+        populateSidebar(dla_facets, DLA_FILTERS, "dla")
+        let e = new CustomEvent("dla-interface-loaded", { bubbles: true })
+        document.dispatchEvent(e)
+    })
+    .catch(err=>console.error(err))
 }
 
 /**
@@ -487,10 +520,10 @@ async function loadInterfaceTPEN() {
     ]
 
     document.getElementById("TPENDocuments").innerHTML = ""
-    for(proj of tpenProjects){
+    for(const proj of tpenProjects){
         let statusListElements = ``
         let statusListAttributes = new Array()
-        for(status of statusesToFind){
+        for(const status of statusesToFind){
             //Note that the assignee status will populate the assigneeSet
             let el = await generateProjectStatusElement(status, proj)
             if(el.indexOf("statusString good")>-1){
@@ -561,7 +594,13 @@ async function loadInterfaceTPEN() {
         )
     })
     document.getElementById("tpen_query").addEventListener("input", filterQuery)
-    return Promise.all(tpen_loading).then(() => populateSidebar(tpen_facets, TPEN_FILTERS, "tpen")).catch(err=>console.error(err))
+    return Promise.all(tpen_loading)
+    .then(() => {
+        populateSidebar(tpen_facets, TPEN_FILTERS, "tpen")
+        let e = new CustomEvent("tpen-interface-loaded", { bubbles: true })
+        document.dispatchEvent(e)
+    })
+    .catch(err=>console.error(err))
 }
 
 function populateSidebar(facets, filters, which) {

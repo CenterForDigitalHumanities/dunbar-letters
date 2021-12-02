@@ -1,0 +1,438 @@
+{
+    "name": "Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar",
+    "itemListElement": [
+        {
+            "@id": "http://devstore.rerum.io/v1/id/60c23e2ec3fb58284513ed2a"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/60c25fe0c3fb58284513ed81"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/60c7c333c3fb58284513edab"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/60df21adc3fb58284513ee1b"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6151fe12a4c9f1600fa6cb10"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b5124d5"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b5124d7"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b5124dd"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b5124df"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b5124e1"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b5124e3"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b5124e5"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b5124e7"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b5124e9"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b5124eb"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b5124ed"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b5124ef"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b5124f1"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b5124f3"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b5124f5"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b5124f7"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b5124f9"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b5124fb"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b5124fd"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b5124ff"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b512501"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b512503"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b512505"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b512507"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b512509"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b51250b"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b51250d"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b51250f"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b512511"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b512513"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b512515"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b512517"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b512519"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b51251b"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b51251d"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b51251f"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b512521"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b512523"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b512525"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b512527"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b512529"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b51252b"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b51252d"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b51252f"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b512531"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b512533"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b512535"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b512537"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b512539"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b51253b"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b51253d"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b51253f"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6e975fb7f497b512541"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b512543"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b512545"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b512547"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b512549"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b51254b"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b51254d"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b51254f"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b512551"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b512553"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b512555"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b512557"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b512559"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b51255b"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b51255d"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b51255f"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b512561"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b512563"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b512565"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b512567"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b512569"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b51256b"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b51256d"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b51256f"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b512571"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b512573"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b512575"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b512577"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b512579"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b51257b"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b51257d"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b51257f"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b512581"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b512583"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b512585"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b512587"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b512589"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b51258b"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b51258d"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b51258f"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b512591"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b512593"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b512595"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b512597"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b512599"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b51259b"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b51259d"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b51259f"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b5125a1"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b5125a3"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b5125a5"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b5125a7"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b5125a9"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b5125ab"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b5125ad"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b5125af"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b5125b1"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b5125b3"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b5125b5"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b5125b7"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b5125b9"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b5125bb"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b5125bd"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b5125bf"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b5125c1"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b5125c3"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b5125c5"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b5125c7"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6ea75fb7f497b5125c9"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6eb75fb7f497b5125cb"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6eb75fb7f497b5125cd"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6eb75fb7f497b5125cf"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6eb75fb7f497b5125d1"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6eb75fb7f497b5125d3"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6eb75fb7f497b5125d5"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6eb75fb7f497b5125d7"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6eb75fb7f497b5125d9"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6eb75fb7f497b5125db"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6eb75fb7f497b5125dd"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6eb75fb7f497b5125df"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6eb75fb7f497b5125e1"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6eb75fb7f497b5125e3"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6eb75fb7f497b5125e5"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6eb75fb7f497b5125e7"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6eb75fb7f497b5125e9"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6eb75fb7f497b5125eb"
+        },
+        {
+            "@id": "http://devstore.rerum.io/v1/id/6192e6eb75fb7f497b5125ed"
+        }
+    ],
+    "@type": "Annotation"
+}
