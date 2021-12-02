@@ -186,41 +186,29 @@ async function generateDLAStatusElement(status, item){
             statusString = `<span class='statusString bad'>${status}</span>`
             let found = item?.source?.value ? await matchTranscriptionRecords(item) : []
             if(found.length > 0){
-                statusString = `<span title="${found.join()}" class='statusString good'>${found.length} TPEN Projects Found</span>`
+                statusString = `<span title="${found.join()}" class='statusString good'>${found.length} ${status}</span>`
             }
             el =
-            `<dt class="statusLabel" title=""> ${statusString} </dt>
+            `<dt class="statusLabel" title="These are the T-PEN projects found where the image titles matched with the F-Code for this item."> ${statusString} </dt>
             ` 
         break
         case "TPEN Project(s) Linked":
             //Not sure what to do here.  The body.tpenProject.value is a projectID.  The target is the RERUM ID for the current item.
-            const tpenProjectKeyWildcard = {$exists: true, $type: 'string', $ne: ''}
             statusString = `<span class='statusString bad'>No ${status}</span>`
-            let tpenProjectLinkingAnnos = await fetchQuery({$or:[{"@type":"Annotation"}, {"type":"Annotation"}], "body.source.value":item?.source?.value})
             let tpenProjectIDs = []
             //Should
-            if(tpenProjectLinkingAnnos.length > 0){
-                //Just this one, don't need to get line 176
-                let target = tpenProjectLinkingAnnos[0].target
-                let linkedProjects = await fetchQuery({$or:[{"@type":"Annotation"}, {"type":"Annotation"}], "target":target, "body.tpenProject.value":tpenProjectKeyWildcard})
-                if(linkedProjects.length > 0){
-                    for(const tpenAnno of linkedProjects){
-                        tpenProjectIDs.push(tpenProjectLinkingAnnos.body.tpenProject.value)
-                    }
-                    statusString = `<span title='See ${tpenProjectIDs.join()}' class='statusString good'>${tpenProjectIDs.length} ${status}</span>`
-                    
-                }
+            if(item?.tpenProject){
+                statusString = `<span title='See ${item.tpenProject.join(", ")}' class='statusString good'>${item.tpenProject.length} ${status}</span>`
             }
-            el =`<dt class="statusLabel" title=""> ${statusString} </dt>`
+            el =`<dt class="statusLabel" title="These are annotations connecting the record to T-PEN projects.  One record can be a part of multiple projects."> ${statusString} </dt>`
         break
         case "Delaware Record Linked":
-            statusString = `<span class='statusString bad'>${status}</span>`
-            let recordHandleAnnos2 = await fetchQuery({$or:[{"@type":"Annotation"}, {"type":"Annotation"}], "body.source.value":item?.source?.value})
-            if(recordHandleAnnos2.length > 0){
-                statusString = `<span title='See ${recordHandleAnnos2[0]["@id"]}' class='statusString good'>${status}</span>`
+            statusString = `<span class='statusString bad'>No ${status}</span>`
+            if(item?.source?.value){
+                statusString = `<span title='See ${item?.source?.value}' class='statusString good'>${status}</span>`
             }
             el =
-            `<dt class="statusLabel" title=""> ${statusString} </dt>`
+            `<dt class="statusLabel" title="These are source annotations connecting the record to the handle."> ${statusString} </dt>`
         break
         case "Envelope Linked":
             //This is probably a T-PEN check, not sure. Can we check for an annotation with body that is a certain name or a primitive name of some kind?
@@ -230,20 +218,30 @@ async function generateDLAStatusElement(status, item){
             el=``
         break
         case "Well Described":
-            //This DLA record handle should exists in the body of an Annotation.  Get the target of that annotation.
-            //Are other Annotations targeting this target?  If there are, how many does it take to meet the threshold for 'Well Described'
-            //More of a moving target.  There is a value for date and label
-            linkingAnnos = await fetchQuery({$or:[{"@type":"Annotation"}, {"type":"Annotation"}], "body.source.value":item?.source?.value})
-            describingAnnos = []
-            if(linkingAnnos.length > 0){
-                describingAnnos = await fetchQuery({$or:[{"@type":"Annotation"}, {"type":"Annotation"}], "target":linkingAnnos[0].target})
-            }
             statusString = `<span class='statusString bad'>${status}</span>`
-            if(describingAnnos.length>1){
-                statusString = `<span class='statusString good'>${status} by ${describingAnnos.length} data points</span>`
+            let required_keys = ["notes", "label", "date"]
+            let key_count = Array.from(Object.keys(item)).filter(name => required_keys.includes(name))
+            .map(goodKeys => {
+                //Of the keys we are looking for
+                let count = 0
+                if(!typeof goodKeys === "string"){ //In the case where there is just one...which is bad
+                    for(const key of goodKeys){
+                        //Only count the ones with a value
+                        if(UTILS.getValue(item[key])){
+                            count += 1
+                        }
+                    }  
+                }
+                return count        
+            })
+            
+            if(required_keys.length === key_count){
+                //Then it is well described!  All the keys we require to meet this threshold have a value, and there may even be more.
+                //-3 to ignore @context, @id, and @type.
+                statusString = `<span class='statusString good'>${status} by ${Object.keys(item).length - 3} data points</span>`
             }
             el =
-            `<dt class="statusLabel" title=""> ${statusString} </dt>
+            `<dt class="statusLabel" title="It at least includes a label, notes, and a date.  There may be more!"> ${statusString} </dt>
             `   
         break
         default:
@@ -406,11 +404,14 @@ async function loadInterfaceDLA() {
             }
             statusListElements += el
         }
+        let data_id = TPproxy+expandedRecord?.source?.value.replace("edu/handle", "edu/rest/handle")
+        let data_id_attr = data_id.indexOf("undefined") === -1 ? "data-id="+data_id+"?expand=metadata" : ""
         document.getElementById("DLADocuments").innerHTML += `
-            <div class="dlaRecord record" data-id="${TPproxy+expandedRecord?.source?.value}?expand=metadata" 
+            <div class="dlaRecord record" 
+            ${data_id_attr}
             data-status="${statusListAttributes.join(" ")}"
             >
-            <h3><a target="_blank" href="${TPproxy+expandedRecord?.source?.value}">${UTILS.getLabel(expandedRecord)}</a></h3>
+            <h3><a target="_blank" href="${TPproxy+expandedRecord?.source?.value.replace("edu/handle", "edu/rest/handle")}">${UTILS.getLabel(expandedRecord)}</a></h3>
             <!--
             <div class="row">
                 <dl>
@@ -439,9 +440,10 @@ async function loadInterfaceDLA() {
     }
 
     Array.from(dlaRecords).forEach(r => {
-        const url = r.getAttribute("data-id")
+        const url = r.hasAttribute("data-id") ? r.getAttribute("data-id") : ""
         let dl = ``
-        dla_loading.push(fetch(url)
+        if(url){
+            dla_loading.push(fetch(url)
             .then(status => { if (!status.ok) { throw Error(status) } return status })
             .then(response => response.json())
             .then(dlaRecordInfo => {
@@ -461,7 +463,8 @@ async function loadInterfaceDLA() {
                 //r.querySelector("dl").innerHTML = dl
             })
             .catch(err => { throw Error(err) })
-        )
+            )    
+        }
     })
     document.getElementById("dla_query").addEventListener("input", filterQuery)
     return Promise.all(dla_loading).
