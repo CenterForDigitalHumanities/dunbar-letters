@@ -183,7 +183,7 @@ async function generateDLAStatusElement(status, item){
     switch (status){
         case "TPEN Project(s) Created":
             //Can we match a T-PEN project to this record?
-            statusString = `<span class='statusString bad'>${status}</span>`
+            statusString = `<span class='statusString bad'>No ${status}</span>`
             let found = item?.source?.value ? await matchTranscriptionRecords(item) : []
             if(found.length > 0){
                 statusString = `<span title="${found.join()}" class='statusString good'>${found.length} ${status}</span>`
@@ -218,28 +218,66 @@ async function generateDLAStatusElement(status, item){
             el=``
         break
         case "Well Described":
-            statusString = `<span class='statusString bad'>${status}</span>`
-            let required_keys = ["notes", "label", "date"]
-            let key_count = Array.from(Object.keys(item)).filter(name => required_keys.includes(name))
+            statusString = `<span class='statusString bad'>Not ${status}</span>`
+            let required_keys = ["label", "date"]
+
+            //Do the Annotations contain the required data?
+            let anno_key_count = Array.from(Object.keys(item)).filter(name => required_keys.includes(name))
             .map(goodKeys => {
                 //Of the keys we are looking for
-                let count = 0
-                if(!typeof goodKeys === "string"){ //In the case where there is just one...which is bad
+                let anno_count = 0
+                if(!typeof goodKeys === "string"){ //In the case where there is just one...which is bad so prepare to fail.
                     for(const key of goodKeys){
                         //Only count the ones with a value
                         if(UTILS.getValue(item[key])){
-                            count += 1
+                            anno_count += 1
                         }
                     }  
                 }
-                return count        
+                return anno_count        
             })
-            
-            if(required_keys.length === key_count){
-                //Then it is well described!  All the keys we require to meet this threshold have a value, and there may even be more.
+            if(required_keys.length === anno_key_count){
+                //Then it is well described by Annotations!  All the keys we require to meet this threshold have a value, and there may even be more.
                 //-3 to ignore @context, @id, and @type.
                 statusString = `<span class='statusString good'>${status} by ${Object.keys(item).length - 3} data points</span>`
             }
+            /*
+            else{
+                //The linked metadata may have it, let's check there
+                const metadataUri = TPproxy + item?.source?.value.replace("edu/handle", "edu/rest/handle")+"?expand=metadata"
+                let metadata = []
+                //If source is not there, then there is no linked metadata
+                if(metadataUri.indexOf("undefined") === -1){
+                    metadata = await fetch(metadataUri)
+                    .then(res => res.ok ? res.json() : {"metadata":[]})
+                    .then(meta => meta.metadata)
+                    .catch(err => [])
+                }
+                if(metadata.length){
+                    let metadata_key_count = 0
+                    for (const m of metadata) {
+                        if (m.key === "dc.title") { 
+                            //This is the label, so count it if it has a value
+                            if(m.value){
+                                metadata_key_count += 1
+                            }
+                             
+                        }
+                        if(m.key === "dc.date"){
+                            //This is the date, so count it if it has a value.
+                            if(m.value){
+                                metadata_key_count += 1
+                            }
+                        }
+                    }    
+                }
+                if(required_keys.length <= metadata_key_count){
+                    //Then it is well described by Annotations!  All the keys we require to meet this threshold have a value, and there may even be more.
+                    //-3 to ignore @context, @id, and @type.
+                    statusString = `<span class='statusString good'>${status} by ${Object.keys(item).length - 3} data points</span>`
+                } 
+            }
+            */
             el =
             `<dt class="statusLabel" title="It at least includes a label, notes, and a date.  There may be more!"> ${statusString} </dt>
             `   
@@ -292,7 +330,7 @@ async function findUdelRecordWithCode(Fcode, projID) {
     let impossible = false;
     let itemHandle = ""
     for(const item of dlaCollection.itemListElement){
-        const metadataUri = TPproxy + item?.source?.value.replace("edu/handle", "edu/rest/handle")
+        const metadataUri = TPproxy + item?.source?.value.replace("edu/handle", "edu/rest/handle")+"?expand=metadata"
         match = await fetch(metadataUri)
             .then(res => res.ok ? res.json() : Promise.reject(res))
             .then(meta => getFolderFromMetadata(meta.metadata))
@@ -327,8 +365,9 @@ async function findUdelRecordWithCode(Fcode, projID) {
  * Note this does not detect that record and project(s) are specifically linked yet.
  * */
 async function matchTranscriptionRecords(dlaRecord) {
-    const metadataUri = TPproxy + dlaRecord?.source?.value.replace("edu/handle", "edu/rest/handle")
-    return await fetch(metadataUri)
+    const metadataUri = TPproxy + dlaRecord?.source?.value.replace("edu/handle", "edu/rest/handle")+"?expand=metadata"
+    if(metadataUri.indexOf("undefined") === -1){
+        return await fetch(metadataUri)
         .then(res => res.ok ? res.json() : Promise.reject(res))
         .then(meta => getFolderFromMetadata(meta.metadata))
         .then(folderString => folderString.split(" F").pop()) // Like "Box 3, F4"
@@ -342,7 +381,11 @@ async function matchTranscriptionRecords(dlaRecord) {
             }
             return matches
         })
-        .catch(err => {return []})
+        .catch(err => {return []})   
+    }
+    else{
+        return []
+    }
 }
 
 /**
