@@ -73,11 +73,11 @@ export default {
         msList: function (obj, options = {}) {
             let tmpl = `<h2>Manuscripts</h2>`
             if (options.list) {
-                tmpl += `<ul>`
+                tmpl += `<ol>`
                 obj[options.list].forEach((val, index) => {
                     tmpl += `<li><deer-view deer-template="saveTPENlinks" deer-id="${val["@id"]}"> 0 </deer-view><a href="${options.link}${val['@id']}"><deer-view deer-id="${val["@id"]}" deer-template="label"></deer-view></a></li>`
                 })
-                tmpl += `</ul>`
+                tmpl += `</ol>`
             }
             return tmpl
         },
@@ -135,7 +135,7 @@ export default {
 
                 projectIDs.forEach(async (id, index) => {
                         let t = index > 0 ? await createNewRecord(target) : target
-                        limiter(() => createCopy(target, t, id))
+                        createCopy(target, t, id)
                     })
             }
 
@@ -156,7 +156,7 @@ export default {
 
             async function createCopy(id, newID, projectID) {
                 let original = await UTILS.expand(id).then(stripIDs)
-                const annoMap = id === newID ?
+                const annoMap = (id === newID) ?
                     {
                         tpenProject: projectID
                     }
@@ -168,21 +168,19 @@ export default {
                         tpenProject: projectID
                     }
 
-                let all = []
                 for (const key in annoMap) {
                     const anno = Object.assign({
                         target: newID,
-                        body: { [key]: { value: annoMap[key] } }
+                        body: { [key]: annoMap[key] }
                     }, DC_ROOT_ANNOTATION)
                     if(!key || !annoMap[key]) continue
-                    all.push(fetch(tiny + "create", {
+                    limiter(()=>fetch(tiny + "create?annotations", {
                         method: 'POST',
                         mode: 'cors',
                         body: JSON.stringify(anno)
                     }).catch(err => console.error(err))
                     )
                 }
-                return Promise.all(all)
             }
         }
     },
@@ -196,7 +194,7 @@ async function matchTranscriptionRecords(list, metadata) {
         }
     }
     const folder = getFolderFromMetadata(metadata)?.split(" F").pop()// Like "Box 3, F4"
-    const matchStr = `F${folder.padStart(3, '0')}`
+    const matchStr = `F${folder?.padStart(3, '0')}`
     let foundMsg = []
     for (const f of list) {
         if (f.collection_code === matchStr) {
@@ -234,7 +232,7 @@ async function loadUDelMetadata(handle) {
         if (!Array.isArray(annos)) return annos
         for (const r of annos) {
             const tests = r?.flat().pop()?.body ?? r.body
-            if (tests.length ?? tests.identifier) {
+            if (tests?.length ?? tests?.identifier) {
                 return tests
             }
         }
