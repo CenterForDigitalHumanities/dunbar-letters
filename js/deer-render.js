@@ -167,16 +167,18 @@ DEER.TEMPLATES.linky = function (obj, options = {}) {
 
 DEER.TEMPLATES.thumbs = function (obj, options = {}) {
     return {
-        html: obj["tpen://base-project"] ? `<div class="is-full-width"> <h3> ... loading images ... </h3> </div>` : ``,
+        html: obj.tpenProject ? `<div class="is-full-width"> <h3> ... loading images ... </h3> </div>` : ``,
         then: (elem) => {
             try {
-                fetch("http://t-pen.org/TPEN/manifest/" + obj["tpen://base-project"].value)
+                const proj = obj.tpenProject?.value ?? obj.tpenProject?.pop()?.value ?? obj.tpenProject?.pop() ?? obj.tpenProject
+                if (!proj) { return }    
+                fetch("http://t-pen.org/TPEN/manifest/" + proj)
                     .then(response => response.json())
                     .then(ms => elem.innerHTML = `
                     ${ms.sequences[0].canvases.slice(0, 10).reduce((a, b) => a += `<img class="thumbnail" src="${b.images[0].resource['@id']}">`, ``)}
             `)
             } catch {
-                console.log(`No images loaded for transcription project: ${obj["tpen://base-project"]?.value}`)
+                console.log(`No images loaded for transcription project: ${obj.tpenProject?.value}`)
             }
         }
     }
@@ -188,14 +190,18 @@ DEER.TEMPLATES.pageLinks = function (obj, options = {}) {
 
 DEER.TEMPLATES.shadow = (obj, options = {}) => {
     return {
-        html: `goop`,
+        html: `loading external data...`,
         then: (elem) => {
             UTILS.findByTargetId(options.link)
                 .then(extData => {
                     const props = extData?.pop().body
-                    const entries = props.reduce((a, b) => a += `<label>${Object.keys(b)[0]}</label>: ${UTILS.getValue(Object.values(b)[0], "label")}<br>`, ``)
-                    elem.innerHTML = `<div>${entries}</div>`
+                    const entries = props.reduce((a, b) => a += `<label class="col-3" style="font-variant:small-caps;font-weight:bold;">${Object.keys(b)[0]}:</label> <span class="col-9">${UTILS.getValue(Object.values(b)[0], "label")}</span>`, ``)
+                    elem.innerHTML = `<div class="card row">
+                    <h3 class="is-full-width">Remote Metadata Records</h3>
+                    ${entries}
+                    </div>`
                 })
+                .catch(err=>elem.innerHTML="Error loading external data.")
         }
     }
 }
