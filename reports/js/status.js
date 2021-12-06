@@ -12,6 +12,8 @@ const tpenManifestPrefix = "http://t-pen.org/TPEN/project/"// This is good, but 
 const tpenProjectPrefix = "http://t-pen.org/TPEN/transcription.html?projectID="// This is good, but we also need to link into the transcription.html
 const TPproxy = "http://tinypaul.rerum.io/dla/proxy?url="
 let progress = undefined
+import pLimit from './plimit.js'
+const statlimiter = pLimit(12)
 gatherBaseData()
 
 async function gatherBaseData(){
@@ -186,7 +188,7 @@ async function generateDLAStatusElement(status, item){
             statusString = `<span class='statusString bad'>No ${status}</span>`
             let found = item?.source?.value ? await matchTranscriptionRecords(item) : []
             if(found.length > 0){
-                statusString = `<span title="${found.join()}" class='statusString good'>${found.length} ${status}</span>`
+                statusString = `<span title="${found.join(" ")}" class='statusString good'>${found.length} ${status}</span>`
             }
             el =
             `<dt class="statusLabel" title="These are the T-PEN projects found where the image titles matched with the F-Code for this item."> ${statusString} </dt>
@@ -196,9 +198,10 @@ async function generateDLAStatusElement(status, item){
             //Not sure what to do here.  The body.tpenProject.value is a projectID.  The target is the RERUM ID for the current item.
             statusString = `<span class='statusString bad'>No ${status}</span>`
             let tpenProjectIDs = []
-            //Should
-            if(item?.tpenProject){
-                statusString = `<span title='See ${item.tpenProject.join(", ")}' class='statusString good'>${item.tpenProject.length} ${status}</span>`
+            let links = item.hasOwnProperty("tpenProject") ? item.tpenProject : [] 
+            let projIDs = links.map(proj_obj => proj_obj.value)
+            if(links.length){
+                statusString = `<span title='${projIDs.join(" ")}' class='statusString good'>${links.length} ${status}</span>`
             }
             el =`<dt class="statusLabel" title="These are annotations connecting the record to T-PEN projects.  One record can be a part of multiple projects."> ${statusString} </dt>`
         break
@@ -220,23 +223,10 @@ async function generateDLAStatusElement(status, item){
         case "Well Described":
             statusString = `<span class='statusString bad'>Not ${status}</span>`
             let required_keys = ["label", "date"]
-
-            //Do the Annotations contain the required data?
-            let anno_key_count = Array.from(Object.keys(item)).filter(name => required_keys.includes(name))
-            .map(goodKeys => {
-                //Of the keys we are looking for
-                let anno_count = 0
-                if(!typeof goodKeys === "string"){ //In the case where there is just one...which is bad so prepare to fail.
-                    for(const key of goodKeys){
-                        //Only count the ones with a value
-                        if(UTILS.getValue(item[key])){
-                            anno_count += 1
-                        }
-                    }  
-                }
-                return anno_count        
-            })
-            if(required_keys.length === anno_key_count){
+            //Just filter down to the keys we are looking for that have a value
+            let keys_to_count = Array.from(Object.keys(item)).filter(name => required_keys.includes(name) && UTILS.getValue(item[name]))
+            //If it found that the object contains the required keys we are looking for...
+            if(required_keys.length === keys_to_count.length){
                 //Then it is well described by Annotations!  All the keys we require to meet this threshold have a value, and there may even be more.
                 //-3 to ignore @context, @id, and @type.
                 statusString = `<span class='statusString good'>${status} by ${Object.keys(item).length - 3} data points</span>`
@@ -298,12 +288,14 @@ async function fetchQuery(params){
         "__rerum.history.next": historyWildcard
     }
     let queryObj = Object.assign(query, params)
-    return fetch("http://tinydev.rerum.io/app/query?limit=100&skip=0", {
-        method: 'POST',
-        mode: 'cors',
-        body: JSON.stringify(queryObj)
-    })
-    .then(res => res.ok ? res.json() : Promise.reject(res))
+
+    return statlimiter(() => fetch("http://tinydev.rerum.io/app/query?limit=100&skip=0", {
+            method: 'POST',
+            mode: 'cors',
+            body: JSON.stringify(queryObj)
+        })
+        .then(res => res.ok ? res.json() : Promise.reject(res))
+    )
 }
 
 function getFolderFromMetadata(metaMap){
@@ -331,7 +323,7 @@ async function findUdelRecordWithCode(Fcode, projID) {
     let itemHandle = ""
     for(const item of dlaCollection.itemListElement){
         const metadataUri = TPproxy + item?.source?.value.replace("edu/handle", "edu/rest/handle")+"?expand=metadata"
-        match = await fetch(metadataUri)
+        match = await statlimiter(() => fetch(metadataUri)
             .then(res => res.ok ? res.json() : Promise.reject(res))
             .then(meta => getFolderFromMetadata(meta.metadata))
             .then(folderString => {
@@ -348,6 +340,7 @@ async function findUdelRecordWithCode(Fcode, projID) {
                 const matchStr = `F${folderNumber.padStart(3, '0')}`
                 return Fcode === matchStr
             })
+        )
         if(match){
             itemHandle = udelHandlePrefix+item?.source?.value
             return
@@ -367,21 +360,22 @@ async function findUdelRecordWithCode(Fcode, projID) {
 async function matchTranscriptionRecords(dlaRecord) {
     const metadataUri = TPproxy + dlaRecord?.source?.value.replace("edu/handle", "edu/rest/handle")+"?expand=metadata"
     if(metadataUri.indexOf("undefined") === -1){
-        return await fetch(metadataUri)
-        .then(res => res.ok ? res.json() : Promise.reject(res))
-        .then(meta => getFolderFromMetadata(meta.metadata))
-        .then(folderString => folderString.split(" F").pop()) // Like "Box 3, F4"
-        .then(folderNumber => {
-            const matchStr = `F${folderNumber.padStart(3, '0')}`
-            let matches = []
-            for (const f of tpenProjects) {
-                if (f.collection_code === matchStr) { 
-                    matches.push(f.id) 
+        return await statlimiter(() => fetch(metadataUri)
+            .then(res => res.ok ? res.json() : Promise.reject(res))
+            .then(meta => getFolderFromMetadata(meta.metadata))
+            .then(folderString => folderString.split(" F").pop()) // Like "Box 3, F4"
+            .then(folderNumber => {
+                const matchStr = `F${folderNumber.padStart(3, '0')}`
+                let matches = []
+                for (const f of tpenProjects) {
+                    if (f.collection_code === matchStr) { 
+                        matches.push(f.id) 
+                    }
                 }
-            }
-            return matches
-        })
-        .catch(err => {return []})   
+                return matches
+            })
+            .catch(err => {return []})   
+        )
     }
     else{
         return []
@@ -486,26 +480,27 @@ async function loadInterfaceDLA() {
         const url = r.hasAttribute("data-id") ? r.getAttribute("data-id") : ""
         let dl = ``
         if(url){
-            dla_loading.push(fetch(url)
-            .then(status => { if (!status.ok) { throw Error(status) } return status })
-            .then(response => response.json())
-            .then(dlaRecordInfo => {
-                let metadataMap = new Map()
-                dlaRecordInfo.metadata?.forEach(dat => {
-                    metadataMap.set(dat.label, Array.isArray(dat.value) ? dat.value.join(", ") : dat.value)
-                    if((Array.isArray(dat.value) && dat.value.length > 1) || dat.value.trim() !== ""){
-                        //No blanks
+            dla_loading.push(statlimiter(() => fetch(url)
+                .then(status => { if (!status.ok) { throw Error(status) } return status })
+                .then(response => response.json())
+                .then(dlaRecordInfo => {
+                    let metadataMap = new Map()
+                    dlaRecordInfo.metadata?.forEach(dat => {
                         metadataMap.set(dat.label, Array.isArray(dat.value) ? dat.value.join(", ") : dat.value)
-                    }
-                    if (DLA_FIELDS.includes(dat.label)) {
-                        //don't need to show any of these for the status.  Label is already showing.
-                        //dl += `<dt class="uppercase">${dat.label}</dt><dd>${metadataMap.get(dat.label)}</dd>`
-                    }
+                        if((Array.isArray(dat.value) && dat.value.length > 1) || dat.value.trim() !== ""){
+                            //No blanks
+                            metadataMap.set(dat.label, Array.isArray(dat.value) ? dat.value.join(", ") : dat.value)
+                        }
+                        if (DLA_FIELDS.includes(dat.label)) {
+                            //don't need to show any of these for the status.  Label is already showing.
+                            //dl += `<dt class="uppercase">${dat.label}</dt><dd>${metadataMap.get(dat.label)}</dd>`
+                        }
+                    })
+                    r.setAttribute("data-query", DLA_SEARCH.reduce((a, b) => a += (metadataMap.has(b) ? metadataMap.get(b) : "*") + " ", ""))
+                    //r.querySelector("dl").innerHTML = dl
                 })
-                r.setAttribute("data-query", DLA_SEARCH.reduce((a, b) => a += (metadataMap.has(b) ? metadataMap.get(b) : "*") + " ", ""))
-                //r.querySelector("dl").innerHTML = dl
-            })
-            .catch(err => { throw Error(err) })
+                .catch(err => { throw Error(err) })
+                )
             )    
         }
     })
@@ -615,28 +610,29 @@ async function loadInterfaceTPEN() {
     Array.from(tpenRecords).forEach(r => {
         const url = r.getAttribute("data-id")
         let dl = ``
-        tpen_loading.push(fetch(url)
-            .then(status => { if (!status.ok) { throw Error(status) } return status })
-            .then(response => response.json())
-            .then(tpenProject => {
-                let metadataMap = new Map()
-                tpenProject.metadata?.forEach(dat => {
-                    //Note this does not know the Project.name, it knows the Metadata.title
-                    if((Array.isArray(dat.value) && dat.value.length > 1) || dat.value.trim() !== ""){
-                        //No blanks
-                        metadataMap.set(dat.label, Array.isArray(dat.value) ? dat.value.join(", ") : dat.value)
-                    }
-                    if (TPEN_FIELDS.includes(dat.label)) {
-                        //don't need to show any of these for the status.  Label is already showing.
-                        //dl += `<dt class="uppercase">${dat.label}</dt><dd>${metadataMap.get(dat.label)}</dd>`
-                    }
+        tpen_loading.push(statlimiter(() => fetch(url)
+                .then(status => { if (!status.ok) { throw Error(status) } return status })
+                .then(response => response.json())
+                .then(tpenProject => {
+                    let metadataMap = new Map()
+                    tpenProject.metadata?.forEach(dat => {
+                        //Note this does not know the Project.name, it knows the Metadata.title
+                        if((Array.isArray(dat.value) && dat.value.length > 1) || dat.value.trim() !== ""){
+                            //No blanks
+                            metadataMap.set(dat.label, Array.isArray(dat.value) ? dat.value.join(", ") : dat.value)
+                        }
+                        if (TPEN_FIELDS.includes(dat.label)) {
+                            //don't need to show any of these for the status.  Label is already showing.
+                            //dl += `<dt class="uppercase">${dat.label}</dt><dd>${metadataMap.get(dat.label)}</dd>`
+                        }
+                    })
+                    //Here we aren't filtering by metadata, so we don't need to build facets off the metadata
+                    r.setAttribute("data-query", TPEN_SEARCH.reduce((a, b) => a += (metadataMap.has(b) ? metadataMap.get(b) : "*") + " ", ""))
+                    //Not building this dl object out right now
+                    //r.querySelector("dl").innerHTML = dl
                 })
-                //Here we aren't filtering by metadata, so we don't need to build facets off the metadata
-                r.setAttribute("data-query", TPEN_SEARCH.reduce((a, b) => a += (metadataMap.has(b) ? metadataMap.get(b) : "*") + " ", ""))
-                //Not building this dl object out right now
-                //r.querySelector("dl").innerHTML = dl
-            })
-            .catch(err => { throw Error(err) })
+                .catch(err => { throw Error(err) })
+            )
         )
     })
     document.getElementById("tpen_query").addEventListener("input", filterQuery)

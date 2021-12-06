@@ -1,15 +1,19 @@
-const DEV = true
+const DEV = false
 const baseV1 = DEV ? "http://devstore.rerum.io/" : "http://store.rerum.io/"
 const tiny = DEV ? "http://tinydev.rerum.io/app/" : "http://tinypaul.rerum.io/dla/"
 
 import { default as UTILS } from './deer-utils.js'
 import pLimit from './plimit.js'
 const limiter = pLimit(4)
-let projects = []
 
-fetch(`http://165.134.105.25:8181/TPEN28/getDunbarProjects`, { cache: "force-cache" })
-    .then(res => res.ok ? res.json() : Promise.reject(res))
-    .then(list => projects = list)
+
+/**
+ * Handled in reports/js/status.js
+ * */
+//let projects = []
+// fetch(`cache/tpenShort.j`, { cache: "force-cache" })
+//     .then(res => res.ok ? res.json() : Promise.reject(res))
+//     .then(list => projects = list)
 
 export default {
     ID: "deer-id", // attribute, URI for resource to render
@@ -239,14 +243,14 @@ async function loadUDelMetadata(handle) {
     }
 }
 
-
-function getTranscriptionProjects(metadata) {
-    // you must log in first, dude
-    // fetch(`media/tpen.json`)
-    return fetch(`http://165.134.105.25:8181/TPEN28/getDunbarProjects`)
-        .then(res => res.ok ? res.json() : Promise.reject(res))
-        .then(list => matchTranscriptionRecords(list, metadata))
-}
+//Handled in reports/js/status.js
+// function getTranscriptionProjects(metadata) {
+//     // you must log in first, dude
+//     // fetch(`media/tpen.json`)
+//     return fetch(`http://165.134.105.25:8181/TPEN28/getDunbarProjects`)
+//         .then(res => res.ok ? res.json() : Promise.reject(res))
+//         .then(list => matchTranscriptionRecords(list, metadata))
+// }
 
 const stripIDs = async (expanded) => {
     delete expanded.__rerum
