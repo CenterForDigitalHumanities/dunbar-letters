@@ -186,6 +186,20 @@ DEER.TEMPLATES.pageLinks = function (obj, options = {}) {
     return obj.sequences[0].canvases.reduce((a, b, i) => a += `<a class="button" href="?page=${i + 1}#${obj["@id"]}">${b.label}</a>`, ``)
 }
 
+DEER.TEMPLATES.shadow = (obj, options = {}) => {
+    return {
+        html: `goop`,
+        then: (elem) => {
+            UTILS.findByTargetId(options.link)
+                .then(extData => {
+                    const props = extData?.pop().body
+                    const entries = props.reduce((a, b) => a += `<label>${Object.keys(b)[0]}</label>: ${UTILS.getValue(Object.values(b)[0], "label")}<br>`, ``)
+                    elem.innerHTML = `<div>${entries}</div>`
+                })
+        }
+    }
+}
+
 DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
     return {
         html: obj.tpenProject ? `<div class="is-full-width"> <h3> ... loading preview ... </h3> </div>` : ``,
