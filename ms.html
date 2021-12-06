@@ -18,15 +18,13 @@
     <form id="letter" deer-type="PhysicalResource" deer-context="http://purl.org/dc/terms">
         <input type="hidden" deer-key="targetCollection"
             value="Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar">
+        <input type="hidden" deer-key="manuscript" deer-context="http://www.loc.gov/mods"
+            value="Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar">
         <div class="row">
             <label class="col-3 col-2-md text-right">Label:</label>
             <input type="text" deer-key="name" placeholder="Convenient Label for Humans" class="col-9 col-10-md">
             <label class="col-3 col-2-md text-right">Title:</label>
-            <input type="text" deer-key="title" placeholder="Catalog Title" class="col-9 col-10-md">
-            <label class="col-3 col-2-md text-right">Repository:</label>
-            <input type="text" deer-key="Repository" placeholder="Repository" class="col-9 col-4-md">
-            <label class="col-3 col-2-md text-right">Shelfmark:</label>
-            <input type="text" deer-key="identifier" placeholder="Shelfmark" class="col-9 col-4-md">
+            <input type="text" deer-key="label" placeholder="Catalog Title" class="col-9 col-10-md">
             <label class="col-3 col-2-md text-right">Date:</label>
             <input type="date" deer-key="date" placeholder="Enter year" min="1880-01-01" max="1906-02-07"
                 class="col-9 col-4-md">
@@ -35,21 +33,23 @@
             <label class="col-3 col-2-md text-right">City Whither:</label>
             <input type="text" deer-key="toLocation" placeholder="to City" class="col-9 col-4-md">
             <label class="col-3 col-2-md text-right">URL:</label>
-            <input type="text" deer-key="url" placeholder="Record View" class="col-9 col-4-md">
+            <input type="text" deer-key="source" placeholder="Record View" class="col-9 col-4-md">
 
-            <label class="col-3 col-2-md text-right">Base Project: <a deer-key="tpenProject" target="_blank"
+            <label class="col-3 col-2-md text-right">Base Project: <a deer-key="" target="_blank"
                     href="">transcribe</a></label>
-            <input id="baseProject" type="text" deer-key="tpenProject" placeholder="Base Project ID"
+            <input id="baseProject" type="text" deer-key="tpenProject" placeholder="TPEN Base Project ID"
                 class="col-9 col-4-md">
             <label class="col-3 col-2-md text-right">notes:</label>
             <input type="text" deer-key="notes" placeholder="notes" class="col-9 col-4-md">
         </div>
+        <deer-view id="externalData" deer-template="shadow"></deer-view>
         <input type="submit" value="update" class="col">
         <a href="./manuscripts.html" onclick="deleteThis(event)" class="text-error">Drop from collection</a>
     </form>
 
-    <pre id="externalData"></pre>
-    <p class="col">Original catalog record: <deer-view id="catalogLink" deer-template="linky" deer-key="url"></deer-view></p>
+    <p class="col">Original catalog record: <deer-view id="catalogLink" deer-template="linky" deer-key="url">
+        </deer-view>
+    </p>
     <deer-view class="col" id="thumbroll" deer-template="thumbs" deer-id=""></deer-view>
     <deer-view id="previewTranscription" deer-template="folioTranscription"></deer-view>
 
@@ -75,9 +75,11 @@
             const msid = window.location.hash.substr(1)
                 ;[catalogLink, letter, thumbroll, previewTranscription].forEach(el => el.setAttribute("deer-id", msid))
             const externals = document.addEventListener('deer-loaded', (event) => {
-                if (event?.detail?.url?.value) {
-                    const handlUrl = new URL(event.detail.url.value)
-                    loadUDelMetadata(handlUrl.pathname)
+                if (externalData.getAttribute('deer-id')) { return document.removeEventListener('deer-loaded', externals) }
+                if (event?.detail?.source?.value) {
+                    const handlUrl = new URL(event.detail.source.value)
+                    externalData.setAttribute('deer-link',handlUrl)
+                    externalData.setAttribute('deer-id','/')
                     document.removeEventListener('deer-loaded', externals)
                 }
             })
@@ -98,19 +100,19 @@
             }
         }
         async function loadUDelMetadata(handle) {
-            const url = `https://udspace.udel.edu/rest${handle}?expand=metadata`
-            const xmlItem = await fetch(url)
-                .then(res => res.ok ? res : Promise.reject(res))
-                .catch((err) => {
-                    if (err.status >= 500) {
-                        return `<p class="error">Server error: ${err.status}</p>`
-                    }
-                    if (err.status >= 400) {
-                        return `<p class="error">Content error: ${err.status}, ${err.statusText}</p>`
-                    }
-                    return `<p>Probable CORS error. <a target="_blank" href="${url}">View remote resource metadata in new tab</a>.</p>`
+            const historyWildcard = { "$exists": true, "$size": 0 }
+            const uDelData = {
+                target: handle,
+                "__rerum.history.next": historyWildcard
+            }
+            fetch(DEER.URLS.QUERY, {
+                method: "POST",
+                mode: "cors",
+                body: JSON.stringify(uDelData)
+            }).then(response => response.ok ? response.json() : Promise.reject(response))
+                .then(data => {
+                    externalData.innerHTML = data
                 })
-            externalData.innerHTML = xmlItem
         }
     </script>
 </body>
