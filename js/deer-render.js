@@ -188,9 +188,9 @@ DEER.TEMPLATES.pageLinks = function (obj, options = {}) {
 
 DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
     return {
-        html: obj['tpen:project'] ? `<div class="is-full-width"> <h3> ... loading preview ... </h3> </div>` : ``,
+        html: obj.tpenProject ? `<div class="is-full-width"> <h3> ... loading preview ... </h3> </div>` : ``,
         then: (elem) => {
-            fetch("http://t-pen.org/TPEN/manifest/" + obj['tpen:project'].value)
+            fetch("http://t-pen.org/TPEN/manifest/" + obj.tpenProject.value)
                 .then(response => response.json())
                 .then(ms => elem.innerHTML = `
                 <style>
