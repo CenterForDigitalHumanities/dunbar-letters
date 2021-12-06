@@ -1,7 +1,10 @@
 import { default as UTILS } from './deer-utils.js'
 
 let tpenProjects = []
-let dlaCollection = []
+let dlaCollection = {
+    name: "Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar",
+    itemListElement: []
+}
 let tpenRecords = []
 let dlaRecords = []
 let assigneeSet = new Set()
@@ -18,7 +21,7 @@ gatherBaseData()
 
 async function gatherBaseData(){
     tpenProjects = await getTranscriptionProjects()
-    dlaCollection = await fetchLetters()
+    await getLetterCollectionFromRERUM()
     let e
     if(dlaCollection.itemListElement.length && tpenProjects.length){
         e = new CustomEvent("all-info-success", { detail: { dla:dlaCollection, tpen:tpenProjects }, bubbles: true })
@@ -199,9 +202,9 @@ async function generateDLAStatusElement(status, item){
             statusString = `<span class='statusString bad'>No ${status}</span>`
             let tpenProjectIDs = []
             let links = item.hasOwnProperty("tpenProject") ? item.tpenProject : [] 
-            let projIDs = links.map(proj_obj => proj_obj.value)
+            let projIDs = links.length ? links.map(proj_obj => proj_obj.value) : ""
             if(links.length){
-                statusString = `<span title='${projIDs.join(" ")}' class='statusString good'>${links.length} ${status}</span>`
+                statusString = `<span title='${projIDs}' class='statusString good'>${links.length} ${status}</span>`
             }
             el =`<dt class="statusLabel" title="These are annotations connecting the record to T-PEN projects.  One record can be a part of multiple projects."> ${statusString} </dt>`
         break
@@ -749,4 +752,47 @@ function filterFacets(event) {
     let records = document.getElementsByClassName(which+"Record")
     Array.from(records).forEach(r => { if (!new RegExp(v, "i").test(r.getAttribute("data-" + k))) r.classList[action]("hide-facet") })
     updateCount(which)
+}
+
+async function getLetterCollectionFromRERUM(){
+    return getPagedQuery(100)
+
+    function getPagedQuery(lim, it = 0) {
+        let queryObj = {
+        "$or": [
+            {
+                "targetCollection": "Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar"
+            },
+            {
+                "body.targetCollection": "Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar"
+            },
+            {
+                "body.targetCollection.value": "Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar"
+            },
+            {
+                "body.partOf": "Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar"
+            }
+            ],
+            "__rerum.history.next": {
+                "$exists": true,
+                "$size": 0
+            }
+        }
+        return fetch(`http://tinypaul.rerum.io/dla/query?limit=${lim}&skip=${it}`, {
+            method: "POST",
+            mode: "cors",
+            body: JSON.stringify(queryObj)
+        })
+        .then(response => response.json())
+        .then(list => {
+            dlaCollection.itemListElement = dlaCollection.itemListElement.concat(list.map(anno => ({ '@id': anno.target ?? anno["@id"] ?? anno.id })))
+            if (list.length ?? (list.length % lim === 0)) {
+                return getPagedQuery(lim, it + list.length)
+            }
+            else{
+                //?
+            }
+        })
+    }
+
 }
