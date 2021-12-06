@@ -62,7 +62,7 @@ export default {
     TEMPLATES: {
         cat: (obj) => `<h5>${obj.name}</h5><img src="http://placekitten.com/300/150" style="width:100%;">`,
         msList: function (obj, options = {}) {
-            let tmpl = `<h2>Manuscripts (${options?.list.length ?? " empty "})</h2>`
+            let tmpl = `<h2>Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar (${obj?.[options?.list].length ?? " empty "})</h2>`
             if (options.list) {
                 tmpl += `<ul>`
                 obj[options.list].forEach((val, index) => {
