@@ -62,16 +62,188 @@ export default {
     TEMPLATES: {
         cat: (obj) => `<h5>${obj.name}</h5><img src="http://placekitten.com/300/150" style="width:100%;">`,
         msList: function (obj, options = {}) {
-            let tmpl = `<h2>Manuscripts</h2>`
+            let tmpl = `<h2>Manuscripts (${options?.list.length ?? " empty "})</h2>`
             if (options.list) {
                 tmpl += `<ul>`
                 obj[options.list].forEach((val, index) => {
-                    tmpl += `<li><a href="${options.link}${val['@id']}"><deer-view deer-id="${val["@id"]}" deer-template="label"></deer-view></a></li>`
+                    tmpl += `<li><a href="${options.link}${val['@id']}"><deer-view deer-id="${val["@id"]}" deer-template="label">${val.label}</deer-view></a></li>`
                 })
                 tmpl += `</ul>`
             }
             return tmpl
+        },
+        managedlist: (obj, options = {}) => {
+            try {
+                let tmpl = `<input type="hidden" deer-collection="${options.collection}">`
+                if (options.list) {
+                    tmpl += `<ul>`
+                    obj[options.list].forEach((val, index) => {
+                        const removeBtn = `<a href="${val['@id']}" class="removeCollectionItem" title="Delete This Entry">&#x274C</a>`
+                        const onlistBtn = `<a class="togglePublic project" href="${val['@id']}" title="Toggle project inclusion"> &plus; </a>`
+                        const visibilityBtn = `<a class="togglePublic released" href="${val['@id']}" title="Toggle public visibility"> 👁 </a>`
+                        tmpl += `<li>
+                        ${onlistBtn}
+                        ${visibilityBtn}
+                        <a href="${options.link}${val['@id']}">
+                            <deer-view deer-id="${val["@id"]}" deer-template="label">${index + 1}</deer-view>
+                        </a>
+                        ${removeBtn}
+                        </li>`
+                    })
+                    tmpl += `</ul>`
+                }
+                else {
+                    console.log("There are no items in this list to draw.")
+                    console.log(obj)
+                }
+                return {
+                    html: tmpl,
+                    then: elem => {
+
+                        fetch(elem.getAttribute("deer-listing")).then(r => r.json())
+                            .then(list => {
+                                elem.projectCache = new Set()
+                                list.itemListElement?.forEach(item => elem.projectCache.add(item['@id']))
+                                for (const a of document.querySelectorAll('.togglePublic.project')) {
+                                    const include = elem.projectCache.has(a.getAttribute("href")) ? "add" : "remove"
+                                    a.classList[include]("is-included")
+                                }
+                            })
+                            .then(() => {
+                                document.querySelectorAll('.togglePublic.project').forEach(a => a.addEventListener('click', ev => {
+                                    ev.preventDefault()
+                                    ev.stopPropagation()
+                                    const uri = a.getAttribute("href")
+                                    const included = elem.projectCache.has(uri)
+                                    a.classList[included ? "remove" : "add"]("is-included")
+                                    elem.projectCache[included ? "delete" : "add"](uri)
+                                    saveList.style.visibility = "visible"
+                                }))
+                            })
+
+                        fetch(elem.getAttribute("deer-released")).then(r => r.json())
+                            .then(list => {
+                                elem.listCache = new Set()
+                                list.itemListElement?.forEach(item => elem.listCache.add(item['@id']))
+                                for (const a of document.querySelectorAll('.togglePublic.released')) {
+                                    const include = elem.listCache.has(a.getAttribute("href")) ? "add" : "remove"
+                                    a.classList[include]("is-included")
+                                }
+                            })
+                            .then(() => {
+                                document.querySelectorAll(".removeCollectionItem").forEach(el => el.addEventListener('click', (ev) => {
+                                    ev.preventDefault()
+                                    ev.stopPropagation()
+                                    const itemID = el.getAttribute("href")
+                                    const fromCollection = document.querySelector('input[deer-collection]').getAttribute("deer-collection")
+                                    deleteThis(itemID, fromCollection)
+                                }))
+                                document.querySelectorAll('.togglePublic.released').forEach(a => a.addEventListener('click', ev => {
+                                    ev.preventDefault()
+                                    ev.stopPropagation()
+                                    const uri = a.getAttribute("href")
+                                    const included = elem.listCache.has(uri)
+                                    a.classList[included ? "remove" : "add"]("is-included")
+                                    elem.listCache[included ? "delete" : "add"](uri)
+                                    saveList.style.visibility = "visible"
+                                }))
+                                saveList.addEventListener('click', overwriteList)
+                            })
+
+
+                        function overwriteList() {
+                            let mss_project = []
+                            let mss_public = []
+
+                            elem.projectCache.forEach(uri => {
+                                mss_project.push({
+                                    label: document.querySelector(`deer-view[deer-id='${uri}']`).textContent.trim(),
+                                    '@id': uri
+                                })
+                            })
+
+                            elem.listCache.forEach(uri => {
+                                mss_public.push({
+                                    label: document.querySelector(`deer-view[deer-id='${uri}']`).textContent.trim(),
+                                    '@id': uri
+                                })
+                            })
+
+                            const list_project = {
+                                '@id': elem.getAttribute("deer-listing"),
+                                '@context': 'https://schema.org/',
+                                '@type': "ItemList",
+                                name: "Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar",
+                                numberOfItems: elem.projectCache.size,
+                                itemListElement: mss_project
+                            }
+                            const list_public = {
+                                '@id': elem.getAttribute("deer-released"),
+                                '@context': 'https://schema.org/',
+                                '@type': "ItemList",
+                                name: "Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar",
+                                numberOfItems: elem.listCache.size,
+                                itemListElement: mss_public
+                            }
+
+                            fetch(`${tiny}overwrite`, {
+                                method: "PUT",
+                                mode: 'cors',
+                                body: JSON.stringify(list_project)
+                            }).then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
+                                .catch(err => alert(`Failed to save: ${err}`))
+
+                            fetch(`${tiny}overwrite`, {
+                                method: "PUT",
+                                mode: 'cors',
+                                body: JSON.stringify(list_public)
+                            }).then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
+                                .catch(err => alert(`Failed to save: ${err}`))
+                        }
+
+                        function deleteThis(id, collection) {
+                            if (confirm("Really remove this record?\n(Cannot be undone)")) {
+                                const historyWildcard = { "$exists": true, "$eq": [] }
+                                const queryObj = {
+                                    $or: [{
+                                        "targetCollection": collection
+                                    }, {
+                                        "body.targetCollection": collection
+                                    }],
+                                    target: id,
+                                    "__rerum.history.next": historyWildcard
+                                }
+                                fetch(`${tiny}query`, {
+                                    method: "POST",
+                                    body: JSON.stringify(queryObj)
+                                })
+                                    .then(r => r.ok ? r.json() : Promise.reject(new Error(r?.text)))
+                                    .then(annos => {
+                                        let all = annos.map(anno => {
+                                            return fetch(`${tiny}delete`, {
+                                                method: "DELETE",
+                                                body: anno["@id"]
+                                            })
+                                                .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
+                                                .catch(err => { throw err })
+                                        })
+                                        Promise.all(all).then(success => {
+                                            document.querySelector(`[deer-id="${id}"]`).closest("li").remove()
+                                        })
+                                    })
+                                    .catch(err => console.error(`Failed to delete: ${err}`))
+                            }
+                        }
+
+                    }
+                }
+            } catch (err) {
+                console.log("Could not build list template.")
+                console.error(err)
+                return null
+            }
         }
+        
     },
     version: "alpha"
 }

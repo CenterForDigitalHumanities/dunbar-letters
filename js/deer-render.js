@@ -237,9 +237,10 @@ DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
                         border-radius: 4px;
                     }
                 </style>
+                <h2>${ms.label}</h2>
                 ${ms.sequences[0].canvases.slice(0, 10).reduce((a, b) => a += `
                 <div class="page">
-                    <h3>${b.label}</h3> <a href="./layout.html#${ms['@id']}">(edit layout)</a>
+                    <h3>${b.label}</h3>
                     <div class="pull-right col-6">
                         <img src="${b.images[0].resource['@id']}">
                     </div>

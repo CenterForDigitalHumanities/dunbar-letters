@@ -53,91 +53,17 @@ a[data-change] {
   box-shadow: 0 0 .25rem #000000;
   overflow  : auto;
 }
-
-.gloss-location {
-  white-space: nowrap;
+.is-included {
+  position: relative;
 }
-
-.um {
-  background-color: #aaf397 !important;
-}
-
-.lm {
-  background-color: #97cff3 !important;
-}
-
-.ulm {
-  background-color: #97f3ee !important;
-}
-
-.llm {
-  background-color: #97a8f3 !important;
-}
-
-.urm {
-  background-color: #f3b997 !important;
-}
-
-.lrm {
-  background-color: #f3ea97 !important;
-}
-
-.ti {
-  background-color: #f397d4 !important;
-}
-
-.li {
-  background-color: #f39797 !important;
-}
-
-line.um,
-line.lm,
-line.ulm,
-line.llm,
-line.urm,
-line.lrm,
-line.ti,
-line.li {
-text-overflow: ellipsis;
-white-space: nowrap;
-width: 100%;
-overflow: hidden;
-}
-line.um+line.um,
-line.lm+line.lm,
-line.ulm+line.ulm,
-line.llm+line.llm,
-line.urm+line.urm,
-line.lrm+line.lrm,
-line.ti+line.ti,
-line.li+line.li {
-  display: none;
-}
-
-line {
-  display    : block;
-  user-select: none;
-  transition : background-color .2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-}
-
-line:nth-child(2n) {
-  background-color: #dddddd;
-}
-
-line.selected {
-  background-color: #ff8;
-}
-
-line:nth-child(2n).selected {
-  background-color: #dd8;
-}
-
-line.just {
-  background-color: #999;
-}
-
-line.selected.just {
-  background-color: #cc0;
+.is-included::after {
+  content: '✓';
+  top: -0.4em;
+  left: 0;
+  position: absolute;
+  color: blue;
+  font-size: 1.4em;
+  font-weight: 900;
 }
 
 #zoomy {
