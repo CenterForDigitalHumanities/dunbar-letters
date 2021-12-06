@@ -4,7 +4,7 @@ const tiny = DEV ? "http://tinydev.rerum.io/app/" : "http://tinypaul.rerum.io/dl
 
 import { default as UTILS } from './deer-utils.js'
 import pLimit from './plimit.js'
-const limiter = pLimit(4)
+const limiter = pLimit(20)
 
 
 /**

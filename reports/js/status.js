@@ -14,9 +14,10 @@ const udelIdPrefix = "https://udspace.udel.edu/rest/items/"
 const tpenManifestPrefix = "http://t-pen.org/TPEN/project/"// This is good, but we also need to link into the transcription.html
 const tpenProjectPrefix = "http://t-pen.org/TPEN/transcription.html?projectID="// This is good, but we also need to link into the transcription.html
 const TPproxy = "http://tinypaul.rerum.io/dla/proxy?url="
+const thumbnailPrefix = "http://t-pen.org/TPEN"
 let progress = undefined
 import pLimit from './plimit.js'
-const statlimiter = pLimit(12)
+const statlimiter = pLimit(20)
 gatherBaseData()
 
 async function gatherBaseData(){
@@ -43,8 +44,8 @@ async function gatherBaseData(){
  * Hey internet, I want the Dunbar Projects out of T-PEN.
  * */
 async function getTranscriptionProjects(){  
-    return fetch(`cache/tpenShort.json`)
-    //await fetch(`http://165.134.105.25:8181/TPEN28/getDunbarProjects`)
+    //return fetch(`cache/tpenShort.json`)
+    return fetch(`http://165.134.105.25:8181/TPEN28/getDunbarProjects`)
     .then(res=>res.ok?res.json():[])
     .then(projects=>{
         tpenProjects = projects
@@ -202,9 +203,14 @@ async function generateDLAStatusElement(status, item){
             statusString = `<span class='statusString bad'>No ${status}</span>`
             let tpenProjectIDs = []
             let links = item.hasOwnProperty("tpenProject") ? item.tpenProject : [] 
+            //It can be an array of objects or a single object
+            if(!Array.isArray(links) && typeof links === "object"){
+                links = [links]
+            }
             let projIDs = links.length ? links.map(proj_obj => proj_obj.value) : ""
-            if(links.length){
-                statusString = `<span title='${projIDs}' class='statusString good'>${links.length} ${status}</span>`
+            projIDs = Array.from(new Set(projIDs)) //Get rid of duplicates
+            if(projIDs.length){
+                statusString = `<span title='${projIDs.join(" ")}' class='statusString good'>${projIDs.length} ${status}</span>`
             }
             el =`<dt class="statusLabel" title="These are annotations connecting the record to T-PEN projects.  One record can be a part of multiple projects."> ${statusString} </dt>`
         break
@@ -292,7 +298,8 @@ async function fetchQuery(params){
     }
     let queryObj = Object.assign(query, params)
 
-    return statlimiter(() => fetch("http://tinydev.rerum.io/app/query?limit=100&skip=0", {
+    //May have to page these in the future
+    return statlimiter(() => fetch("http://tinydev.rerum.io/app/query", {
             method: 'POST',
             mode: 'cors',
             body: JSON.stringify(queryObj)
