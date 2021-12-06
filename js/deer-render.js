@@ -159,7 +159,7 @@ DEER.TEMPLATES.label = function (obj, options = {}) {
 DEER.TEMPLATES.linky = function (obj, options = {}) {
     try {
         let link = obj[options.key]
-        return link ? `<a href="${UTILS.getValue(link)}" title="Open in a new window" target="_blank"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAQElEQVR42qXKwQkAIAxDUUdxtO6/RBQkQZvSi8I/pL4BoGw/XPkh4XigPmsUgh0626AjRsgxHTkUThsG2T/sIlzdTsp52kSS1wAAAABJRU5ErkJggg=="></a>` : ``
+        return link ? `<a href="${UTILS.getValue(link)}" title="Open in a new window" target="_blank"></a>` : ``
     } catch (err) {
         return null
     }
@@ -216,8 +216,27 @@ DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
                 return
             }
             fetch("http://t-pen.org/TPEN/manifest/" + proj)
-                .then(response => response.json())
-                .then(ms => elem.innerHTML = `
+            .then(response => response.json())
+            .then(ms => {
+                    const pages = ms.sequences[0].canvases.slice(0, 10).reduce((a, b) => a += `
+                    <div class="page">
+                        <h3>${b.label}</h3>
+                        <div class="pull-right col-6">
+                            <img src="${b.images[0].resource['@id']}">
+                        </div>
+                        <div>
+                            ${b.otherContent[0].resources.reduce((aa, bb) => aa +=
+                        bb.resource["cnt:chars"].length
+                            ? bb.resource["cnt:chars"].slice(-1) == '-'
+                                ? bb.resource["cnt:chars"].substring(0, bb.resource["cnt:chars"].length - 1)
+                                : bb.resource["cnt:chars"] + ' '
+                            : " <line class='empty col-6'></line> ", '')
+                        }
+                        </div>
+                    </div>
+                    `, ``)
+                    
+                    elem.innerHTML = `
                 <style>
                     printed {
                         font-family:serif;
@@ -237,25 +256,10 @@ DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
                         border-radius: 4px;
                     }
                 </style>
+                <a href="http://t-pen.org/TPEN/transcription.html?projectID=${parseInt(ms['@id'].split("manifest/")?.[1])}" target="_blank">transcribe on TPEN</a>
                 <h2>${ms.label}</h2>
-                ${ms.sequences[0].canvases.slice(0, 10).reduce((a, b) => a += `
-                <div class="page">
-                    <h3>${b.label}</h3>
-                    <div class="pull-right col-6">
-                        <img src="${b.images[0].resource['@id']}">
-                    </div>
-                    <div>
-                        ${b.otherContent[0].resources.reduce((aa, bb) => aa +=
-                    bb.resource["cnt:chars"].length
-                        ? bb.resource["cnt:chars"].slice(-1) == '-'
-                            ? bb.resource["cnt:chars"].substring(0, bb.resource["cnt:chars"].length - 1)
-                            : bb.resource["cnt:chars"] + ' '
-                        : " <line class='empty col-6'></line> ", '')
-                    }
-                    </div>
-                </div>
-                `, ``)}
-        `)
+                ${pages}
+        `})
         }
     }
 }
