@@ -34,27 +34,21 @@
             <input type="text" deer-key="toLocation" placeholder="to City" class="col-9 col-4-md">
             <label class="col-3 col-2-md text-right">URL:</label>
             <input type="text" deer-key="source" placeholder="Record View" class="col-9 col-4-md">
+
             <label class="col-3 col-2-md text-right">Base Project: </label>
             <input id="baseProject" type="text" deer-key="tpenProject" placeholder="TPEN Base Project ID"
                 class="col-9 col-4-md">
             <label class="col-3 col-2-md text-right">notes:</label>
             <input type="text" deer-key="notes" placeholder="notes" class="col-9 col-4-md">
         </div>
-        <deer-view id="externalData" deer-template="shadow"></deer-view>
         <input type="submit" value="update" class="col">
         <a href="./manuscripts.html" onclick="deleteThis(event)" class="text-error">Drop from collection</a>
     </form>
 
-<<<<<<< HEAD
-    <p class="col">Original catalog record: <deer-view id="catalogLink" deer-template="linky" deer-key="url">
-        </deer-view>
-    </p>
-=======
     <deer-view id="externalData" deer-template="shadow"></deer-view>
 
     <p class="col">Original catalog record: <deer-view id="catalogLink" deer-template="linky" deer-key="source"></deer-view></p>
 
->>>>>>> main
     <deer-view class="col" id="thumbroll" deer-template="thumbs" deer-id=""></deer-view>
     <deer-view id="previewTranscription" deer-template="folioTranscription"></deer-view>
 
@@ -85,10 +79,6 @@
                     const handlUrl = new URL(event.detail.source.value)
                     externalData.setAttribute('deer-link',handlUrl)
                     externalData.setAttribute('deer-id','/')
-<<<<<<< HEAD
-                    // loadUDelMetadata(handlUrl.pathname)
-=======
->>>>>>> main
                     document.removeEventListener('deer-loaded', externals)
                 }
             })
@@ -123,21 +113,6 @@
                     externalData.innerHTML = data
                 })
         }
-        // async function loadUDelMetadata(handle) {
-        //     const url = `https://udspace.udel.edu/rest${handle}?expand=metadata`
-        //     const xmlItem = await fetch(url)
-        //         .then(res => res.ok ? res : Promise.reject(res))
-        //         .catch((err) => {
-        //             if (err.status >= 500) {
-        //                 return `<p class="error">Server error: ${err.status}</p>`
-        //             }
-        //             if (err.status >= 400) {
-        //                 return `<p class="error">Content error: ${err.status}, ${err.statusText}</p>`
-        //             }
-        //             return `<p>Probable CORS error. <a target="_blank" href="${url}">View remote resource metadata in new tab</a>.</p>`
-        //         })
-        //     externalData.innerHTML = xmlItem
-        // }
     </script>
 </body>
 

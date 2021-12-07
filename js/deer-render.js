@@ -3,8 +3,6 @@
  * @author Patrick Cuba <cubap@slu.edu>
  * @author Bryan Haberberger <bryan.j.haberberger@slu.edu>
  * @version 0.11
-
-
  * This code should serve as a basis for developers wishing to
  * use TinyThings as a RERUM proxy for an application for data entry,
  * especially within the Eventities model.
@@ -13,8 +11,7 @@
 
 import { default as UTILS } from './deer-utils.js'
 import { default as config } from './deer-config.js'
-import pLimit from './plimit.js'
-const limiter = pLimit(4)
+import { OpenSeadragon } from './openseadragon.js'
 
 const changeLoader = new MutationObserver(renderChange)
 var DEER = config
@@ -45,7 +42,7 @@ async function renderChange(mutationsList) {
                         return false
                     }
                 }
-                limiter(() => RENDER.element(mutation.target, obj))
+                RENDER.element(mutation.target, obj)
                 break
             case DEER.LISTENING:
                 let listensTo = mutation.target.getAttribute(DEER.LISTENING)
@@ -62,6 +59,7 @@ async function renderChange(mutationsList) {
 const RENDER = {}
 
 RENDER.element = function (elem, obj) {
+
     return UTILS.expand(obj).then(obj => {
         let tmplName = elem.getAttribute(DEER.TEMPLATE) || (elem.getAttribute(DEER.COLLECTION) ? "list" : "json")
         let template = DEER.TEMPLATES[tmplName] || DEER.TEMPLATES.json
@@ -150,6 +148,7 @@ DEER.TEMPLATES.label = function (obj, options = {}) {
         return null
     }
 }
+
 /**
  * Retreive the best label for object and return it formatted as HTML to be drawn.  
  * @param {Object} obj some obj to be labeled
@@ -166,29 +165,18 @@ DEER.TEMPLATES.linky = function (obj, options = {}) {
 
 DEER.TEMPLATES.thumbs = function (obj, options = {}) {
     return {
-<<<<<<< HEAD
-        html: obj["tpenProject"] ? `<div class="is-full-width"> <h3> ... loading images ... </h3> </div>` : ``,
-        then: (elem) => {
-            try {
-                fetch("http://t-pen.org/TPEN/manifest/" + obj["tpenProject"].value)
-=======
         html: obj.tpenProject ? `<div class="is-full-width"> <h3> ... loading images ... </h3> </div>` : ``,
         then: (elem) => {
             try {
                 const proj = obj.tpenProject?.value ?? obj.tpenProject?.pop()?.value ?? obj.tpenProject?.pop() ?? obj.tpenProject
                 if (!proj) { return }    
                 fetch("http://t-pen.org/TPEN/manifest/" + proj)
->>>>>>> main
                     .then(response => response.json())
                     .then(ms => elem.innerHTML = `
                     ${ms.sequences[0].canvases.slice(0, 10).reduce((a, b) => a += `<img class="thumbnail" src="${b.images[0].resource['@id']}">`, ``)}
             `)
             } catch {
-<<<<<<< HEAD
-                console.log(`No images loaded for transcription project: ${obj["tpenProject"]?.value}`)
-=======
                 console.log(`No images loaded for transcription project: ${obj.tpenProject?.value}`)
->>>>>>> main
             }
         }
     }
@@ -200,22 +188,11 @@ DEER.TEMPLATES.pageLinks = function (obj, options = {}) {
 
 DEER.TEMPLATES.shadow = (obj, options = {}) => {
     return {
-<<<<<<< HEAD
-        html: `goop`,
-=======
         html: `loading external data...`,
->>>>>>> main
         then: (elem) => {
             UTILS.findByTargetId(options.link)
                 .then(extData => {
                     const props = extData?.pop().body
-<<<<<<< HEAD
-                    elem.innerHTML = `<div>
-                ${props.reduce((a, b) => a += `<label>${Object.keys(b)[0]}</label>: ${UTILS.getValue(Object.values(b)[0], "label")}<br>`, ``)}
-                </div>`
-
-                })
-=======
                     const entries = props.reduce((a, b) => a += `<label class="col-3" style="font-variant:small-caps;font-weight:bold;">${Object.keys(b)[0]}:</label> <span class="col-9">${UTILS.getValue(Object.values(b)[0], "label")}</span>`, ``)
                     elem.innerHTML = `<div class="card row">
                     <h3 class="is-full-width">Remote Metadata Records</h3>
@@ -223,21 +200,12 @@ DEER.TEMPLATES.shadow = (obj, options = {}) => {
                     </div>`
                 })
                 .catch(err=>elem.innerHTML="Error loading external data.")
->>>>>>> main
         }
     }
 }
 
 DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
     return {
-<<<<<<< HEAD
-        html: obj['tpenProject'] ? `<div class="is-full-width"> <h3> ... loading preview ... </h3> </div>` : ``,
-        then: (elem) => {
-            if (obj['tpenProject']) {
-                fetch("http://t-pen.org/TPEN/manifest/" + obj['tpenProject'].value)
-                    .then(response => response.json())
-                    .then(ms => elem.innerHTML = `
-=======
         html: obj.tpenProject ? `<div class="is-full-width"> <h3> ... loading preview ... </h3> </div>` : ``,
         then: (elem) => {
             const proj = obj.tpenProject?.value ?? obj.tpenProject?.pop()?.value ?? obj.tpenProject?.pop() ?? obj.tpenProject
@@ -267,9 +235,8 @@ DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
                     `, ``)
                     
                     elem.innerHTML = `
->>>>>>> main
                 <style>
-                printed {
+                    printed {
                         font-family:serif;
                     }
                     note {
@@ -286,118 +253,31 @@ DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
                         display:block;
                         border-radius: 4px;
                     }
-<<<<<<< HEAD
-                    </style>
-                    ${ms.sequences[0].canvases.slice(0, 10).reduce((a, b) => a += `
-                    <div class="page">
-                    <h3>${b.label}</h3> <a href="./layout.html#${ms['@id']}">(edit layout)</a>
-                    <div class="pull-right col-6">
-                    <img src="${b.images[0].resource['@id']}">
-                    </div>
-                    <div>
-                        ${b.otherContent[0].resources.reduce((aa, bb) => aa +=
-                        bb.resource["cnt:chars"].length
-                            ? bb.resource["cnt:chars"].slice(-1) == '-'
-                                ? bb.resource["cnt:chars"].substring(0, bb.resource["cnt:chars"].length - 1)
-                                : bb.resource["cnt:chars"] + ' '
-                            : " <line class='empty col-6'></line> ", '')
-                        }
-                        </div>
-                        </div>
-                        `, ``)}
-                        `)
-            } else {
-                if (!obj) { return false }
-                function getTranscriptionProjects() {
-                    // you must log in first, dude
-                    //fetch(`media/tpen.json`)
-                    fetch(`http://t-pen.org/TPEN/getDunbarProjects`)
-                        .then(res => res.ok ? res.json() : Promise.reject(res))
-                        .then(list => matchTranscriptionRecords(list))
-                }
-
-                async function matchTranscriptionRecords(list) {
-                    let projectList = ``
-                    const metadataUri = `http://tinypaul.rerum.io/dla/proxy?url=${obj.source?.value.replace('edu/handle', "edu/rest/handle")}?expand=metadata`
-                    fetch(metadataUri)
-                        .then(res => res.ok ? res.json() : Promise.reject(res))
-                        .then(meta => getFolderFromMetadata(meta.metadata))
-                        .then(folderString => folderString.split(" F").pop()) // Like "Box 3, F4"
-                        .then(folderNumber => {
-                            const matchStr = `F${folderNumber.padStart(3, '0')}`
-                            let foundMsg = []
-                            for (const f of list) {
-                                if (f.collection_code === matchStr) { 
-                                    foundMsg.push(f.id) 
-                                }
-                            }
-                            alert(foundMsg.length ? `You are looking for at TPEN project ID ${foundMsg.join(", ")}.` : `No matches found.`)
-                        })
-                }
-
-                const getFolderFromMetadata = (metaMap) => {
-                    for (const m of metaMap) {
-                        if (m.key === "dc.identifier.other") { return m.value }
-                    }
-                }
-                getTranscriptionProjects()
-            }
-=======
                 </style>
                 <a href="http://t-pen.org/TPEN/transcription.html?projectID=${parseInt(ms['@id'].split("manifest/")?.[1])}" target="_blank">transcribe on TPEN</a>
                 <h2>${ms.label}</h2>
                 ${pages}
         `})
->>>>>>> main
         }
     }
 }
 
-function getTranscriptionProjects() {
-    // you must log in first, dude
-    // fetch(`media/tpen.json`)
-    fetch(`http://t-pen.org/TPEN/getDunbarProjects`)
-        .then(res => res.ok ? res.json() : Promise.reject(res))
-        .then(list => matchTranscriptionRecords(list))
-}
-async function matchTranscriptionRecords(list) {
-    const getFolderFromMetadata = (metaMap) => {
-        for (const m of metaMap) {
-            if (m.key === "dc.identifier.other") { return m.value }
-        }
-    }
-    let projectList = ``
-    const metadataUri = `http://tinypaul.rerum.io/dla/proxy?url=${obj.source?.value.replace('edu/handle', "edu/rest/handle")}?expand=metadata`
-    fetch(metadataUri)
-        .then(res => res.ok ? res.json() : Promise.reject(res))
-        .then(meta => getFolderFromMetadata(meta.metadata))
-        .then(folderString => folderString.split(" F").pop()) // Like "Box 3, F4"
-        .then(folderNumber => {
-            const matchStr = `F${folderNumber.padStart(3, '0')}`
-            let foundMsg = []
-            for (const f of list) {
-                if (f.collection_code === matchStr) {
-                    foundMsg.push(f.id)
+DEER.TEMPLATES.osd = function (obj, options = {}) {
+    const imgURL = obj.sequences[0].canvases[options.index || 0].images[0].resource['@id']
+    return {
+        html: ``,
+        then: elem => {
+            OpenSeadragon({
+                id: elem.id,
+                tileSources: {
+                    type: 'image',
+                    url: imgURL,
+                    crossOriginPolicy: 'Anonymous',
+                    ajaxWithCredentials: false
                 }
-            }
-            alert(foundMsg.length ? `You are looking for at TPEN project ID ${foundMsg.join(", ")}.` : `No matches found.`)
-        })
-}
-
-async function loadUDelMetadata(handle) {
-    const historyWildcard = { "$exists": true, "$size": 0 }
-    const uDelData = {
-        target: handle,
-        "__rerum.history.next": historyWildcard
+            })
+        }
     }
-    fetch(DEER.URLS.QUERY, {
-        method: "POST",
-        mode: "cors",
-        body: JSON.stringify(uDelData)
-    }).then(response => response.ok ? response.json() : Promise.reject(response))
-        .then(data => {
-            externalData.innerHTML = data
-        })
 }
 
 DEER.TEMPLATES.lines = function (obj, options = {}) {
@@ -505,6 +385,7 @@ DEER.TEMPLATES.lines = function (obj, options = {}) {
         }
     }
 }
+
 /**
  * The TEMPLATED renderer to draw an JSON to the screen as some HTML template
  * @param {Object} obj some json of type Entity to be drawn
@@ -681,11 +562,6 @@ export default class DeerRender {
                                     return getPagedQuery.bind(this)(lim, it + list.length)
                                 }
                             })
-<<<<<<< HEAD
-
-                        }
-=======
->>>>>>> main
                     }
                 }
             }
