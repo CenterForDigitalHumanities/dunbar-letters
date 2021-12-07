@@ -1,7 +1,12 @@
 import { default as UTILS } from './deer-utils.js'
-
+import pLimit from './plimit.js'
+const statlimiter = pLimit(20)
 let tpenProjects = []
 let dlaCollection = {
+    name: "Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar",
+    itemListElement: []
+}
+let dlaReleasedCollection = {
     name: "Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar",
     itemListElement: []
 }
@@ -11,18 +16,20 @@ let assigneeSet = new Set()
 const udelHandlePrefix = "https://udspace.udel.edu/handle/"
 const udelRestHandlePrefix = "https://udspace.udel.edu/rest/handle/"
 const udelIdPrefix = "https://udspace.udel.edu/rest/items/"
-const tpenManifestPrefix = "http://t-pen.org/TPEN/project/"// This is good, but we also need to link into the transcription.html
-const tpenProjectPrefix = "http://t-pen.org/TPEN/transcription.html?projectID="// This is good, but we also need to link into the transcription.html
+const tpenManifestPrefix = "http://t-pen.org/T-PEN/project/"
+const tpenProjectPrefix = "http://t-pen.org/T-PEN/transcription.html?projectID="
 const TPproxy = "http://tinypaul.rerum.io/dla/proxy?url="
-const thumbnailPrefix = "http://t-pen.org/TPEN"
 let progress = undefined
-import pLimit from './plimit.js'
-const statlimiter = pLimit(20)
+
+//Load it up on paage load!
 gatherBaseData()
 
+/**
+ * Get all the data needed to generate the reports
+ * */
 async function gatherBaseData(){
-    tpenProjects = await getTranscriptionProjects()
-    await getLetterCollectionFromRERUM()
+    await getTranscriptionProjects()
+    await getDLAManagedList()
     let e
     if(dlaCollection.itemListElement.length && tpenProjects.length){
         e = new CustomEvent("all-info-success", { detail: { dla:dlaCollection, tpen:tpenProjects }, bubbles: true })
@@ -31,7 +38,7 @@ async function gatherBaseData(){
             loadInterfaceDLA()
         }
         else if(document.location.href.indexOf("tpen-projects")>-1){
-            loadInterfaceTPEN()
+            loadInterfaceT-PEN()
         }
     }
     else{
@@ -45,7 +52,7 @@ async function gatherBaseData(){
  * */
 async function getTranscriptionProjects(){  
     //return fetch(`cache/tpenShort.json`)
-    return fetch(`http://165.134.105.25:8181/TPEN28/getDunbarProjects`)
+    return fetch(`http://t-pen.org/TPEN/getDunbarProjects`)
     .then(res=>res.ok?res.json():[])
     .then(projects=>{
         tpenProjects = projects
@@ -63,25 +70,106 @@ async function getTranscriptionProjects(){
 }
 
 /**
- * Hey internet, I want the DLA items from Delaware.
- * */
-async function fetchLetters() {
-    return fetch(`cache/letterCollection.json`)
-        .then(res => res.ok ? res.json() : {"itemListElement":[]})
-        .then(coll => {
-            let e = new CustomEvent("dla-information-success", { detail: { dla: dlaCollection }, bubbles: true })
-            document.dispatchEvent(e)
-            return coll
+ * Get the DLA managed list from RERUM
+ */
+async function getDLAManagedList(){
+    const managedList = "http://store.rerum.io/v1/id/61ae693050c86821e60b5d13"
+    if(dlaCollection.itemListElement.length === 0){
+        return fetch(managedList, {
+            method: "GET",
+            cache: "force-cache",
+            mode: "cors"
         })
-        .catch(err=> {
+        .then(response => response.json())
+        .then(list => {
+            dlaCollection = list
+            return list
+        })
+        catch(err => {
             console.error(err)
-            let e = new CustomEvent("tpen-information-failure", { detail: { err: err }, bubbles: true })
-            document.dispatchEvent(e)
-            return {"itemListElement":[]}
+            return []
         })
+    }
+    else{
+        return dlaCollection
+    }
+}
+
+/**
+ * Get the DLA released list from RERUM
+ */
+async function getDLAReleasedList(){
+    const releasedListURI = "http://store.rerum.io/v1/id/61ae694e50c86821e60b5d15"
+    if(dlaReleasedCollection.itemListElement.length === 0){
+        return fetch(releasedListURI, {
+            method: "GET",
+            cache: "force-cache",
+            mode: "cors"
+        })
+        .then(response => response.json())
+        .then(list => {
+            dlaReleasedCollection = list
+            return list
+        })
+        catch(err => {
+            console.error(err)
+            return []
+        })
+    }
+    else{
+        return dlaReleasedCollection
+    }
+    
 }
 
 
+/**
+ * Get all of the items in the DLA letter collection from RERUM.
+ * It will be an array of objects, each object will have an @id to be expanded.
+ * There are many, and so this needs to be a "paged query". 
+ */
+async function getLetterCollectionFromRERUM(){
+    return getPagedQuery(100)
+    /**
+     * Ensure not to overflow any buffers.  Get 100 items at a time recursively, until there are less than 100 items in a return.
+     * Put them all together, and return the filled response. 
+     * */
+    function getPagedQuery(lim, it = 0) {
+        let queryObj = {
+        "$or": [
+            {
+                "targetCollection": "Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar"
+            },
+            {
+                "body.targetCollection": "Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar"
+            },
+            {
+                "body.targetCollection.value": "Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar"
+            },
+            {
+                "body.partOf": "Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar"
+            }
+            ],
+            "__rerum.history.next": {
+                "$exists": true,
+                "$size": 0
+            }
+        }
+        return fetch(`http://tinypaul.rerum.io/dla/query?limit=${lim}&skip=${it}`, {
+            method: "POST",
+            mode: "cors",
+            cache: "force-cache",
+            body: JSON.stringify(queryObj)
+        })
+        .then(response => response.json())
+        .then(list => {
+            dlaCollection.itemListElement = dlaCollection.itemListElement.concat(list.map(anno => ({ '@id': anno.target ?? anno["@id"] ?? anno.id })))
+            if (list.length ?? (list.length % lim === 0)) {
+                return getPagedQuery(lim, it + list.length)
+            }
+        })
+    }
+}
 
 /**
  * Generate the HTML element which will represent the status passed in.  
@@ -155,14 +243,13 @@ async function generateProjectStatusElement(status, proj){
             //If it is described, other annos will target that same target
             //Check how many annos target, and define the good/bad threshold. 
 
-            //So there are some testing ones around.  Look for tpenProject.
             linkingAnnos = await fetchQuery({$or:[{"@type":"Annotation"}, {"type":"Annotation"}], "body.tpenProject.value":""+proj.id})
             describingAnnos = []
             if(linkingAnnos.length > 0){
                 describingAnnos = await fetchQuery({$or:[{"@type":"Annotation"}, {"type":"Annotation"}], "target":linkingAnnos[0].target})
             }
-            //Grabbing to anno.targets will tell you what handle
             statusString = `<span class='statusString bad'>${status}</span>`
+            //TODO this could be better.  Are there some required data points we should check for?""
             if(describingAnnos.length>0){
                 statusString = `<span class='statusString good'>${status} by ${describingAnnos.length} data points</span>`
             }
@@ -182,12 +269,28 @@ async function generateProjectStatusElement(status, proj){
  * This is for the DLA items.
  * */
 async function generateDLAStatusElement(status, item){
-    //YOU ARE USING THE WRONG COLLECTION DUMMY
     let statusString = ""
     let el = ``
     let linkingAnnos, describingAnnos = []
     switch (status){
-        case "TPEN Project(s) Created":
+        case "Released":
+            //Is this ID in the released list?
+            statusString = `<span class='statusString bad'>No ${status}</span>`
+            let r = false
+            await getDLAReleasedList()
+            for(const obj in DLAReleasedCollection){
+                if (obj["@id"] === item["@id"]){
+                    r = true
+                }
+            }
+            if(r){
+                statusString = `<span class='statusString good'>${status}</span>`
+            }
+            el =
+            `<dt class="statusLabel" title="If this item is in the list of released records."> ${statusString} </dt>
+            ` 
+        break
+        case "T-PEN Project(s) Matched":
             //Can we match a T-PEN project to this record?
             statusString = `<span class='statusString bad'>No ${status}</span>`
             let found = item?.source?.value ? await matchTranscriptionRecords(item) : []
@@ -195,10 +298,10 @@ async function generateDLAStatusElement(status, item){
                 statusString = `<span title="${found.join(" ")}" class='statusString good'>${found.length} ${status}</span>`
             }
             el =
-            `<dt class="statusLabel" title="These are the T-PEN projects found where the image titles matched with the F-Code for this item."> ${statusString} </dt>
+            `<dt class="statusLabel" title="These are T-PEN projects where the image titles matched with the F-Code for this DLA item."> ${statusString} </dt>
             ` 
         break
-        case "TPEN Project(s) Linked":
+        case "T-PEN Project(s) Linked":
             //Not sure what to do here.  The body.tpenProject.value is a projectID.  The target is the RERUM ID for the current item.
             statusString = `<span class='statusString bad'>No ${status}</span>`
             let tpenProjectIDs = []
@@ -288,18 +391,19 @@ async function generateDLAStatusElement(status, item){
     return el
 }
 
+
 /**
  * Perform a tiny query against the query parameter object passed in.
  * */
 async function fetchQuery(params){
     const historyWildcard = { $exists: true, $type: 'array', $eq: [] }
-    let query = {
+    let history = {
         "__rerum.history.next": historyWildcard
     }
-    let queryObj = Object.assign(query, params)
+    let queryObj = Object.assign(history, params)
 
     //May have to page these in the future
-    return statlimiter(() => fetch("http://tinydev.rerum.io/app/query", {
+    return statlimiter(() => fetch("http://tinypaul.rerum.io/dla/query", {
             method: 'POST',
             mode: 'cors',
             body: JSON.stringify(queryObj)
@@ -326,7 +430,7 @@ function getFolderFromMetadata(metaMap){
  *  You have a DLA Item F-Code known from a project ID.  Get the DLA record(s) that have a matching F-Code in their metadata.
  * */
 async function findUdelRecordWithCode(Fcode, projID) {
-    // This is the Fcode that the TPEN project knew, like F158
+    // This is the Fcode that the T-PEN project knew, like F158
     // Need to check that there is a udel item with this Fcode, looking through letters collection.
     let match = false
     let impossible = false;
@@ -356,7 +460,7 @@ async function findUdelRecordWithCode(Fcode, projID) {
             return
         }    
         if(impossible){
-            console.error("Could not determine folder name for "+item?.source?.value+"?expand=metadata.  That means this TPEN project "+projID+" cannot determine if a udel record exists for code "+Fcode+".  We are skipping the check for this project.")
+            console.error("Could not determine folder name for "+item?.source?.value+"?expand=metadata.  That means this T-PEN project "+projID+" cannot determine if a udel record exists for code "+Fcode+".  We are skipping the check for this project.")
             return
         }
     }
@@ -431,10 +535,11 @@ async function loadInterfaceDLA() {
 
     const statusesToFind = [
         "Delaware Record Linked",
-        "TPEN Project(s) Created",
-        "TPEN Project(s) Linked",
+        "T-PEN Project(s) Matched",
+        "T-PEN Project(s) Linked",
         "Envelope Linked",
-        "Well Described"
+        "Well Described",
+        "Released"
     ]
 
     document.getElementById("DLADocuments").innerHTML = ""
@@ -478,10 +583,11 @@ async function loadInterfaceDLA() {
     let dla_loading = []
     let statusSet = new Set();
     statusSet.add("Delaware Record Linked")
-    statusSet.add("TPEN Project(s) Created")
-    statusSet.add("TPEN Project(s) Linked")
+    statusSet.add("T-PEN Project(s) Matched")
+    statusSet.add("T-PEN Project(s) Linked")
     statusSet.add("Envelope Linked")
     statusSet.add("Well Described")
+    statusSet.add("Released")
     let dla_facets = {
         "status":statusSet
     }
@@ -528,12 +634,12 @@ async function loadInterfaceDLA() {
  * Render a filterable scrollable area to go over the status of each DLA item or each  T-PEN project
  * or possibly a combinations. 
  * */
-async function loadInterfaceTPEN() {
+async function loadInterfaceT-PEN() {
     assigneeSet = new Set()
     let tpenAreaElem = document.getElementById("tpen_browsable")
 
     // tpenAreaElem.innerHTML = `
-    //     <div id="TPENDocuments" class="grow wrap">list loading</div>
+    //     <div id="T-PENDocuments" class="grow wrap">list loading</div>
     //     <div class="sidebar">
     //         <h3>Refine Results <button role="button" id="tpenQueryReset">clear all</button></h3>
     //         <progress value="107" max="107">107 of 107</progress>
@@ -541,22 +647,22 @@ async function loadInterfaceTPEN() {
     //         <section id="tpenFacetFilter"></section>
     //     </div>
     // `
-    const TPEN_FIELDS = [
+    const T-PEN_FIELDS = [
         "title", "subtitle", "subject", "date", "language",
         "author", "description", "location"
     ]
 
-    const TPEN_FILTERS = {
+    const T-PEN_FILTERS = {
         Status: "status",
         Assignee : "assignees"
     }
 
-    // const TPEN_FILTERS = {
+    // const T-PEN_FILTERS = {
     //     T-PEN Project Fully Parsed: "false", T-PEN Project Assigned: "false", T-PEN Project Partially Transcribed:"false",
     //     T-PEN Project Fully Transcribed: "false", T-PEN Project Linked to Delaware Record(s):"false", Well Described:"false"
     // }
 
-    const TPEN_SEARCH = [
+    const T-PEN_SEARCH = [
         "title", "subtitle", "subject", "date", "language",
         "author", "description", "location"
     ]
@@ -570,7 +676,7 @@ async function loadInterfaceTPEN() {
         "Well Described"
     ]
 
-    document.getElementById("TPENDocuments").innerHTML = ""
+    document.getElementById("T-PENDocuments").innerHTML = ""
     for(const proj of tpenProjects){
         let statusListElements = ``
         let statusListAttributes = new Array()
@@ -582,7 +688,7 @@ async function loadInterfaceTPEN() {
             }
             statusListElements += el
         }
-        document.getElementById("TPENDocuments").innerHTML += `
+        document.getElementById("T-PENDocuments").innerHTML += `
             <div class="tpenRecord record" data-id="${tpenManifestPrefix+proj.id}" 
               data-assignees="${Array.from(assigneeSet).join(" ")}" 
               data-status="${statusListAttributes.join(" ")}"
@@ -631,13 +737,13 @@ async function loadInterfaceTPEN() {
                             //No blanks
                             metadataMap.set(dat.label, Array.isArray(dat.value) ? dat.value.join(", ") : dat.value)
                         }
-                        if (TPEN_FIELDS.includes(dat.label)) {
+                        if (T-PEN_FIELDS.includes(dat.label)) {
                             //don't need to show any of these for the status.  Label is already showing.
                             //dl += `<dt class="uppercase">${dat.label}</dt><dd>${metadataMap.get(dat.label)}</dd>`
                         }
                     })
                     //Here we aren't filtering by metadata, so we don't need to build facets off the metadata
-                    r.setAttribute("data-query", TPEN_SEARCH.reduce((a, b) => a += (metadataMap.has(b) ? metadataMap.get(b) : "*") + " ", ""))
+                    r.setAttribute("data-query", T-PEN_SEARCH.reduce((a, b) => a += (metadataMap.has(b) ? metadataMap.get(b) : "*") + " ", ""))
                     //Not building this dl object out right now
                     //r.querySelector("dl").innerHTML = dl
                 })
@@ -648,7 +754,7 @@ async function loadInterfaceTPEN() {
     document.getElementById("tpen_query").addEventListener("input", filterQuery)
     return Promise.all(tpen_loading)
     .then(() => {
-        populateSidebar(tpen_facets, TPEN_FILTERS, "tpen")
+        populateSidebar(tpen_facets, T-PEN_FILTERS, "tpen")
         let e = new CustomEvent("tpen-interface-loaded", { bubbles: true })
         document.dispatchEvent(e)
     })
@@ -761,45 +867,4 @@ function filterFacets(event) {
     updateCount(which)
 }
 
-async function getLetterCollectionFromRERUM(){
-    return getPagedQuery(100)
 
-    function getPagedQuery(lim, it = 0) {
-        let queryObj = {
-        "$or": [
-            {
-                "targetCollection": "Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar"
-            },
-            {
-                "body.targetCollection": "Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar"
-            },
-            {
-                "body.targetCollection.value": "Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar"
-            },
-            {
-                "body.partOf": "Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar"
-            }
-            ],
-            "__rerum.history.next": {
-                "$exists": true,
-                "$size": 0
-            }
-        }
-        return fetch(`http://tinypaul.rerum.io/dla/query?limit=${lim}&skip=${it}`, {
-            method: "POST",
-            mode: "cors",
-            body: JSON.stringify(queryObj)
-        })
-        .then(response => response.json())
-        .then(list => {
-            dlaCollection.itemListElement = dlaCollection.itemListElement.concat(list.map(anno => ({ '@id': anno.target ?? anno["@id"] ?? anno.id })))
-            if (list.length ?? (list.length % lim === 0)) {
-                return getPagedQuery(lim, it + list.length)
-            }
-            else{
-                //?
-            }
-        })
-    }
-
-}

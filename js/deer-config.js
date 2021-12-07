@@ -7,7 +7,7 @@ import pLimit from './plimit.js'
 const limiter = pLimit(4)
 let projects = []
 
-fetch(`http://165.134.105.25:8181/TPEN28/getDunbarProjects`, { cache: "force-cache" })
+fetch(`http://t-pen.org/TPEN/getDunbarProjects`, { cache: "force-cache" })
     .then(res => res.ok ? res.json() : Promise.reject(res))
     .then(list => projects = list)
 
@@ -243,7 +243,7 @@ async function loadUDelMetadata(handle) {
 function getTranscriptionProjects(metadata) {
     // you must log in first, dude
     // fetch(`media/tpen.json`)
-    return fetch(`http://165.134.105.25:8181/TPEN28/getDunbarProjects`)
+    return fetch(`http://t-pen.org/TPEN/getDunbarProjects`)
         .then(res => res.ok ? res.json() : Promise.reject(res))
         .then(list => matchTranscriptionRecords(list, metadata))
 }
