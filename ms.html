@@ -34,10 +34,8 @@
             <input type="text" deer-key="toLocation" placeholder="to City" class="col-9 col-4-md">
             <label class="col-3 col-2-md text-right">URL:</label>
             <input type="text" deer-key="source" placeholder="Record View" class="col-9 col-4-md">
-
-            <label class="col-3 col-2-md text-right">Base Project: <a deer-key="tpenProject" target="_blank"
-                    href="">transcribe</a></label>
-            <input id="baseProject" type="text" deer-key="transcription" placeholder="TPEN Base Project ID"
+            <label class="col-3 col-2-md text-right">Base Project: </label>
+            <input id="baseProject" type="text" deer-key="tpenProject" placeholder="TPEN Base Project ID"
                 class="col-9 col-4-md">
             <label class="col-3 col-2-md text-right">notes:</label>
             <input type="text" deer-key="notes" placeholder="notes" class="col-9 col-4-md">
@@ -47,9 +45,16 @@
         <a href="./manuscripts.html" onclick="deleteThis(event)" class="text-error">Drop from collection</a>
     </form>
 
+<<<<<<< HEAD
     <p class="col">Original catalog record: <deer-view id="catalogLink" deer-template="linky" deer-key="url">
         </deer-view>
     </p>
+=======
+    <deer-view id="externalData" deer-template="shadow"></deer-view>
+
+    <p class="col">Original catalog record: <deer-view id="catalogLink" deer-template="linky" deer-key="source"></deer-view></p>
+
+>>>>>>> main
     <deer-view class="col" id="thumbroll" deer-template="thumbs" deer-id=""></deer-view>
     <deer-view id="previewTranscription" deer-template="folioTranscription"></deer-view>
 
@@ -80,13 +85,16 @@
                     const handlUrl = new URL(event.detail.source.value)
                     externalData.setAttribute('deer-link',handlUrl)
                     externalData.setAttribute('deer-id','/')
+<<<<<<< HEAD
                     // loadUDelMetadata(handlUrl.pathname)
+=======
+>>>>>>> main
                     document.removeEventListener('deer-loaded', externals)
                 }
             })
         }
 
-        baseProject.addEventListener('input', e => document.querySelector("a[deer-key='tpen:project']").setAttribute("href", "http://t-pen.org/TPEN/project.jsp?projectID=" + e.target.value))
+        baseProject.addEventListener('input', e => document.querySelector("a[deer-key='tpenProject']").setAttribute("href", "http://t-pen.org/TPEN/project.jsp?projectID=" + e.target.value))
 
         function deleteThis(event) {
             event.preventDefault()
