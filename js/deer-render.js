@@ -159,7 +159,7 @@ DEER.TEMPLATES.label = function (obj, options = {}) {
 DEER.TEMPLATES.linky = function (obj, options = {}) {
     try {
         let link = obj[options.key]
-        return link ? `<a href="${UTILS.getValue(link)}" title="Open in a new window" target="_blank"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAQElEQVR42qXKwQkAIAxDUUdxtO6/RBQkQZvSi8I/pL4BoGw/XPkh4XigPmsUgh0626AjRsgxHTkUThsG2T/sIlzdTsp52kSS1wAAAABJRU5ErkJggg=="></a>` : ``
+        return link ? `<a href="${UTILS.getValue(link)}" title="Open in a new window" target="_blank"></a>` : ``
     } catch (err) {
         return null
     }
@@ -167,16 +167,18 @@ DEER.TEMPLATES.linky = function (obj, options = {}) {
 
 DEER.TEMPLATES.thumbs = function (obj, options = {}) {
     return {
-        html: obj["tpen://base-project"] ? `<div class="is-full-width"> <h3> ... loading images ... </h3> </div>` : ``,
+        html: obj.tpenProject ? `<div class="is-full-width"> <h3> ... loading images ... </h3> </div>` : ``,
         then: (elem) => {
             try {
-                fetch("http://t-pen.org/TPEN/manifest/" + obj["tpen://base-project"].value)
+                const proj = obj.tpenProject?.value ?? obj.tpenProject?.pop()?.value ?? obj.tpenProject?.pop() ?? obj.tpenProject
+                if (!proj) { return }    
+                fetch("http://t-pen.org/TPEN/manifest/" + proj)
                     .then(response => response.json())
                     .then(ms => elem.innerHTML = `
                     ${ms.sequences[0].canvases.slice(0, 10).reduce((a, b) => a += `<img class="thumbnail" src="${b.images[0].resource['@id']}">`, ``)}
             `)
             } catch {
-                console.log(`No images loaded for transcription project: ${obj["tpen://base-project"]?.value}`)
+                console.log(`No images loaded for transcription project: ${obj.tpenProject?.value}`)
             }
         }
     }
@@ -186,14 +188,55 @@ DEER.TEMPLATES.pageLinks = function (obj, options = {}) {
     return obj.sequences[0].canvases.reduce((a, b, i) => a += `<a class="button" href="?page=${i + 1}#${obj["@id"]}">${b.label}</a>`, ``)
 }
 
+DEER.TEMPLATES.shadow = (obj, options = {}) => {
+    return {
+        html: `loading external data...`,
+        then: (elem) => {
+            UTILS.findByTargetId(options.link)
+                .then(extData => {
+                    const props = extData?.pop().body
+                    const entries = props.reduce((a, b) => a += `<label class="col-3" style="font-variant:small-caps;font-weight:bold;">${Object.keys(b)[0]}:</label> <span class="col-9">${UTILS.getValue(Object.values(b)[0], "label")}</span>`, ``)
+                    elem.innerHTML = `<div class="card row">
+                    <h3 class="is-full-width">Remote Metadata Records</h3>
+                    ${entries}
+                    </div>`
+                })
+                .catch(err=>elem.innerHTML="Error loading external data.")
+        }
+    }
+}
+
 DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
     return {
         html: obj.tpenProject ? `<div class="is-full-width"> <h3> ... loading preview ... </h3> </div>` : ``,
         then: (elem) => {
-            const proj = obj.tpenProject.value ?? obj.tpenProject.pop()?.value ?? obj.tpenProject.pop() ?? obj.tpenProject
+            const proj = obj.tpenProject?.value ?? obj.tpenProject?.pop()?.value ?? obj.tpenProject?.pop() ?? obj.tpenProject
+            if (!proj) {
+                elem.innerHTML = `[ no project linked yet ]`
+                return
+            }
             fetch("http://t-pen.org/TPEN/manifest/" + proj)
-                .then(response => response.json())
-                .then(ms => elem.innerHTML = `
+            .then(response => response.json())
+            .then(ms => {
+                    const pages = ms.sequences[0].canvases.slice(0, 10).reduce((a, b) => a += `
+                    <div class="page">
+                        <h3>${b.label}</h3>
+                        <div class="pull-right col-6">
+                            <img src="${b.images[0].resource['@id']}">
+                        </div>
+                        <div>
+                            ${b.otherContent[0].resources.reduce((aa, bb) => aa +=
+                        bb.resource["cnt:chars"].length
+                            ? bb.resource["cnt:chars"].slice(-1) == '-'
+                                ? bb.resource["cnt:chars"].substring(0, bb.resource["cnt:chars"].length - 1)
+                                : bb.resource["cnt:chars"] + ' '
+                            : " <line class='empty col-6'></line> ", '')
+                        }
+                        </div>
+                    </div>
+                    `, ``)
+                    
+                    elem.innerHTML = `
                 <style>
                     printed {
                         font-family:serif;
@@ -213,24 +256,10 @@ DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
                         border-radius: 4px;
                     }
                 </style>
-                ${ms.sequences[0].canvases.slice(0, 10).reduce((a, b) => a += `
-                <div class="page">
-                    <h3>${b.label}</h3> <a href="./layout.html#${ms['@id']}">(edit layout)</a>
-                    <div class="pull-right col-6">
-                        <img src="${b.images[0].resource['@id']}">
-                    </div>
-                    <div>
-                        ${b.otherContent[0].resources.reduce((aa, bb) => aa +=
-                    bb.resource["cnt:chars"].length
-                        ? bb.resource["cnt:chars"].slice(-1) == '-'
-                            ? bb.resource["cnt:chars"].substring(0, bb.resource["cnt:chars"].length - 1)
-                            : bb.resource["cnt:chars"] + ' '
-                        : " <line class='empty col-6'></line> ", '')
-                    }
-                    </div>
-                </div>
-                `, ``)}
-        `)
+                <a href="http://t-pen.org/TPEN/transcription.html?projectID=${parseInt(ms['@id'].split("manifest/")?.[1])}" target="_blank">transcribe on TPEN</a>
+                <h2>${ms.label}</h2>
+                ${pages}
+        `})
         }
     }
 }
@@ -535,33 +564,33 @@ export default class DeerRender {
                                     return getPagedQuery.bind(this)(lim, it + list.length)
                                 }
                             })
-                        }
                     }
                 }
-            } catch (err) {
-                let message = err
-                switch (err.code) {
-                    case "NO_ID":
-                        message = `` // No DEER.ID, so leave it blank
-                }
-                elem.innerHTML = message
             }
-
-            let listensTo = elem.getAttribute(DEER.LISTENING)
-            if (listensTo) {
-                elem.addEventListener(DEER.EVENTS.CLICKED, e => {
-                    try {
-                        if (e.detail.target.closest(DEER.VIEW + "," + DEER.FORM).getAttribute("id") === listensTo) elem.setAttribute(DEER.ID, e.detail.target.closest('[' + DEER.ID + ']').getAttribute(DEER.ID))
-                    } catch (err) { }
-                })
-                try {
-                    window[listensTo].addEventListener("click", e => UTILS.broadcast(e, DEER.EVENTS.CLICKED, elem))
-                } catch (err) {
-                    console.error("There is no HTML element with id " + listensTo + " to attach an event to")
-                }
+        } catch (err) {
+            let message = err
+            switch (err.code) {
+                case "NO_ID":
+                    message = `` // No DEER.ID, so leave it blank
             }
-
+            elem.innerHTML = message
         }
+
+        let listensTo = elem.getAttribute(DEER.LISTENING)
+        if (listensTo) {
+            elem.addEventListener(DEER.EVENTS.CLICKED, e => {
+                try {
+                    if (e.detail.target.closest(DEER.VIEW + "," + DEER.FORM).getAttribute("id") === listensTo) elem.setAttribute(DEER.ID, e.detail.target.closest('[' + DEER.ID + ']').getAttribute(DEER.ID))
+                } catch (err) { }
+            })
+            try {
+                window[listensTo].addEventListener("click", e => UTILS.broadcast(e, DEER.EVENTS.CLICKED, elem))
+            } catch (err) {
+                console.error("There is no HTML element with id " + listensTo + " to attach an event to")
+            }
+        }
+
+    }
 }
 
 /**
