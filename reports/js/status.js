@@ -16,8 +16,8 @@ let assigneeSet = new Set()
 const udelHandlePrefix = "https://udspace.udel.edu/handle/"
 const udelRestHandlePrefix = "https://udspace.udel.edu/rest/handle/"
 const udelIdPrefix = "https://udspace.udel.edu/rest/items/"
-const tpenManifestPrefix = "http://t-pen.org/T-PEN/project/"
-const tpenProjectPrefix = "http://t-pen.org/T-PEN/transcription.html?projectID="
+const tpenManifestPrefix = "http://t-pen.org/TPEN/project/"
+const tpenProjectPrefix = "http://t-pen.org/TPEN/transcription.html?projectID="
 const TPproxy = "http://tinypaul.rerum.io/dla/proxy?url="
 let progress = undefined
 
@@ -227,11 +227,11 @@ async function generateProjectStatusElement(status, proj){
             `<dt class="statusLabel" title="Check if it is assigned to at least 2 usera"> ${statusString} </dt>
             `   
         break     
-        case "T-PEN Project Linked to Delaware Record(s)":
+        case "T-PEN Project Linked to Delaware Records":
             linkingAnnos = await fetchQuery({$or:[{"@type":"Annotation"}, {"type":"Annotation"}], "body.tpenProject.value":""+proj.id})
             statusString = `<span class='statusString bad'>${status}</span>`
             if(linkingAnnos.length>0){
-                statusString = `<span class='statusString good'> ${linkingAnnos.length} Linked Record(s)</span>`
+                statusString = `<span class='statusString good'> ${linkingAnnos.length} Linked Records</span>`
             }
             el =
             `<dt class="statusLabel" title="">${statusString}</dt>
@@ -291,7 +291,7 @@ async function generateDLAStatusElement(status, item){
             `<dt class="statusLabel" title="If this item is in the list of released records."> ${statusString} </dt>
             ` 
         break
-        case "T-PEN Project(s) Matched":
+        case "T-PEN Projects Matched":
             //Can we match a T-PEN project to this record?
             statusString = `<span class='statusString bad'>No ${status}</span>`
             let found = item?.source?.value ? await matchTranscriptionRecords(item) : []
@@ -302,7 +302,7 @@ async function generateDLAStatusElement(status, item){
             `<dt class="statusLabel" title="These are T-PEN projects where the image titles matched with the F-Code for this DLA item."> ${statusString} </dt>
             ` 
         break
-        case "T-PEN Project(s) Linked":
+        case "T-PEN Projects Linked":
             //Not sure what to do here.  The body.tpenProject.value is a projectID.  The target is the RERUM ID for the current item.
             statusString = `<span class='statusString bad'>No ${status}</span>`
             let tpenProjectIDs = []
@@ -536,8 +536,8 @@ async function loadInterfaceDLA() {
 
     const statusesToFind = [
         "Delaware Record Linked",
-        "T-PEN Project(s) Matched",
-        "T-PEN Project(s) Linked",
+        "T-PEN Projects Matched",
+        "T-PEN Projects Linked",
         "Envelope Linked",
         "Well Described",
         "Released"
@@ -584,8 +584,8 @@ async function loadInterfaceDLA() {
     let dla_loading = []
     let statusSet = new Set();
     statusSet.add("Delaware Record Linked")
-    statusSet.add("T-PEN Project(s) Matched")
-    statusSet.add("T-PEN Project(s) Linked")
+    statusSet.add("T-PEN Projects Matched")
+    statusSet.add("T-PEN Projects Linked")
     statusSet.add("Envelope Linked")
     statusSet.add("Well Described")
     statusSet.add("Released")
@@ -660,7 +660,7 @@ async function loadInterfaceTPEN() {
 
     // const TPEN_FILTERS = {
     //     T-PEN Project Fully Parsed: "false", T-PEN Project Assigned: "false", T-PEN Project Partially Transcribed:"false",
-    //     T-PEN Project Fully Transcribed: "false", T-PEN Project Linked to Delaware Record(s):"false", Well Described:"false"
+    //     T-PEN Project Fully Transcribed: "false", T-PEN Project Linked to Delaware Records:"false", Well Described:"false"
     // }
 
     const TPEN_SEARCH = [
@@ -673,7 +673,7 @@ async function loadInterfaceTPEN() {
         "T-PEN Project Assigned",
         "T-PEN Project Partially Transcribed",
         "T-PEN Project Fully Transcribed",
-        "T-PEN Project Linked to Delaware Record(s)",
+        "T-PEN Project Linked to Delaware Records",
         "Well Described"
     ]
 
@@ -718,7 +718,7 @@ async function loadInterfaceTPEN() {
     statusSet.add("T-PEN Project Assigned")
     statusSet.add("T-PEN Project Partially Transcribed")
     statusSet.add("T-PEN Project Fully Transcribed")
-    statusSet.add("T-PEN Project Linked to Delaware Record(s)")
+    statusSet.add("T-PEN Project Linked to Delaware Records")
     statusSet.add("Well Described")
     let tpen_facets = {
         "status":statusSet,
