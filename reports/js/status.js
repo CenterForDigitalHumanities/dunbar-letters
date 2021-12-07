@@ -38,7 +38,7 @@ async function gatherBaseData(){
             loadInterfaceDLA()
         }
         else if(document.location.href.indexOf("tpen-projects")>-1){
-            loadInterfaceT-PEN()
+            loadInterfaceTPEN()
         }
     }
     else{
@@ -85,7 +85,7 @@ async function getDLAManagedList(){
             dlaCollection = list
             return list
         })
-        catch(err => {
+        .catch(err => {
             console.error(err)
             return []
         })
@@ -111,7 +111,7 @@ async function getDLAReleasedList(){
             dlaReleasedCollection = list
             return list
         })
-        catch(err => {
+        .catch(err => {
             console.error(err)
             return []
         })
@@ -275,12 +275,13 @@ async function generateDLAStatusElement(status, item){
     switch (status){
         case "Released":
             //Is this ID in the released list?
-            statusString = `<span class='statusString bad'>No ${status}</span>`
+            statusString = `<span class='statusString bad'>Not ${status}</span>`
             let r = false
             await getDLAReleasedList()
-            for(const obj in DLAReleasedCollection){
+            for(const obj in dlaReleasedCollection){
                 if (obj["@id"] === item["@id"]){
                     r = true
+                    return
                 }
             }
             if(r){
@@ -634,12 +635,12 @@ async function loadInterfaceDLA() {
  * Render a filterable scrollable area to go over the status of each DLA item or each  T-PEN project
  * or possibly a combinations. 
  * */
-async function loadInterfaceT-PEN() {
+async function loadInterfaceTPEN() {
     assigneeSet = new Set()
     let tpenAreaElem = document.getElementById("tpen_browsable")
 
     // tpenAreaElem.innerHTML = `
-    //     <div id="T-PENDocuments" class="grow wrap">list loading</div>
+    //     <div id="TPENDocuments" class="grow wrap">list loading</div>
     //     <div class="sidebar">
     //         <h3>Refine Results <button role="button" id="tpenQueryReset">clear all</button></h3>
     //         <progress value="107" max="107">107 of 107</progress>
@@ -647,22 +648,22 @@ async function loadInterfaceT-PEN() {
     //         <section id="tpenFacetFilter"></section>
     //     </div>
     // `
-    const T-PEN_FIELDS = [
+    const TPEN_FIELDS = [
         "title", "subtitle", "subject", "date", "language",
         "author", "description", "location"
     ]
 
-    const T-PEN_FILTERS = {
+    const TPEN_FILTERS = {
         Status: "status",
         Assignee : "assignees"
     }
 
-    // const T-PEN_FILTERS = {
+    // const TPEN_FILTERS = {
     //     T-PEN Project Fully Parsed: "false", T-PEN Project Assigned: "false", T-PEN Project Partially Transcribed:"false",
     //     T-PEN Project Fully Transcribed: "false", T-PEN Project Linked to Delaware Record(s):"false", Well Described:"false"
     // }
 
-    const T-PEN_SEARCH = [
+    const TPEN_SEARCH = [
         "title", "subtitle", "subject", "date", "language",
         "author", "description", "location"
     ]
@@ -676,7 +677,7 @@ async function loadInterfaceT-PEN() {
         "Well Described"
     ]
 
-    document.getElementById("T-PENDocuments").innerHTML = ""
+    document.getElementById("TPENDocuments").innerHTML = ""
     for(const proj of tpenProjects){
         let statusListElements = ``
         let statusListAttributes = new Array()
@@ -688,7 +689,7 @@ async function loadInterfaceT-PEN() {
             }
             statusListElements += el
         }
-        document.getElementById("T-PENDocuments").innerHTML += `
+        document.getElementById("TPENDocuments").innerHTML += `
             <div class="tpenRecord record" data-id="${tpenManifestPrefix+proj.id}" 
               data-assignees="${Array.from(assigneeSet).join(" ")}" 
               data-status="${statusListAttributes.join(" ")}"
@@ -737,13 +738,13 @@ async function loadInterfaceT-PEN() {
                             //No blanks
                             metadataMap.set(dat.label, Array.isArray(dat.value) ? dat.value.join(", ") : dat.value)
                         }
-                        if (T-PEN_FIELDS.includes(dat.label)) {
+                        if (TPEN_FIELDS.includes(dat.label)) {
                             //don't need to show any of these for the status.  Label is already showing.
                             //dl += `<dt class="uppercase">${dat.label}</dt><dd>${metadataMap.get(dat.label)}</dd>`
                         }
                     })
                     //Here we aren't filtering by metadata, so we don't need to build facets off the metadata
-                    r.setAttribute("data-query", T-PEN_SEARCH.reduce((a, b) => a += (metadataMap.has(b) ? metadataMap.get(b) : "*") + " ", ""))
+                    r.setAttribute("data-query", TPEN_SEARCH.reduce((a, b) => a += (metadataMap.has(b) ? metadataMap.get(b) : "*") + " ", ""))
                     //Not building this dl object out right now
                     //r.querySelector("dl").innerHTML = dl
                 })
@@ -754,7 +755,7 @@ async function loadInterfaceT-PEN() {
     document.getElementById("tpen_query").addEventListener("input", filterQuery)
     return Promise.all(tpen_loading)
     .then(() => {
-        populateSidebar(tpen_facets, T-PEN_FILTERS, "tpen")
+        populateSidebar(tpen_facets, TPEN_FILTERS, "tpen")
         let e = new CustomEvent("tpen-interface-loaded", { bubbles: true })
         document.dispatchEvent(e)
     })
