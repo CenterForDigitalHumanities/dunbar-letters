@@ -1,19 +1,7 @@
-const DEV = false
-const baseV1 = DEV ? "http://devstore.rerum.io/" : "http://store.rerum.io/"
-const tiny = DEV ? "http://tinydev.rerum.io/app/" : "http://tinypaul.rerum.io/dla/"
+const DEV = false // false or comment to turn off
 
-import { default as UTILS } from './deer-utils.js'
-import pLimit from './plimit.js'
-const limiter = pLimit(20)
-
-
-/**
- * Handled in reports/js/status.js
- * */
-//let projects = []
-// fetch(`cache/tpenShort.j`, { cache: "force-cache" })
-//     .then(res => res.ok ? res.json() : Promise.reject(res))
-//     .then(list => projects = list)
+const baseV1 = DEV ? "http://devstore.rerum.io/":"http://store.rerum.io/"
+const tiny = DEV ? "http://tinydev.rerum.io/app/":"http://tinypaul.rerum.io/dla/"
 
 export default {
     ID: "deer-id", // attribute, URI for resource to render
@@ -42,11 +30,11 @@ export default {
 
     URLS: {
         BASE_ID: baseV1,
-        CREATE: tiny + "create",
-        UPDATE: tiny + "update",
-        OVERWRITE: tiny + "overwrite",
-        QUERY: tiny + "query",
-        SINCE: baseV1 + "since"
+        CREATE: tiny+"create",
+        UPDATE: tiny+"update",
+        OVERWRITE: tiny+"overwrite",
+        QUERY: tiny+"query",
+        SINCE: baseV1+"since"
     },
 
     EVENTS: {
@@ -55,8 +43,8 @@ export default {
         LOADED: "deer-loaded",
         NEW_VIEW: "deer-view",
         NEW_FORM: "deer-form",
-        VIEW_RENDERED: "deer-view-rendered",
-        FORM_RENDERED: "deer-form-rendered",
+        VIEW_RENDERED : "deer-view-rendered",
+        FORM_RENDERED : "deer-form-rendered",
         CLICKED: "deer-clicked"
     },
 
@@ -74,187 +62,188 @@ export default {
     TEMPLATES: {
         cat: (obj) => `<h5>${obj.name}</h5><img src="http://placekitten.com/300/150" style="width:100%;">`,
         msList: function (obj, options = {}) {
-            let tmpl = `<h2>Manuscripts</h2>`
+            let tmpl = `<h2>Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar (${obj?.[options?.list].length ?? " empty "})</h2>`
             if (options.list) {
                 tmpl += `<ul>`
                 obj[options.list].forEach((val, index) => {
-                    tmpl += `<li><deer-view deer-template="saveTPENlinks" deer-id="${val["@id"]}"> 0 </deer-view><a href="${options.link}${val['@id']}"><deer-view deer-id="${val["@id"]}" deer-template="label"></deer-view></a></li>`
+                    tmpl += `<li><a href="${options.link}${val['@id']}"><deer-view deer-id="${val["@id"]}" deer-template="label">${val.label}</deer-view></a></li>`
                 })
                 tmpl += `</ul>`
             }
             return tmpl
         },
-        saveTPENlinks: (obj, options = {}) => {
-
-            const DC_ROOT_ANNOTATION = {
-                "@context": "http://www.w3.org/ns/anno.jsonld",
-                "@type": "Annotation",
-                creator: "http://store.rerum.io/v1/id/618d4cfa50c86821e60b2cba",
-            }
-            const NEW_RECORD = {
-                "@context": "https://schema.org/docs/jsonldcontext.json",
-                "@type": "Text",
-                creator: "http://store.rerum.io/v1/id/618d4cfa50c86821e60b2cba",
-            }
-
-
-            return {
-                html: `<button role="button" class="addemup" hndl="${UTILS.getValue(obj.source)}"></button>`,
-                then: elem => {
-                    if (-1 === elem.querySelector('button')?.getAttribute('hndl')?.indexOf('/')) {
-                        console.log("No handle here: ", elem)
-                        return
-                    }
-                    // loadUDelMetadata(elem.querySelector('button')?.getAttribute('hndl'))
-                    //     .then(async (metadata) => {
-                    //         matchTranscriptionRecords(projects, metadata)
-                    //             .then(projList => {
-                    //                 elem.setAttribute("tpen-projects", projList)
-                    //             })
-                    //     })
-                    elem.addEventListener('click', findLink)
-                    elem.addEventListener('dblclick', saveLinks)
+        managedlist: (obj, options = {}) => {
+            try {
+                let tmpl = `<input type="hidden" deer-collection="${options.collection}">`
+                if (options.list) {
+                    tmpl += `<ul>`
+                    obj[options.list].forEach((val, index) => {
+                        const removeBtn = `<a href="${val['@id']}" class="removeCollectionItem" title="Delete This Entry">&#x274C</a>`
+                        const onlistBtn = `<a class="togglePublic project" href="${val['@id']}" title="Toggle project inclusion"> &plus; </a>`
+                        const visibilityBtn = `<a class="togglePublic released" href="${val['@id']}" title="Toggle public visibility"> 👁 </a>`
+                        tmpl += `<li>
+                        ${onlistBtn}
+                        ${visibilityBtn}
+                        <a href="${options.link}${val['@id']}">
+                            <deer-view deer-id="${val["@id"]}" deer-template="label">${index + 1}</deer-view>
+                        </a>
+                        ${removeBtn}
+                        </li>`
+                    })
+                    tmpl += `</ul>`
                 }
-            }
+                else {
+                    console.log("There are no items in this list to draw.")
+                    console.log(obj)
+                }
+                return {
+                    html: tmpl,
+                    then: elem => {
 
-            function findLink(event) {
-                const elem = event.target
-                loadUDelMetadata(elem.getAttribute('hndl'))
-                    .then(async (metadata) => {
-                        matchTranscriptionRecords(projects, metadata)
-                            .then(projList => {
-                                elem.setAttribute("tpen-projects", projList)
+                        fetch(elem.getAttribute("deer-listing")).then(r => r.json())
+                            .then(list => {
+                                elem.projectCache = new Set()
+                                list.itemListElement?.forEach(item => elem.projectCache.add(item['@id']))
+                                for (const a of document.querySelectorAll('.togglePublic.project')) {
+                                    const include = elem.projectCache.has(a.getAttribute("href")) ? "add" : "remove"
+                                    a.classList[include]("is-included")
+                                }
                             })
-                    })
-            }
+                            .then(() => {
+                                document.querySelectorAll('.togglePublic.project').forEach(a => a.addEventListener('click', ev => {
+                                    ev.preventDefault()
+                                    ev.stopPropagation()
+                                    const uri = a.getAttribute("href")
+                                    const included = elem.projectCache.has(uri)
+                                    a.classList[included ? "remove" : "add"]("is-included")
+                                    elem.projectCache[included ? "delete" : "add"](uri)
+                                    saveList.style.visibility = "visible"
+                                }))
+                            })
 
-            function saveLinks(event) {
-                document.querySelectorAll("[tpen-projects]").forEach(elem => saveLink({ target: elem }))
-            }
+                        fetch(elem.getAttribute("deer-released")).then(r => r.json())
+                            .then(list => {
+                                elem.listCache = new Set()
+                                list.itemListElement?.forEach(item => elem.listCache.add(item['@id']))
+                                for (const a of document.querySelectorAll('.togglePublic.released')) {
+                                    const include = elem.listCache.has(a.getAttribute("href")) ? "add" : "remove"
+                                    a.classList[include]("is-included")
+                                }
+                            })
+                            .then(() => {
+                                document.querySelectorAll(".removeCollectionItem").forEach(el => el.addEventListener('click', (ev) => {
+                                    ev.preventDefault()
+                                    ev.stopPropagation()
+                                    const itemID = el.getAttribute("href")
+                                    const fromCollection = document.querySelector('input[deer-collection]').getAttribute("deer-collection")
+                                    deleteThis(itemID, fromCollection)
+                                }))
+                                document.querySelectorAll('.togglePublic.released').forEach(a => a.addEventListener('click', ev => {
+                                    ev.preventDefault()
+                                    ev.stopPropagation()
+                                    const uri = a.getAttribute("href")
+                                    const included = elem.listCache.has(uri)
+                                    a.classList[included ? "remove" : "add"]("is-included")
+                                    elem.listCache[included ? "delete" : "add"](uri)
+                                    saveList.style.visibility = "visible"
+                                }))
+                                saveList.addEventListener('click', overwriteList)
+                            })
 
-            async function saveLink(event) {
-                const target = event.target.closest("[deer-id]").getAttribute("deer-id")
-                const projectIDs = event.target.getAttribute("tpen-projects")?.split("|")
 
-                projectIDs.forEach(async (id, index) => {
-                        let t = index > 0 ? await createNewRecord(target) : target
-                        limiter(() => createCopy(target, t, id))
-                    })
-            }
+                        function overwriteList() {
+                            let mss_project = []
+                            let mss_public = []
 
+                            elem.projectCache.forEach(uri => {
+                                mss_project.push({
+                                    label: document.querySelector(`deer-view[deer-id='${uri}']`).textContent.trim(),
+                                    '@id': uri
+                                })
+                            })
 
-            async function createNewRecord(basedOn) {
-                let original = await UTILS.expand(basedOn).then(stripIDs)
-                const record = Object.assign({
-                    label: original.title ?? original.label
-                }, NEW_RECORD)
-                return fetch(tiny + "create", {
-                    method: 'POST',
-                    mode: 'cors',
-                    body: JSON.stringify(record)
-                })
-                    .then(res => res.ok ? res.headers.get("location") ?? res.headers.get("Location") : Promise.reject(res))
-                    .catch(err => console.error(err))
-            }
+                            elem.listCache.forEach(uri => {
+                                mss_public.push({
+                                    label: document.querySelector(`deer-view[deer-id='${uri}']`).textContent.trim(),
+                                    '@id': uri
+                                })
+                            })
 
-            async function createCopy(id, newID, projectID) {
-                let original = await UTILS.expand(id).then(stripIDs)
-                const annoMap = id === newID ?
-                    {
-                        tpenProject: projectID
+                            const list_project = {
+                                '@id': elem.getAttribute("deer-listing"),
+                                '@context': 'https://schema.org/',
+                                '@type': "ItemList",
+                                name: "Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar",
+                                numberOfItems: elem.projectCache.size,
+                                itemListElement: mss_project
+                            }
+                            const list_public = {
+                                '@id': elem.getAttribute("deer-released"),
+                                '@context': 'https://schema.org/',
+                                '@type': "ItemList",
+                                name: "Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar",
+                                numberOfItems: elem.listCache.size,
+                                itemListElement: mss_public
+                            }
+
+                            fetch(`${tiny}overwrite`, {
+                                method: "PUT",
+                                mode: 'cors',
+                                body: JSON.stringify(list_project)
+                            }).then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
+                                .catch(err => alert(`Failed to save: ${err}`))
+
+                            fetch(`${tiny}overwrite`, {
+                                method: "PUT",
+                                mode: 'cors',
+                                body: JSON.stringify(list_public)
+                            }).then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
+                                .catch(err => alert(`Failed to save: ${err}`))
+                        }
+
+                        function deleteThis(id, collection) {
+                            if (confirm("Really remove this record?\n(Cannot be undone)")) {
+                                const historyWildcard = { "$exists": true, "$eq": [] }
+                                const queryObj = {
+                                    $or: [{
+                                        "targetCollection": collection
+                                    }, {
+                                        "body.targetCollection": collection
+                                    }],
+                                    target: id,
+                                    "__rerum.history.next": historyWildcard
+                                }
+                                fetch(`${tiny}query`, {
+                                    method: "POST",
+                                    body: JSON.stringify(queryObj)
+                                })
+                                    .then(r => r.ok ? r.json() : Promise.reject(new Error(r?.text)))
+                                    .then(annos => {
+                                        let all = annos.map(anno => {
+                                            return fetch(`${tiny}delete`, {
+                                                method: "DELETE",
+                                                body: anno["@id"]
+                                            })
+                                                .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
+                                                .catch(err => { throw err })
+                                        })
+                                        Promise.all(all).then(success => {
+                                            document.querySelector(`[deer-id="${id}"]`).closest("li").remove()
+                                        })
+                                    })
+                                    .catch(err => console.error(`Failed to delete: ${err}`))
+                            }
+                        }
+
                     }
-                    : {
-                        targetCollection: original.targetCollection,
-                        date: original.date,
-                        identifier: original.identifier,
-                        source: original.source,
-                        tpenProject: projectID
-                    }
-
-                let all = []
-                for (const key in annoMap) {
-                    const anno = Object.assign({
-                        target: newID,
-                        body: { key: { value: annoMap[key] } }
-                    }, DC_ROOT_ANNOTATION)
-                    all.push(fetch(tiny + "create", {
-                        method: 'POST',
-                        mode: 'cors',
-                        body: JSON.stringify(anno)
-                    }).catch(err => console.error(err))
-                    )
                 }
-                return Promise.all(all)
+            } catch (err) {
+                console.log("Could not build list template.")
+                console.error(err)
+                return null
             }
         }
+        
     },
     version: "alpha"
-}
-
-async function matchTranscriptionRecords(list, metadata) {
-    const getFolderFromMetadata = (metaMap) => {
-        for (const m of metaMap) {
-            if (m.identifier) { return m.identifier }
-        }
-    }
-    const folder = getFolderFromMetadata(metadata).split(" F").pop()// Like "Box 3, F4"
-    const matchStr = `F${folder.padStart(3, '0')}`
-    let foundMsg = []
-    for (const f of list) {
-        if (f.collection_code === matchStr) {
-            foundMsg.push(f.id)
-        }
-    }
-    return foundMsg.join("|")
-}
-
-async function loadUDelMetadata(handle) {
-    const historyWildcard = { "$exists": true, "$size": 0 }
-    const uDelData = {
-        target: handle,
-        "__rerum.history.next": historyWildcard
-    }
-    let results = []
-    return getPagedQuery(100)
-
-    function getPagedQuery(lim, it = 0) {
-        return fetch(`${tiny}query?limit=${lim}&skip=${it}`, {
-            method: "POST",
-            mode: "cors",
-            body: JSON.stringify(uDelData)
-        }).then(response => response.json())
-            .then(list => {
-                results.push(list)
-                if (list.length ?? (list.length % lim === 0)) {
-                    return getPagedQuery(lim, it + list.length)
-                } else {
-                    return getFirstMetadataResult(results)
-                }
-            })
-    }
-    function getFirstMetadataResult(annos) {
-        if (!Array.isArray(annos)) return annos
-        for (const r of annos) {
-            const tests = r?.flat().pop().body ?? r.body
-            if (tests.length ?? tests.identifier) {
-                return tests
-            }
-        }
-    }
-}
-
-//Handled in reports/js/status.js
-// function getTranscriptionProjects(metadata) {
-//     // you must log in first, dude
-//     // fetch(`media/tpen.json`)
-//     return fetch(`http://t-pen.org/TPEN/getDunbarProjects`)
-//         .then(res => res.ok ? res.json() : Promise.reject(res))
-//         .then(list => matchTranscriptionRecords(list, metadata))
-// }
-
-const stripIDs = async (expanded) => {
-    delete expanded.__rerum
-    delete expanded['@id']
-    delete expanded.id
-    return expanded
 }
