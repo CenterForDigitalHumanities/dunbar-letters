@@ -564,13 +564,7 @@ async function loadInterfaceDLA() {
             ${data_id_attr}
             data-status="${statusListAttributes.join(" ")}"
             >
-            <h3><a target="_blank" href="${TPproxy+expandedRecord?.source?.value.replace("edu/handle", "edu/rest/handle")}">${UTILS.getLabel(expandedRecord)}</a></h3>
-            <!--
-            <div class="row">
-                <dl>
-                </dl>
-            </div>
-            -->
+            <h3><a target="_blank" href="../ms.html#${expandedRecord['@id']}">${UTILS.getLabel(expandedRecord)}</a></h3>
             <div class="row">
                 <dl>
                     ${statusListElements}
