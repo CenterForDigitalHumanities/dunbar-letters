@@ -514,7 +514,7 @@ async function loadInterfaceDLA() {
     // `
 
     const DLA_FIELDS = [
-        "name", "id", "handle"
+        "dc.title", "dc.identifier.uri", "dc.identifier.other"
         //"Author", "Subjects", "Publisher", "Language", 
         //"Date Issued", "Box ID", "Number of Pages",
         //"Collection ID", "Unique ID"
@@ -527,7 +527,7 @@ async function loadInterfaceDLA() {
 
 
     const DLA_SEARCH =[
-        "name", "id", "handle"
+        "dc.title", "dc.identifier.uri", "dc.identifier.other"
         //"Author", "Subjects", "Publisher", "Language", 
         //"Date Issued", "Box ID", "Number of Pages",
         //"Collection ID", "Unique ID"
