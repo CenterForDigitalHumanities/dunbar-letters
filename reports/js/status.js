@@ -597,14 +597,14 @@ async function loadInterfaceDLA() {
                 .then(dlaRecordInfo => {
                     let metadataMap = new Map()
                     dlaRecordInfo.metadata?.forEach(dat => {
-                        metadataMap.set(dat.label, Array.isArray(dat.value) ? dat.value.join(", ") : dat.value)
+                        metadataMap.set(dat.key, Array.isArray(dat.value) ? dat.value.join(", ") : dat.value)
                         if((Array.isArray(dat.value) && dat.value.length > 1) || dat.value.trim() !== ""){
                             //No blanks
-                            metadataMap.set(dat.label, Array.isArray(dat.value) ? dat.value.join(", ") : dat.value)
+                            metadataMap.set(dat.key, Array.isArray(dat.value) ? dat.value.join(", ") : dat.value)
                         }
-                        if (DLA_FIELDS.includes(dat.label)) {
+                        if (DLA_FIELDS.includes(dat.key)) {
                             //don't need to show any of these for the status.  Label is already showing.
-                            //dl += `<dt class="uppercase">${dat.label}</dt><dd>${metadataMap.get(dat.label)}</dd>`
+                            //dl += `<dt class="uppercase">${dat.key}</dt><dd>${metadataMap.get(dat.key)}</dd>`
                         }
                     })
                     r.setAttribute("data-query", DLA_SEARCH.reduce((a, b) => a += (metadataMap.has(b) ? metadataMap.get(b) : "*") + " ", ""))
