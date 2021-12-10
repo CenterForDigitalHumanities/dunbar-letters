@@ -51,8 +51,8 @@ async function gatherBaseData(){
  * Hey internet, I want the Dunbar Projects out of T-PEN.
  * */
 async function getTranscriptionProjects(){  
-    //return fetch(`cache/tpenShort.json`)
-    return fetch(`http://t-pen.org/TPEN/getDunbarProjects`)
+    return fetch(`.././media/tpenShort.json`)
+    //return fetch(`http://t-pen.org/TPEN/getDunbarProjects`)
     .then(res=>res.ok?res.json():[])
     .then(projects=>{
         tpenProjects = projects
@@ -846,6 +846,7 @@ function filterQuery(event) {
     const queryString = event.target.value
     let which = event.target.id.replace("_query","")
     let records = document.getElementsByClassName(which+"Record")
+    //FIXME this is hiding elements before hidden elements can be counted, and screwing up updateCount()
     Array.from(records).forEach(r => new RegExp(queryString, "i").test(r.getAttribute("data-query")) ? r.classList.remove("hide-query") : r.classList.add("hide-query"))
     //Manuscripts.querySelectorAll(".record:not([data-query*='"+queryString+"'])")
     updateCount(which)
@@ -858,6 +859,7 @@ function filterFacets(event) {
     const k = clicked.getAttribute("data-facet")
     const v = clicked.textContent
     let records = document.getElementsByClassName(which+"Record")
+    //FIXME this is hiding elements before hidden elements can be counted, and screwing up updateCount()
     Array.from(records).forEach(r => { if (!new RegExp(v, "i").test(r.getAttribute("data-" + k))) r.classList[action]("hide-facet") })
     updateCount(which)
 }
