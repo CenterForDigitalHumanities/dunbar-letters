@@ -846,7 +846,12 @@ function filterQuery(event) {
     const queryString = event.target.value
     let which = event.target.id.replace("_query","")
     let records = document.getElementsByClassName(which+"Record")
-    //FIXME this is hiding elements before hidden elements can be counted, and screwing up updateCount()
+    //FIXME
+    //I click on a facet that has 1 match, then on one that has 0 match. All elements are hidden.
+    //I click again on the facet that had 0 matches.  Now all areas become unhidden, the count ends up as ALL instead of 1.
+    //Now the count is all of all instead of 1 of all, even though my face with (1) match is still selected.
+    //Subsequent facet filtering has screwed up counts
+    //This needs to loop over each SELECTED FACET and hide/show, not just the one that was clicked.
     Array.from(records).forEach(r => new RegExp(queryString, "i").test(r.getAttribute("data-query")) ? r.classList.remove("hide-query") : r.classList.add("hide-query"))
     //Manuscripts.querySelectorAll(".record:not([data-query*='"+queryString+"'])")
     updateCount(which)
@@ -859,7 +864,12 @@ function filterFacets(event) {
     const k = clicked.getAttribute("data-facet")
     const v = clicked.textContent
     let records = document.getElementsByClassName(which+"Record")
-    //FIXME this is hiding elements before hidden elements can be counted, and screwing up updateCount()
+    //FIXME
+    //I click on a facet that has 1 match, then on one that has 0 match. All elements are hidden.
+    //I click again on the facet that had 0 matches.  Now all areas become unhidden, the count ends up as ALL instead of 1.
+    //Now the count is all of all instead of 1 of all, even though my face with (1) match is still selected.
+    //Subsequent facet filtering has screwed up counts
+    //This needs to loop over each SELECTED FACET and hide/show, not just the one that was clicked.
     Array.from(records).forEach(r => { if (!new RegExp(v, "i").test(r.getAttribute("data-" + k))) r.classList[action]("hide-facet") })
     updateCount(which)
 }
