@@ -51,8 +51,8 @@ async function gatherBaseData(){
  * Hey internet, I want the Dunbar Projects out of T-PEN.
  * */
 async function getTranscriptionProjects(){  
-    return fetch(`.././media/tpenShort.json`)
-    //return fetch(`http://t-pen.org/TPEN/getDunbarProjects`)
+    //return fetch(`.././media/tpenShort.json`)
+    return fetch(`http://t-pen.org/TPEN/getDunbarProjects`)
     .then(res=>res.ok?res.json():[])
     .then(projects=>{
         tpenProjects = projects
