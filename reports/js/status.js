@@ -503,7 +503,12 @@ async function matchTranscriptionRecords(dlaRecord) {
  * or possibly a combinations. 
  * */
 async function loadInterfaceDLA() {
+    let numLoaded = 0
+    let pct = 0
+    let dlaAreaLoadProgress = document.querySelector(".loadingProgress")
     let dlaAreaElem = document.getElementById("dla_browsable")
+    dlaAreaLoadProgress.innerHTML =`<b>${numLoaded}</b> of <b>${dlaCollection.itemListElement.length}</b> DLA records processed for statuses.  Thank you for your patience.`
+    
     // dlaAreaElem.innerHTML = `
     //     <div id="DLADocuments" class="grow wrap">list loading</div>
     //     <div class="sidebar">
@@ -573,8 +578,12 @@ async function loadInterfaceDLA() {
             </div>
         </div>
         `
+        numLoaded++
+        dlaAreaLoadProgress.innerHTML =`<b>${numLoaded}</b> of <b>${dlaCollection.itemListElement.length}</b> DLA record's metadata gathered for filters.  Thank you for your patience.`
+        pct = (numLoaded/dlaCollection.itemListElement.length) * 100
+        dlaAreaLoadProgress.style.backgroundImage = "-webkit-linear-gradient(left, green, green "+pct+"%, transparent "+pct+"%, transparent 100%)"
     }
-
+    numLoaded = 0
     dlaRecords = document.querySelectorAll(".dlaRecord")
     let dla_loading = []
     let statusSet = new Set();
@@ -609,6 +618,10 @@ async function loadInterfaceDLA() {
                         }
                     })
                     r.setAttribute("data-query", DLA_SEARCH.reduce((a, b) => a += (metadataMap.has(b) ? metadataMap.get(b) : "*") + " ", ""))
+                    numLoaded++
+                    dlaAreaLoadProgress.innerHTML =`<b>${numLoaded}</b> of <b>${dlaCollection.itemListElement.length}</b> T-PEN projects processed for statuses.  Thank you for your patience.`
+                    pct = (numLoaded/dlaCollection.itemListElement.length) * 100
+                    dlaAreaLoadProgress.style.backgroundImage = "-webkit-linear-gradient(left, green, green "+pct+"%, transparent "+pct+"%, transparent 100%)"
                     //r.querySelector("dl").innerHTML = dl
                 })
                 .catch(err => { throw Error(err) })
@@ -636,6 +649,7 @@ async function loadInterfaceTPEN() {
     let tpenAreaLoadProgress = document.querySelector(".loadingProgress")
     let numLoaded = 0
     let pct = 0
+    tpenAreaLoadProgress.innerHTML =`<b>${numLoaded}</b> of <b>${tpenProjects.length}</b> T-PEN processed for statuses.  Thank you for your patience.`
     // tpenAreaElem.innerHTML = `
     //     <div id="TPENDocuments" class="grow wrap">list loading</div>
     //     <div class="sidebar">
@@ -706,8 +720,8 @@ async function loadInterfaceTPEN() {
             </div>
         </div>
         `
-        tpenAreaLoadProgress.innerHTML =`<b>${numLoaded}</b> of <b>${tpenProjects.length}</b> T-PEN projects processed for statuses.  Thank you for your patience.`
         numLoaded++
+        tpenAreaLoadProgress.innerHTML =`<b>${numLoaded}</b> of <b>${tpenProjects.length}</b> T-PEN projects processed for statuses.  Thank you for your patience.`
         pct = (numLoaded/tpenProjects.length) * 100
         tpenAreaLoadProgress.style.backgroundImage = "-webkit-linear-gradient(left, green, green "+pct+"%, transparent "+pct+"%, transparent 100%)"
     }
@@ -726,6 +740,7 @@ async function loadInterfaceTPEN() {
         "assignees":assigneeSet
     }
     numLoaded = 0
+    tpenAreaLoadProgress.innerHTML =`<b>${numLoaded}</b> of <b>${tpenProjects.length}</b> T-PEN project's metadata gathered for filters.  Thank you for your patience.`
     Array.from(tpenRecords).forEach(r => {
         const url = r.getAttribute("data-id")
         let dl = ``
@@ -769,7 +784,7 @@ async function loadInterfaceTPEN() {
 }
 
 function populateSidebar(facets, filters, which) {
-    //The facet needs to be <facet data-facet="status" data-label="T-PEN Project Fully Parsed" data-count="1"> for each status to filter by.
+    //This happens after all prerequisite data is gathered and processed.  Get rid of the loadys and the loading progress bars/messages
     let side = `<ul>`
     let elemRoot = document.getElementById(which+"_browsable")
     for (const f in filters) {
@@ -784,6 +799,7 @@ function populateSidebar(facets, filters, which) {
     Array.from(facetsElements).forEach(el => el.addEventListener("click", filterFacets))
     updateCount(which)
     loadQuery(which)
+    //Get rid of the loadys and the loading progress bars/messages
     document.querySelector(".sidebar.loading").classList.remove("loading")
     document.querySelector(".loadingProgress").style.display = "none"
 }
