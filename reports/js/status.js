@@ -503,13 +503,14 @@ async function matchTranscriptionRecords(dlaRecord) {
  * or possibly a combinations. 
  * */
 async function loadInterfaceDLA() {
-    let numLoaded = 0
+    let numStatus = 0
+    let numMeta = 0
     let pct = 0
     let dlaAreaLoadProgress = document.querySelector(".loadingProgress")
     let dlaAreaElem = document.getElementById("dla_browsable")
 
     //Set the progress bar '0 loaded' default
-    dlaAreaLoadProgress.innerHTML =`<b>${numLoaded}</b> of <b>${dlaCollection.itemListElement.length}</b> DLA records processed for statuses.  Thank you for your patience.`
+    dlaAreaLoadProgress.innerHTML =`<b>${numStatus}</b> of <b>${dlaCollection.itemListElement.length}</b> DLA records processed for statuses.  Thank you for your patience.`
 
     const DLA_FIELDS = [
         "dc.title", "dc.identifier.uri", "dc.identifier.other"
@@ -562,9 +563,9 @@ async function loadInterfaceDLA() {
         </div>
         `
         //Incremenet the progress bar
-        numLoaded++
-        dlaAreaLoadProgress.innerHTML =`<b>${numLoaded}</b> of <b>${dlaCollection.itemListElement.length}</b> DLA records processed for statuses.  Thank you for your patience.`
-        pct = (numLoaded/dlaCollection.itemListElement.length) * 100
+        numStatus++
+        pct = Math.round((numStatus/tpenProjects.length) * 100)
+        dlaAreaLoadProgress.innerHTML =`<b>${numStatus}</b> of <b>${dlaCollection.itemListElement.length}</b> DLA records processed for statuses.  Thank you for your patience.</br><b>${pct}%</b>`
         dlaAreaLoadProgress.style.backgroundImage = "-webkit-linear-gradient(left, green, green "+pct+"%, transparent "+pct+"%, transparent 100%)"
     }
     dlaRecords = document.querySelectorAll(".dlaRecord")
@@ -580,8 +581,8 @@ async function loadInterfaceDLA() {
         "status":statusSet
     }
     //Reset the progress bar.  Set the progress bar '0 loaded' default.  This is for loading the information for facteted search, which requires asking for metadata. 
-    numLoaded = 0
-    dlaAreaLoadProgress.innerHTML =`<b>${numLoaded}</b> of <b>${dlaCollection.itemListElement.length}</b> DLA records metadata gathered.  Thank you for your patience.`
+    numMeta = 0
+    dlaAreaLoadProgress.innerHTML =`<b>${numMeta}</b> of <b>${dlaCollection.itemListElement.length}</b> DLA records metadata gathered.  Thank you for your patience.`
     dlaAreaLoadProgress.style.backgroundImage = "none"
     Array.from(dlaRecords).forEach(r => {
         const url = r.hasAttribute("data-id") ? r.getAttribute("data-id") : ""
@@ -605,9 +606,9 @@ async function loadInterfaceDLA() {
                     })
                     //Here we aren't filtering by metadata, so we don't need to build facets off the metadata
                     r.setAttribute("data-query", DLA_SEARCH.reduce((a, b) => a += (metadataMap.has(b) ? metadataMap.get(b) : "*") + " ", ""))
-                    numLoaded++
-                    dlaAreaLoadProgress.innerHTML =`<b>${numLoaded}</b> of <b>${dlaCollection.itemListElement.length}</b> DLA records metadata gathered.  Thank you for your patience.`
-                    pct = (numLoaded/dlaCollection.itemListElement.length) * 100
+                    numMeta++
+                    pct = Math.round((numMeta/dlaCollection.itemListElement.length) * 100)
+                    dlaAreaLoadProgress.innerHTML =`<b>${numMeta}</b> of <b>${dlaCollection.itemListElement.length}</b> DLA records metadata gathered.  Thank you for your patience.</br><b>${pct}%</b>`
                     dlaAreaLoadProgress.style.backgroundImage = "-webkit-linear-gradient(left, green, green "+pct+"%, transparent "+pct+"%, transparent 100%)"
                     //r.querySelector("dl").innerHTML = dl
                 })
@@ -638,10 +639,11 @@ async function loadInterfaceTPEN() {
     assigneeSet = new Set()
     let tpenAreaElem = document.getElementById("tpen_browsable")
     let tpenAreaLoadProgress = document.querySelector(".loadingProgress")
-    let numLoaded = 0
+    let numStatus = 0
+    let numMeta = 0
     let pct = 0
     //Set the progress bar '0 loaded' default
-    tpenAreaLoadProgress.innerHTML =`<b>${numLoaded}</b> of <b>${tpenProjects.length}</b> T-PEN processed for statuses.  Thank you for your patience.`
+    tpenAreaLoadProgress.innerHTML =`<b>${numStatus}</b> of <b>${tpenProjects.length}</b> T-PEN processed for statuses.  Thank you for your patience.`
     const TPEN_FIELDS = [
         "title", "subtitle", "subject", "date", "language",
         "author", "description", "location"
@@ -699,9 +701,9 @@ async function loadInterfaceTPEN() {
         </div>
         `
         //Incremenet the progress bar
-        numLoaded++
-        tpenAreaLoadProgress.innerHTML =`<b>${numLoaded}</b> of <b>${tpenProjects.length}</b> T-PEN projects processed for statuses.  Thank you for your patience.`
-        pct = (numLoaded/tpenProjects.length) * 100
+        numStatus++
+        pct = Math.round((numStatus/tpenProjects.length) * 100)
+        tpenAreaLoadProgress.innerHTML =`<b>${numStatus}</b> of <b>${tpenProjects.length}</b> T-PEN projects processed for statuses.  Thank you for your patience.</br><b>${pct}%</b>`
         tpenAreaLoadProgress.style.backgroundImage = "-webkit-linear-gradient(left, green, green "+pct+"%, transparent "+pct+"%, transparent 100%)"
     }
 
@@ -719,8 +721,7 @@ async function loadInterfaceTPEN() {
         "assignees":assigneeSet
     }
     //Reset the progress bar.  Set the progress bar '0 loaded' default.  This is for loading the information for facteted search, which requires asking for metadata. 
-    numLoaded = 0
-    tpenAreaLoadProgress.innerHTML =`<b>${numLoaded}</b> of <b>${tpenProjects.length}</b> T-PEN projects metadata gathered for filters.  Thank you for your patience.`
+    tpenAreaLoadProgress.innerHTML =`<b>${numMeta}</b> of <b>${tpenProjects.length}</b> T-PEN projects metadata gathered for filters.  Thank you for your patience.`
     Array.from(tpenRecords).forEach(r => {
         const url = r.getAttribute("data-id")
         let dl = ``
@@ -744,9 +745,9 @@ async function loadInterfaceTPEN() {
                     r.setAttribute("data-query", TPEN_SEARCH.reduce((a, b) => a += (metadataMap.has(b) ? metadataMap.get(b) : "*") + " ", ""))
                     
                     //increment the progress bar
-                    numLoaded ++
-                    tpenAreaLoadProgress.innerHTML =`<b>${numLoaded}</b> of <b>${tpenProjects.length}</b> T-PEN projects metadata gathered for filters.  Thank you for your patience.`
-                    pct = (numLoaded/tpenProjects.length) * 100
+                    numMeta ++
+                    pct = Math.round((numMeta/tpenProjects.length) * 100)
+                    tpenAreaLoadProgress.innerHTML =`<b>${numMeta}</b> of <b>${tpenProjects.length}</b> T-PEN projects metadata gathered for filters.  Thank you for your patience.</br><b>${pct}%</b>`
                     tpenAreaLoadProgress.style.backgroundImage = "-webkit-linear-gradient(left, green, green "+pct+"%, transparent "+pct+"%, transparent 100%)"
                 })
                 .catch(err => { throw Error(err) })
