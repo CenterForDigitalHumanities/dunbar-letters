@@ -28,7 +28,6 @@
         }
 
         #tpen_browsable{
-            margin-top: 1em;
             border-top: 3px solid green;
             border-left: 1px solid black;
             border-right: 1px solid black;
@@ -55,11 +54,13 @@
             text-transform: capitalize;
         }
         .sidebar.loading{
-            background-image: url("../../images/loading.gif");
+            background-image: url(".././images/loading.gif");
             background-color: rgba(20, 133, 79, .5);
         }
         .loadingProgress{
-
+            color: lightgrey;
+            text-align: left;
+            padding:  10px;
         }
 
         /*.uppercase:first-letter {
@@ -75,9 +76,8 @@
             <a href="../manuscripts.html">📚 View Manuscripts</a>
         </div>
     </gm-header>
-
+    <div class="loadingProgress"> </div>
     <div id="tpen_browsable" class="container reverse">
-        <div class="loadingProgress"> </div>
         <div id="TPENDocuments" class="grow wrap"></div>
         <div class="sidebar loading">
             <h3>Refine Results <button role="button" id="tpenQueryReset">clear all</button></h3>

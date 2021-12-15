@@ -633,9 +633,9 @@ async function loadInterfaceDLA() {
 async function loadInterfaceTPEN() {
     assigneeSet = new Set()
     let tpenAreaElem = document.getElementById("tpen_browsable")
-    let tpenAreaLoadProgress = tpenAreaElem.querySelector(".loadingProgress")
+    let tpenAreaLoadProgress = document.querySelector(".loadingProgress")
     let numLoaded = 0
-    
+    let pct = 0
     // tpenAreaElem.innerHTML = `
     //     <div id="TPENDocuments" class="grow wrap">list loading</div>
     //     <div class="sidebar">
@@ -708,6 +708,8 @@ async function loadInterfaceTPEN() {
         `
         tpenAreaLoadProgress.innerHTML =`<b>${numLoaded}</b> of <b>${tpenProjects.length}</b> T-PEN projects processed for statuses.  Thank you for your patience.`
         numLoaded++
+        pct = (numLoaded/tpenProjects.length) * 100
+        tpenAreaLoadProgress.style.backgroundImage = "-webkit-linear-gradient(left, green, green "+pct+"%, transparent "+pct+"%, transparent 100%)"
     }
 
     tpenRecords = document.querySelectorAll(".tpenRecord")
@@ -747,6 +749,8 @@ async function loadInterfaceTPEN() {
                     r.setAttribute("data-query", TPEN_SEARCH.reduce((a, b) => a += (metadataMap.has(b) ? metadataMap.get(b) : "*") + " ", ""))
                     numLoaded ++
                     tpenAreaLoadProgress.innerHTML =`<b>${numLoaded}</b> of <b>${tpenProjects.length}</b> T-PEN project's metadata gathered for filters.  Thank you for your patience.`
+                    pct = (numLoaded/tpenProjects.length) * 100
+                    tpenAreaLoadProgress.style.backgroundImage = "-webkit-linear-gradient(left, green, green "+pct+"%, transparent "+pct+"%, transparent 100%)"
                     //Not building this dl object out right now
                     //r.querySelector("dl").innerHTML = dl
                 })
