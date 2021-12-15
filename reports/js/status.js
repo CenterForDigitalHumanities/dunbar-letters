@@ -51,8 +51,8 @@ async function gatherBaseData(){
  * Hey internet, I want the Dunbar Projects out of T-PEN.
  * */
 async function getTranscriptionProjects(){  
-    //return fetch(`.././media/tpenShort.json`)
-    return fetch(`http://t-pen.org/TPEN/getDunbarProjects`)
+    return fetch(`.././media/tpenShort.json`)
+    //return fetch(`http://t-pen.org/TPEN/getDunbarProjects`)
     .then(res=>res.ok?res.json():[])
     .then(projects=>{
         tpenProjects = projects
@@ -73,7 +73,8 @@ async function getTranscriptionProjects(){
  * Get the DLA managed list from RERUM
  */
 async function getDLAManagedList(){
-    const managedList = "http://store.rerum.io/v1/id/61ae693050c86821e60b5d13"
+    //const managedList = "http://store.rerum.io/v1/id/61ae693050c86821e60b5d13"
+    const managedList = ".././media/recordsShort.json"
     if(dlaCollection.itemListElement.length === 0){
         return fetch(managedList, {
             method: "GET",
@@ -632,7 +633,9 @@ async function loadInterfaceDLA() {
 async function loadInterfaceTPEN() {
     assigneeSet = new Set()
     let tpenAreaElem = document.getElementById("tpen_browsable")
-
+    let tpenAreaLoadProgress = tpenAreaElem.querySelector(".loadingProgress")
+    let numLoaded = 0
+    
     // tpenAreaElem.innerHTML = `
     //     <div id="TPENDocuments" class="grow wrap">list loading</div>
     //     <div class="sidebar">
@@ -703,6 +706,8 @@ async function loadInterfaceTPEN() {
             </div>
         </div>
         `
+        tpenAreaLoadProgress.innerHTML =`<b>${numLoaded}</b> of <b>${tpenProjects.length}</b> T-PEN projects processed for statuses.  Thank you for your patience.`
+        numLoaded++
     }
 
     tpenRecords = document.querySelectorAll(".tpenRecord")
@@ -718,6 +723,7 @@ async function loadInterfaceTPEN() {
         "status":statusSet,
         "assignees":assigneeSet
     }
+    numLoaded = 0
     Array.from(tpenRecords).forEach(r => {
         const url = r.getAttribute("data-id")
         let dl = ``
@@ -739,6 +745,8 @@ async function loadInterfaceTPEN() {
                     })
                     //Here we aren't filtering by metadata, so we don't need to build facets off the metadata
                     r.setAttribute("data-query", TPEN_SEARCH.reduce((a, b) => a += (metadataMap.has(b) ? metadataMap.get(b) : "*") + " ", ""))
+                    numLoaded ++
+                    tpenAreaLoadProgress.innerHTML =`<b>${numLoaded}</b> of <b>${tpenProjects.length}</b> T-PEN project's metadata gathered for filters.  Thank you for your patience.`
                     //Not building this dl object out right now
                     //r.querySelector("dl").innerHTML = dl
                 })
@@ -772,6 +780,8 @@ function populateSidebar(facets, filters, which) {
     Array.from(facetsElements).forEach(el => el.addEventListener("click", filterFacets))
     updateCount(which)
     loadQuery(which)
+    document.querySelector(".sidebar.loading").classList.remove("loading")
+    document.querySelector(".loadingProgress").style.display = "none"
 }
 
 function updateCount(which) {

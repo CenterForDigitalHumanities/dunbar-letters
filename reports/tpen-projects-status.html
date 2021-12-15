@@ -54,6 +54,13 @@
         .uppercase{
             text-transform: capitalize;
         }
+        .sidebar.loading{
+            background-image: url("../../images/loading.gif");
+            background-color: rgba(20, 133, 79, .5);
+        }
+        .loadingProgress{
+
+        }
 
         /*.uppercase:first-letter {
             text-transform: uppercase;
@@ -70,10 +77,11 @@
     </gm-header>
 
     <div id="tpen_browsable" class="container reverse">
-        <div id="TPENDocuments" class="grow wrap">list loading</div>
-        <div class="sidebar">
+        <div class="loadingProgress"> </div>
+        <div id="TPENDocuments" class="grow wrap"></div>
+        <div class="sidebar loading">
             <h3>Refine Results <button role="button" id="tpenQueryReset">clear all</button></h3>
-            <progress value="107" max="107">107 of 107</progress>
+            <progress value="107" max="107"></progress>
             <input id="tpen_query" type="text" placeholder="type to filter">
             <section id="tpenFacetFilter"></section>
         </div>
