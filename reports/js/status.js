@@ -20,18 +20,43 @@ const tpenManifestPrefix = "http://t-pen.org/TPEN/project/"
 const tpenProjectPrefix = "http://t-pen.org/TPEN/transcription.html?projectID="
 const TPproxy = "http://tinypaul.rerum.io/dla/proxy?url="
 let progress = undefined
-
+const CACHE_CONTROL = "no-cache, max-age=30, must-revalidate"
 //Load it up on paage load!
 gatherBaseData()
 
-function backgroundCSS(percent){
-    let crossBrowserFriendly = `
-    linear-gradient(left, green, green ${{pct}}%, transparent ${{pct}}%, transparent 100%);
-    -webkit-linear-gradient(left, green, green ${{pct}}%, transparent ${{pct}}%, transparent 100%);
-    -moz-linear-gradient(left, green, green ${{pct}}%, transparent ${{pct}}%, transparent 100%);
-    -o-linear-gradient(left, green, green ${{pct}}%, transparent ${{pct}}%, transparent 100%);
-    `
-    return crossBrowserFriendly
+function backgroundCSS(pct){
+    let backgroundImageCSS = (function() {
+        let test = function(regexp) {return regexp.test(window.navigator.userAgent)}
+        switch (true) {
+            case test(/edg/i): 
+            //Microsoft Edge
+                return `-ms-linear-gradient(left, green, green ${pct}%, transparent ${pct}%, transparent 100%)`
+            case test(/trident/i): 
+            //Microsoft Internet Explorer
+                return `-ms-linear-gradient(left, green, green ${pct}%, transparent ${pct}%, transparent 100%)`
+            case test(/firefox|fxios/i): 
+            //Mozilla Firefox
+                return `-moz-linear-gradient(left, green, green ${pct}%, transparent ${pct}%, transparent 100%)`
+            case test(/opr\//i): 
+            //Opera
+                return `-o-linear-gradient(left, green, green ${pct}%, transparent ${pct}%, transparent 100%)`
+            case test(/ucbrowser/i): 
+            //UC browser
+                return `-webkit-linear-gradient(left, green, green ${pct}%, transparent ${pct}%, transparent 100%)`
+            case test(/samsungbrowser/i): 
+            //Samsung Browser
+                return `-webkit-linear-gradient(left, green, green ${pct}%, transparent ${pct}%, transparent 100%)`
+            case test(/chrome|chromium|crios/i): 
+            //Google Chrome
+                return `-webkit-linear-gradient(left, green, green ${pct}%, transparent ${pct}%, transparent 100%)`
+            case test(/safari/i): 
+            //Apple Safari
+                return `-webkit-linear-gradient(left, green, green ${pct}%, transparent ${pct}%, transparent 100%)`
+            default: 
+                return `Other`
+    }
+    })()
+    return backgroundImageCSS+""
 }
 
 /**
@@ -429,7 +454,7 @@ async function fetchQuery(params){
     //May have to page these in the future
     return statlimiter(() => fetch("http://tinypaul.rerum.io/dla/query", {
             method: 'POST',
-            cache: "no-cache"
+            cache: "no-cache",
             mode: 'cors',
             body: JSON.stringify(queryObj)
         })
