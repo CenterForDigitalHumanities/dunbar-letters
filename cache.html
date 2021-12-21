@@ -14,7 +14,6 @@
         const CACHE_CONTROL = "default"
         async function run(){
 
-            // TPEN project 4080.  Can add Cache-Control to
             let a_start = performance.now()
             let a = await fetch("http://165.134.105.25:8181/TPEN28/project/4080", {
                 method: "GET",
@@ -37,18 +36,18 @@
             let b_time = b_end - b_start
             console.log("The list from RERUM took "+b_time+"ms.")
 
-            let q = {"type":"Person"}
-            let c_start = performance.now()
-            let c = await fetch("http://tinydev.rerum.io/app/query", {
-                method: "POST",
-                cache: CACHE_CONTROL,
-                mode: "cors",
-                body: JSON.stringify(q)
-            }) 
-            .then(r => r.json())
-            let c_end = performance.now()
-            let c_time = c_end - c_start
-            console.log("The query through TT to RERUM took "+c_time+"ms.")
+            // let q = {"type":"Person"}
+            // let c_start = performance.now()
+            // let c = await fetch("http://tinydev.rerum.io/app/query", {
+            //     method: "POST",
+            //     cache: CACHE_CONTROL,
+            //     mode: "cors",
+            //     body: JSON.stringify(q)
+            // }) 
+            // .then(r => r.json())
+            // let c_end = performance.now()
+            // let c_time = c_end - c_start
+            // console.log("The query through TT to RERUM took "+c_time+"ms.")
             
             let d_start = performance.now()
             let d = await fetch("http://165.134.105.25:8181/TPEN28/getDunbarProjects", {
@@ -70,7 +69,7 @@
             .then(r => r.text())
             let e_end = performance.now();
             let e_time = e_end - e_start
-            console.log("Getting file from bucket took "+d_time+"ms.")
+            console.log("Getting file from bucket took "+e_time+"ms.")
             console.log(e)
 
         }
