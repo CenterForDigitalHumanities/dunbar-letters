@@ -85,20 +85,19 @@ async function gatherBaseData(){
  * Hey internet, I want the Dunbar Projects out of T-PEN.
  * */
 async function getTranscriptionProjects(){  
-    return fetch(".././media/tpenShort.json",
-    {
-        method: "GET",
-        cache: "default",
-        mode: "cors"
-    })
-    /*
+    // return fetch(".././media/tpenShort.json",
+    // {
+    //     method: "GET",
+    //     cache: "default",
+    //     mode: "cors"
+    // })
+    
     return fetch(`http://t-pen.org/TPEN/getDunbarProjects`, 
     {
         method: "GET",
         cache: "default",
         mode: "cors"
     })
-    */
     .then(res=>res.ok?res.json():[])
     .then(projects=>{
         tpenProjects = projects
@@ -119,8 +118,8 @@ async function getTranscriptionProjects(){
  * Get the DLA managed list from RERUM
  */
 async function getDLAManagedList(){
-    //const managedList = "http://store.rerum.io/v1/id/61ae693050c86821e60b5d13"
-    const managedList = ".././media/recordsShort.json"
+    const managedList = "http://store.rerum.io/v1/id/61ae693050c86821e60b5d13"
+    //const managedList = ".././media/recordsShort.json"
     if(dlaCollection.itemListElement.length === 0){
         return fetch(managedList, {
             method: "GET",
