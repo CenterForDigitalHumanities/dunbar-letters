@@ -20,7 +20,6 @@ const tpenManifestPrefix = "http://t-pen.org/TPEN/project/"
 const tpenProjectPrefix = "http://t-pen.org/TPEN/transcription.html?projectID="
 const TPproxy = "http://tinypaul.rerum.io/dla/proxy?url="
 let progress = undefined
-const CACHE_CONTROL = "no-cache, max-age=30, must-revalidate"
 //Load it up on paage load!
 gatherBaseData()
 
@@ -89,14 +88,14 @@ async function getTranscriptionProjects(){
     return fetch(".././media/tpenShort.json",
     {
         method: "GET",
-        cache: "no-cache",
+        cache: "default",
         mode: "cors"
     })
     /*
     return fetch(`http://t-pen.org/TPEN/getDunbarProjects`, 
     {
         method: "GET",
-        cache: "no-cache",
+        cache: "default",
         mode: "cors"
     })
     */
@@ -125,7 +124,7 @@ async function getDLAManagedList(){
     if(dlaCollection.itemListElement.length === 0){
         return fetch(managedList, {
             method: "GET",
-            cache: "no-cache",
+            cache: "default",
             mode: "cors"
         })
         .then(response => response.json())
@@ -151,7 +150,7 @@ async function getDLAReleasedList(){
     if(dlaReleasedCollection.itemListElement.length === 0){
         return fetch(releasedListURI, {
             method: "GET",
-            cache: "no-cache",
+            cache: "default",
             mode: "cors"
         })
         .then(response => response.json())
@@ -206,7 +205,7 @@ async function getLetterCollectionFromRERUM(){
         return fetch(`http://tinypaul.rerum.io/dla/query?limit=${lim}&skip=${it}`, {
             method: "POST",
             mode: "cors",
-            cache: "no-cache",
+            //cache: "default",
             body: JSON.stringify(queryObj)
         })
         .then(response => response.json())
@@ -454,7 +453,7 @@ async function fetchQuery(params){
     //May have to page these in the future
     return statlimiter(() => fetch("http://tinypaul.rerum.io/dla/query", {
             method: 'POST',
-            cache: "no-cache",
+            //cache: "default",
             mode: 'cors',
             body: JSON.stringify(queryObj)
         })
@@ -490,7 +489,7 @@ async function findUdelRecordWithCode(Fcode, projID) {
         match = await statlimiter(() => fetch(metadataUri, 
             {
                 method: "GET",
-                cache: "no-cache",
+                cache: "default",
                 mode: "cors"
             })
             .then(res => res.ok ? res.json() : Promise.reject(res))
@@ -532,7 +531,7 @@ async function matchTranscriptionRecords(dlaRecord) {
         return await statlimiter(() => fetch(metadataUri, 
             {
                 method: "GET",
-                cache: "no-cache",
+                cache: "default",
                 mode: "cors"
             })
             .then(res => res.ok ? res.json() : Promise.reject(res))
@@ -650,7 +649,7 @@ async function loadInterfaceDLA() {
             dla_loading.push(statlimiter(() => fetch(url, 
                 {
                     method: "GET",
-                    cache: "no-cache",
+                    cache: "default",
                     mode: "cors"
                 })
                 .then(status => { if (!status.ok) { throw Error(status) } return status })
@@ -792,7 +791,7 @@ async function loadInterfaceTPEN() {
         tpen_loading.push(statlimiter(() => fetch(url, 
                 {
                     method: "GET",
-                    cache: "no-cache",
+                    cache: "default",
                     mode: "cors"
                 })
                 .then(status => { if (!status.ok) { throw Error(status) } return status })
