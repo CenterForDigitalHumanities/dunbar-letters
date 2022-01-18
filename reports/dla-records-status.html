@@ -48,6 +48,17 @@
             text-transform: capitalize;
         }
 
+        .sidebar.loading{
+            background-image: url(".././images/loading.gif");
+            background-color: rgba(20, 133, 79, .5);
+        }
+        .loadingProgress{
+            color: lightgrey;
+            text-align: left;
+            padding:  10px;
+            border: 2px dotted black;
+        }
+
         /*.uppercase:first-letter {
             text-transform: uppercase;
         }*/
@@ -63,9 +74,10 @@
         </div>
     </gm-header>
 
+    <div class="loadingProgress"> </div>
     <div id="dla_browsable" class="container reverse">
         <div id="DLADocuments" class="grow wrap">list loading</div>
-        <div class="sidebar">
+        <div class="sidebar loading">
             <h3>Refine Results <button role="button" id="dlaQueryReset">clear all</button></h3>
             <progress value="107" max="107">107 of 107</progress>
             <input id="dla_query" type="text" placeholder="type to filter">

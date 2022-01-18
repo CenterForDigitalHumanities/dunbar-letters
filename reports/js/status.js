@@ -20,9 +20,43 @@ const tpenManifestPrefix = "http://t-pen.org/TPEN/project/"
 const tpenProjectPrefix = "http://t-pen.org/TPEN/transcription.html?projectID="
 const TPproxy = "http://tinypaul.rerum.io/dla/proxy?url="
 let progress = undefined
-
 //Load it up on paage load!
 gatherBaseData()
+
+function backgroundCSS(pct){
+    let backgroundImageCSS = (function() {
+        let test = function(regexp) {return regexp.test(window.navigator.userAgent)}
+        switch (true) {
+            case test(/edg/i): 
+            //Microsoft Edge
+                return `-ms-linear-gradient(left, green, green ${pct}%, transparent ${pct}%, transparent 100%)`
+            case test(/trident/i): 
+            //Microsoft Internet Explorer
+                return `-ms-linear-gradient(left, green, green ${pct}%, transparent ${pct}%, transparent 100%)`
+            case test(/firefox|fxios/i): 
+            //Mozilla Firefox
+                return `-moz-linear-gradient(left, green, green ${pct}%, transparent ${pct}%, transparent 100%)`
+            case test(/opr\//i): 
+            //Opera
+                return `-o-linear-gradient(left, green, green ${pct}%, transparent ${pct}%, transparent 100%)`
+            case test(/ucbrowser/i): 
+            //UC browser
+                return `-webkit-linear-gradient(left, green, green ${pct}%, transparent ${pct}%, transparent 100%)`
+            case test(/samsungbrowser/i): 
+            //Samsung Browser
+                return `-webkit-linear-gradient(left, green, green ${pct}%, transparent ${pct}%, transparent 100%)`
+            case test(/chrome|chromium|crios/i): 
+            //Google Chrome
+                return `-webkit-linear-gradient(left, green, green ${pct}%, transparent ${pct}%, transparent 100%)`
+            case test(/safari/i): 
+            //Apple Safari
+                return `-webkit-linear-gradient(left, green, green ${pct}%, transparent ${pct}%, transparent 100%)`
+            default: 
+                return `Other`
+    }
+    })()
+    return backgroundImageCSS+""
+}
 
 /**
  * Get all the data needed to generate the reports
@@ -51,8 +85,19 @@ async function gatherBaseData(){
  * Hey internet, I want the Dunbar Projects out of T-PEN.
  * */
 async function getTranscriptionProjects(){  
-    //return fetch(`.././media/tpenShort.json`)
-    return fetch(`http://t-pen.org/TPEN/getDunbarProjects`)
+    // return fetch(".././media/tpenShort.json",
+    // {
+    //     method: "GET",
+    //     cache: "default",
+    //     mode: "cors"
+    // })
+    
+    return fetch(`http://t-pen.org/TPEN/getDunbarProjects`, 
+    {
+        method: "GET",
+        cache: "default",
+        mode: "cors"
+    })
     .then(res=>res.ok?res.json():[])
     .then(projects=>{
         tpenProjects = projects
@@ -74,10 +119,11 @@ async function getTranscriptionProjects(){
  */
 async function getDLAManagedList(){
     const managedList = "http://store.rerum.io/v1/id/61ae693050c86821e60b5d13"
+    //const managedList = ".././media/recordsShort.json"
     if(dlaCollection.itemListElement.length === 0){
         return fetch(managedList, {
             method: "GET",
-            cache: "force-cache",
+            cache: "default",
             mode: "cors"
         })
         .then(response => response.json())
@@ -103,7 +149,7 @@ async function getDLAReleasedList(){
     if(dlaReleasedCollection.itemListElement.length === 0){
         return fetch(releasedListURI, {
             method: "GET",
-            cache: "force-cache",
+            cache: "default",
             mode: "cors"
         })
         .then(response => response.json())
@@ -158,7 +204,7 @@ async function getLetterCollectionFromRERUM(){
         return fetch(`http://tinypaul.rerum.io/dla/query?limit=${lim}&skip=${it}`, {
             method: "POST",
             mode: "cors",
-            cache: "force-cache",
+            //cache: "default",
             body: JSON.stringify(queryObj)
         })
         .then(response => response.json())
@@ -406,6 +452,7 @@ async function fetchQuery(params){
     //May have to page these in the future
     return statlimiter(() => fetch("http://tinypaul.rerum.io/dla/query", {
             method: 'POST',
+            //cache: "default",
             mode: 'cors',
             body: JSON.stringify(queryObj)
         })
@@ -438,7 +485,12 @@ async function findUdelRecordWithCode(Fcode, projID) {
     let itemHandle = ""
     for(const item of dlaCollection.itemListElement){
         const metadataUri = TPproxy + item?.source?.value.replace("edu/handle", "edu/rest/handle")+"?expand=metadata"
-        match = await statlimiter(() => fetch(metadataUri)
+        match = await statlimiter(() => fetch(metadataUri, 
+            {
+                method: "GET",
+                cache: "default",
+                mode: "cors"
+            })
             .then(res => res.ok ? res.json() : Promise.reject(res))
             .then(meta => getFolderFromMetadata(meta.metadata))
             .then(folderString => {
@@ -475,7 +527,12 @@ async function findUdelRecordWithCode(Fcode, projID) {
 async function matchTranscriptionRecords(dlaRecord) {
     const metadataUri = TPproxy + dlaRecord?.source?.value.replace("edu/handle", "edu/rest/handle")+"?expand=metadata"
     if(metadataUri.indexOf("undefined") === -1){
-        return await statlimiter(() => fetch(metadataUri)
+        return await statlimiter(() => fetch(metadataUri, 
+            {
+                method: "GET",
+                cache: "default",
+                mode: "cors"
+            })
             .then(res => res.ok ? res.json() : Promise.reject(res))
             .then(meta => getFolderFromMetadata(meta.metadata))
             .then(folderString => folderString.split(" F").pop()) // Like "Box 3, F4"
@@ -502,36 +559,25 @@ async function matchTranscriptionRecords(dlaRecord) {
  * or possibly a combinations. 
  * */
 async function loadInterfaceDLA() {
+    let numStatus = 0
+    let numMeta = 0
+    let pct = 0
+    let dlaAreaLoadProgress = document.querySelector(".loadingProgress")
     let dlaAreaElem = document.getElementById("dla_browsable")
-    // dlaAreaElem.innerHTML = `
-    //     <div id="DLADocuments" class="grow wrap">list loading</div>
-    //     <div class="sidebar">
-    //         <h3>Refine Results <button role="button" id="dlaQueryReset">clear all</button></h3>
-    //         <progress value="107" max="107">107 of 107</progress>
-    //         <input id="query" type="text" placeholder="type to filter">
-    //         <section id="dlaFacetFilter"></section>
-    //     </div>
-    // `
+
+    //Set the progress bar '0 loaded' default
+    dlaAreaLoadProgress.innerHTML =`<b>${numStatus}</b> of <b>${dlaCollection.itemListElement.length}</b> DLA records processed for statuses.  Thank you for your patience.`
 
     const DLA_FIELDS = [
         "dc.title", "dc.identifier.uri", "dc.identifier.other"
-        //"Author", "Subjects", "Publisher", "Language", 
-        //"Date Issued", "Box ID", "Number of Pages",
-        //"Collection ID", "Unique ID"
-        // script, decoration, physical description
     ]
 
     const DLA_FILTERS = {
         Status: "status"
     }
 
-
     const DLA_SEARCH =[
         "dc.title", "dc.identifier.uri", "dc.identifier.other"
-        //"Author", "Subjects", "Publisher", "Language", 
-        //"Date Issued", "Box ID", "Number of Pages",
-        //"Collection ID", "Unique ID"
-        // script, decoration, physical description
     ]
 
     const statusesToFind = [
@@ -572,8 +618,13 @@ async function loadInterfaceDLA() {
             </div>
         </div>
         `
+        //Incremenet the progress bar
+        numStatus++
+        pct = Math.round((numStatus/tpenProjects.length) * 100)
+        dlaAreaLoadProgress.innerHTML =`<b>${numStatus}</b> of <b>${dlaCollection.itemListElement.length}</b> DLA records processed for statuses.  Thank you for your patience.</br><b>${pct}%</b>`
+        dlaAreaLoadProgress.style.backgroundImage = backgroundCSS(pct)
+        
     }
-
     dlaRecords = document.querySelectorAll(".dlaRecord")
     let dla_loading = []
     let statusSet = new Set();
@@ -586,12 +637,20 @@ async function loadInterfaceDLA() {
     let dla_facets = {
         "status":statusSet
     }
-
+    //Reset the progress bar.  Set the progress bar '0 loaded' default.  This is for loading the information for facteted search, which requires asking for metadata. 
+    numMeta = 0
+    dlaAreaLoadProgress.innerHTML =`<b>${numMeta}</b> of <b>${dlaCollection.itemListElement.length}</b> DLA records metadata gathered.  Thank you for your patience.`
+    dlaAreaLoadProgress.style.backgroundImage = "none"
     Array.from(dlaRecords).forEach(r => {
         const url = r.hasAttribute("data-id") ? r.getAttribute("data-id") : ""
         let dl = ``
         if(url){
-            dla_loading.push(statlimiter(() => fetch(url)
+            dla_loading.push(statlimiter(() => fetch(url, 
+                {
+                    method: "GET",
+                    cache: "default",
+                    mode: "cors"
+                })
                 .then(status => { if (!status.ok) { throw Error(status) } return status })
                 .then(response => response.json())
                 .then(dlaRecordInfo => {
@@ -607,7 +666,12 @@ async function loadInterfaceDLA() {
                             //dl += `<dt class="uppercase">${dat.key}</dt><dd>${metadataMap.get(dat.key)}</dd>`
                         }
                     })
+                    //Here we aren't filtering by metadata, so we don't need to build facets off the metadata
                     r.setAttribute("data-query", DLA_SEARCH.reduce((a, b) => a += (metadataMap.has(b) ? metadataMap.get(b) : "*") + " ", ""))
+                    numMeta++
+                    pct = Math.round((numMeta/dlaCollection.itemListElement.length) * 100)
+                    dlaAreaLoadProgress.innerHTML =`<b>${numMeta}</b> of <b>${dlaCollection.itemListElement.length}</b> DLA records metadata gathered.  Thank you for your patience.</br><b>${pct}%</b>`
+                    dlaAreaLoadProgress.style.backgroundImage = backgroundCSS(pct)
                     //r.querySelector("dl").innerHTML = dl
                 })
                 .catch(err => { throw Error(err) })
@@ -619,6 +683,10 @@ async function loadInterfaceDLA() {
     return Promise.all(dla_loading).
     then(() => {
         populateSidebar(dla_facets, DLA_FILTERS, "dla")
+        //Now we know everything is loaded, so we can get rid of all the loading progress stuff.
+        //Get rid of the loadys and the loading progress bars/messages
+        document.querySelector(".sidebar.loading").classList.remove("loading")
+        document.querySelector(".loadingProgress").style.display = "none"
         let e = new CustomEvent("dla-interface-loaded", { bubbles: true })
         document.dispatchEvent(e)
     })
@@ -632,16 +700,12 @@ async function loadInterfaceDLA() {
 async function loadInterfaceTPEN() {
     assigneeSet = new Set()
     let tpenAreaElem = document.getElementById("tpen_browsable")
-
-    // tpenAreaElem.innerHTML = `
-    //     <div id="TPENDocuments" class="grow wrap">list loading</div>
-    //     <div class="sidebar">
-    //         <h3>Refine Results <button role="button" id="tpenQueryReset">clear all</button></h3>
-    //         <progress value="107" max="107">107 of 107</progress>
-    //         <input id="tpen_query" type="text" placeholder="type to filter">
-    //         <section id="tpenFacetFilter"></section>
-    //     </div>
-    // `
+    let tpenAreaLoadProgress = document.querySelector(".loadingProgress")
+    let numStatus = 0
+    let numMeta = 0
+    let pct = 0
+    //Set the progress bar '0 loaded' default
+    tpenAreaLoadProgress.innerHTML =`<b>${numStatus}</b> of <b>${tpenProjects.length}</b> T-PEN processed for statuses.  Thank you for your patience.`
     const TPEN_FIELDS = [
         "title", "subtitle", "subject", "date", "language",
         "author", "description", "location"
@@ -651,11 +715,6 @@ async function loadInterfaceTPEN() {
         Status: "status",
         Assignee : "assignees"
     }
-
-    // const TPEN_FILTERS = {
-    //     T-PEN Project Fully Parsed: "false", T-PEN Project Assigned: "false", T-PEN Project Partially Transcribed:"false",
-    //     T-PEN Project Fully Transcribed: "false", T-PEN Project Linked to Delaware Records:"false", Well Described:"false"
-    // }
 
     const TPEN_SEARCH = [
         "title", "subtitle", "subject", "date", "language",
@@ -703,6 +762,11 @@ async function loadInterfaceTPEN() {
             </div>
         </div>
         `
+        //Incremenet the progress bar
+        numStatus++
+        pct = Math.round((numStatus/tpenProjects.length) * 100)
+        tpenAreaLoadProgress.innerHTML =`<b>${numStatus}</b> of <b>${tpenProjects.length}</b> T-PEN projects processed for statuses.  Thank you for your patience.</br><b>${pct}%</b>`
+        tpenAreaLoadProgress.style.backgroundImage = backgroundCSS(pct)
     }
 
     tpenRecords = document.querySelectorAll(".tpenRecord")
@@ -718,10 +782,17 @@ async function loadInterfaceTPEN() {
         "status":statusSet,
         "assignees":assigneeSet
     }
+    //Reset the progress bar.  Set the progress bar '0 loaded' default.  This is for loading the information for facteted search, which requires asking for metadata. 
+    tpenAreaLoadProgress.innerHTML =`<b>${numMeta}</b> of <b>${tpenProjects.length}</b> T-PEN projects metadata gathered for filters.  Thank you for your patience.`
     Array.from(tpenRecords).forEach(r => {
         const url = r.getAttribute("data-id")
         let dl = ``
-        tpen_loading.push(statlimiter(() => fetch(url)
+        tpen_loading.push(statlimiter(() => fetch(url, 
+                {
+                    method: "GET",
+                    cache: "default",
+                    mode: "cors"
+                })
                 .then(status => { if (!status.ok) { throw Error(status) } return status })
                 .then(response => response.json())
                 .then(tpenProject => {
@@ -739,8 +810,12 @@ async function loadInterfaceTPEN() {
                     })
                     //Here we aren't filtering by metadata, so we don't need to build facets off the metadata
                     r.setAttribute("data-query", TPEN_SEARCH.reduce((a, b) => a += (metadataMap.has(b) ? metadataMap.get(b) : "*") + " ", ""))
-                    //Not building this dl object out right now
-                    //r.querySelector("dl").innerHTML = dl
+                    
+                    //increment the progress bar
+                    numMeta ++
+                    pct = Math.round((numMeta/tpenProjects.length) * 100)
+                    tpenAreaLoadProgress.innerHTML =`<b>${numMeta}</b> of <b>${tpenProjects.length}</b> T-PEN projects metadata gathered for filters.  Thank you for your patience.</br><b>${pct}%</b>`
+                    tpenAreaLoadProgress.style.backgroundImage = backgroundCSS(pct)
                 })
                 .catch(err => { throw Error(err) })
             )
@@ -750,6 +825,10 @@ async function loadInterfaceTPEN() {
     return Promise.all(tpen_loading)
     .then(() => {
         populateSidebar(tpen_facets, TPEN_FILTERS, "tpen")
+        //Now we know everything is loaded, so we can get rid of all the loading progress stuff.
+        //Get rid of the loadys and the loading progress bars/messages
+        document.querySelector(".sidebar.loading").classList.remove("loading")
+        document.querySelector(".loadingProgress").style.display = "none"
         let e = new CustomEvent("tpen-interface-loaded", { bubbles: true })
         document.dispatchEvent(e)
     })
@@ -757,7 +836,7 @@ async function loadInterfaceTPEN() {
 }
 
 function populateSidebar(facets, filters, which) {
-    //The facet needs to be <facet data-facet="status" data-label="T-PEN Project Fully Parsed" data-count="1"> for each status to filter by.
+    //This happens after all prerequisite data is gathered and processed.  Get rid of the loadys and the loading progress bars/messages
     let side = `<ul>`
     let elemRoot = document.getElementById(which+"_browsable")
     for (const f in filters) {
