@@ -5,6 +5,7 @@
     <title>Dunbar Letters</title>
     <link rel="stylesheet" href="css/gloss.css">
     <link href="favicon.ico" rel="icon" type="image/x-icon" />
+    <script src="js/auth.js" type="module"></script>
 </head>
 
 <body class="container">
@@ -14,6 +15,8 @@
             <a href="./index.html">🏠</a>
             <a href="./manuscripts.html">📚 View Manuscripts</a>
         </div>
+        <button is="auth-button">login</button>
+
     </gm-header>
     <form id="letter" deer-type="PhysicalResource" deer-context="http://purl.org/dc/terms">
         <input type="hidden" deer-key="targetCollection"

@@ -15,15 +15,36 @@ const webAuth = new auth0.WebAuth({
     "state": btoa(encodeURIComponent(location.href))
 })
 
-webAuth.checkSession({}, (err, result) => {
-    localStorage.setItem("recent", location)
-    if (err) { webAuth.authorize() }
-    const referringPage = decodeURIComponent(atob(result.state))
-    if (referringPage !== location.href) { location.href = referringPage }
-    localStorage.setItem("userToken", result.idToken)
-    window.DLA_USER = result.idTokenPayload
-})
+const logout = () => webAuth.logout({ returnTo: origin })
 
-// if (confirm("logout?")) {
-//     webAuth.logout({returnTo:origin})
-// }
+const getReferringPage = () => {
+    try {
+        return decodeURIComponent(atob(decodeURIComponent(location.hash.split("state=")[1].split("&")[0])))
+    } catch (err) {
+        return false
+    }
+}
+
+class AuthButton extends HTMLButtonElement {
+    constructor() {
+        super()
+        this.onclick = logout
+    }
+
+    connectedCallback() {
+        webAuth.checkSession({}, (err, result) => {
+            if (err) {
+                if (this.getAttribute('disabled') !== null) { return }
+                webAuth.authorize({ authParamsMap: { 'app': 'dla' } })
+            }
+            const ref = getReferringPage()
+            if (ref && ref !== location.href) { location.href = ref }
+            localStorage.setItem("userToken", result.idToken)
+            window.DLA_USER = result.idTokenPayload
+            this.innerText = `Logout ${DLA_USER.nickname}`
+            this.removeAttribute('disabled')
+        })
+    }
+}
+
+customElements.define('auth-button', AuthButton, { extends: 'button' })

@@ -22,11 +22,13 @@
             background-color: red;
         }
     </style>
-</head>
+        <script src="js/auth.js" type="module"></script>
+    </head>
 
 <body class="container">
     <gm-header>
         <img src="media/logo.jpg" alt="logo">
+        <button is="auth-button">login</button>
     </gm-header>
     <form id="msForm" deer-type="manuscript" deer-context="http://www.loc.gov/mods" class="row">
         <input type="text" deer-key="title" placeholder="Display Label" class="col">
