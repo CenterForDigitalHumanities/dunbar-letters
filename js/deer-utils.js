@@ -284,8 +284,8 @@ export default {
             try {
                 return JSON.parse(localStorage.getItem(k))
             } catch (err) {
-                // probably JSON booch. 
-                localStorage.removeItem(k)
+                // probably JSON booch or other item type. 
+                // localStorage.removeItem(k)
             }
         })
         if (!Array.isArray(targetStyle)) {
