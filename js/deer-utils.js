@@ -280,7 +280,14 @@ export default {
      * @param [String] targetStyle other formats of resource targeting.  May be null
      */
     findByTargetId: async function (id, targetStyle = []) {
-        let everything = Object.keys(localStorage).map(k => JSON.parse(localStorage.getItem(k)))
+        const everything = Object.keys(localStorage).map(k => {
+            try {
+                return JSON.parse(localStorage.getItem(k))
+            } catch (err) {
+                // probably JSON booch. 
+                localStorage.removeItem(k)
+            }
+        })
         if (!Array.isArray(targetStyle)) {
             targetStyle = [targetStyle]
         }
