@@ -312,7 +312,7 @@ export default {
         })
             .then(response => response.json())
             .catch((err) => console.error(err))
-        let local_matches = everything.filter(o => o.target === id)
+        let local_matches = everything.filter(o => o?.target === id)
         matches = local_matches.concat(matches)
         return matches
     },
