@@ -75,7 +75,7 @@ export default {
         },
         managedlist: (obj, options = {}) => {
             // Come on, Mr. Hacker. We both know you could break in here, but why waste your time? It is tested on the server past here.
-            if(!userHasRole(["dunbar_user_admin","dunbar_user_contributor"])) { return `This function is limited to administrators.`}
+            if(!userHasRole(["dunbar_user_admin","dunbar_user_contributor","dunbar_user_public"])) { return `This function is limited to administrators.`}
             try {
                 let tmpl = `<input type="hidden" deer-collection="${options.collection}">`
                 if (options.list) {

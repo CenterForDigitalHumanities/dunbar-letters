@@ -262,7 +262,8 @@ export default class DeerReport {
             formAction = fetch(DEER.URLS.CREATE, {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json; charset=utf-8"
+                    "Content-Type": "application/json; charset=utf-8",
+                    "Authorization": `Bearer ${window.DLA_USER.authorization}`
                 },
                 body: JSON.stringify(record)
             })
@@ -369,7 +370,8 @@ export default class DeerReport {
                     return fetch(DEER.URLS[action], {
                         method: (inputId) ? "PUT" : "POST",
                         headers: {
-                            "Content-Type": "application/json; charset=utf-8"
+                            "Content-Type": "application/json; charset=utf-8",
+                            "Authorization": `Bearer ${window.DLA_USER.authorization}`
                         },
                         body: JSON.stringify(annotation)
                     })
@@ -471,7 +473,8 @@ export default class DeerReport {
         return fetch(DEER.URLS[action], {
             method: (formId) ? "PUT" : "POST",
             headers: {
-                "Content-Type": "application/json; charset=utf-8"
+                "Content-Type": "application/json; charset=utf-8",
+                "Authorization": `Bearer ${window.DLA_USER.authorization}`
             },
             body: JSON.stringify(record)
         })
