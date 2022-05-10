@@ -27,8 +27,14 @@
 
 <body class="container">
     <gm-header>
+        <auth-button class="container">
+            <button is="auth-button">login</button>    
+        </auth-button>
         <img src="media/logo.jpg" alt="logo">
-        <button is="auth-button">login</button>
+        <div class="tabs">
+            <a href="./index.html">🏠</a>
+            <a href="./manuscripts.html">📚 View Manuscripts</a>
+        </div>
     </gm-header>
     <form id="msForm" deer-type="manuscript" deer-context="http://www.loc.gov/mods" class="row">
         <input type="text" deer-key="title" placeholder="Display Label" class="col">

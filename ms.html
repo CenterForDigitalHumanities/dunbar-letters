@@ -12,13 +12,14 @@
 
 <body class="container">
     <gm-header>
+        <auth-button class="container">
+            <button is="auth-button">login</button>    
+        </auth-button>
         <img src="media/logo.jpg" alt="logo">
         <div class="tabs">
             <a href="./index.html">🏠</a>
             <a href="./manuscripts.html">📚 View Manuscripts</a>
         </div>
-        <button is="auth-button">login</button>
-
     </gm-header>
     <form id="letter" deer-type="PhysicalResource" deer-context="http://purl.org/dc/terms">
         <input type="hidden" deer-key="targetCollection"
