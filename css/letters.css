@@ -149,12 +149,28 @@ a[target = "_blank"]:after {
 
 gm-header{
   display: block;
-  height:  10em;
+  height:  12.9em;
   overflow:  hidden;
+  margin-bottom:  2em;
 }
 
-gm-header img{
-  width:  100%;
+logoimg{
+
+}
+
+logoimg img {
+  position: relative;
+  width: 87%;
+  left: 13%;
+  z-index: -1;
+}
+
+paul{
+  position:  absolute;
+}
+
+paul img{
+  height: 10em;
 }
 
 auth-button{
@@ -166,6 +182,10 @@ auth-button{
 
 button[is="auth-button"]{
   color:  var(--color-primary);  
+}
+
+.tabs a{
+  border-bottom:  none !important;
 }
 
 .welcomeMessage{
