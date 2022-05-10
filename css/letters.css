@@ -178,6 +178,7 @@ auth-button{
   display:  block;
   text-align:  right;
   padding: 0px 20px 0px 0px !important;
+  z-index:  1;
 }
 
 button[is="auth-button"]{
@@ -186,6 +187,7 @@ button[is="auth-button"]{
 
 .tabs a{
   border-bottom:  none !important;
+  z-index:  2;
 }
 
 .welcomeMessage{
