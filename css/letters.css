@@ -155,6 +155,16 @@ gm-header{
   border-bottom:  2px solid black;
 }
 
+gm-footer{
+  margin-top: 4em;
+  display: block;
+  position: relative;
+}
+
+gm-footer .brand{
+  height:  1em;
+}
+
 logoimg{
 
 }
