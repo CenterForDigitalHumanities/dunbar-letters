@@ -146,3 +146,69 @@ a[target = "_blank"]:after {
     opacity: 0;
   }
 }
+
+gm-header{
+  display: block;
+  height:  12.9em;
+  overflow:  hidden;
+  margin-bottom:  2em;
+  border-bottom:  2px solid black;
+}
+
+gm-footer{
+  margin-top: 4em;
+  display: block;
+  position: relative;
+}
+
+gm-footer .brand{
+  height:  1em;
+}
+
+logoimg{
+
+}
+
+logoimg img {
+  position: relative;
+  width: 87%;
+  left: 13%;
+  z-index: -1;
+}
+
+paul{
+  position:  absolute;
+}
+
+paul img{
+  height: 10em;
+}
+
+auth-button{
+  position:  absolute;
+  display:  block;
+  text-align:  right;
+  padding: 0px 20px 0px 0px !important;
+  z-index:  1;
+}
+
+button[is="auth-button"]{
+  color:  var(--color-primary);  
+}
+
+.tabs a{
+  border-bottom:  none !important;
+  z-index:  1;
+}
+
+.welcomeMessage{
+
+}
+
+.welcomeLinks{
+  
+}
+
+.welcomeLinks a{
+  display:  block;
+}
