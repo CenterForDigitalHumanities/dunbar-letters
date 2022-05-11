@@ -152,6 +152,7 @@ gm-header{
   height:  12.9em;
   overflow:  hidden;
   margin-bottom:  2em;
+  border-bottom:  2px solid black;
 }
 
 logoimg{
@@ -187,7 +188,7 @@ button[is="auth-button"]{
 
 .tabs a{
   border-bottom:  none !important;
-  z-index:  2;
+  z-index:  1;
 }
 
 .welcomeMessage{
