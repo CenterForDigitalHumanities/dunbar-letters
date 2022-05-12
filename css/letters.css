@@ -153,6 +153,7 @@ gm-header{
   overflow:  hidden;
   margin-bottom:  2em;
   border-bottom:  2px solid black;
+  margin-top:  1em;
 }
 
 gm-footer{
