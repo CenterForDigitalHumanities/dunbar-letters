@@ -1,4 +1,4 @@
-import AuthButton from 'https://centerfordigitalhumanities.github.io/DLA/auth.js'
+import AuthButton from 'https://centerfordigitalhumanities.github.io/Dunbar-Users-CDN/auth.js'
 
 const DEV = false // false or comment to turn off
 
