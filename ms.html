@@ -1,32 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <title>Dunbar Letters</title>
-    <link rel="stylesheet" href="css/gloss.css">
-    <link href="favicon.ico" rel="icon" type="image/x-icon" />
+    
+    <head>
+        <title>Dunbar Letters</title>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="css/letters.css">
+        <link href="favicon.ico" rel="icon" type="image/x-icon" />
+        <script src="js/deer.js" type="module"></script>
+        <script src="js/app.js" type="module"></script>
 </head>
 
 <body class="container">
     <gm-header>
-        <img src="media/logo.jpg" alt="logo">
+        <auth-button class="container">
+            <button is="auth-button">login</button>    
+        </auth-button>
         <div class="tabs">
-            <a href="./index.html">🏠</a>
+            <a href="./index.html">🏠 Dunbar Letters Home</a>
             <a href="./manuscripts.html">📚 View Manuscripts</a>
         </div>
+        <paul>
+            <img src="https://cdm16007.contentdm.oclc.org/iiif/2/p267401coll32:4553/100,0,1100,1100/150,150/0/default.jpg">
+        </paul>
+        <logoimg>
+            <img src="media/logo.jpg" alt="logo">
+        </logoimg>
     </gm-header>
     <form id="letter" deer-type="PhysicalResource" deer-context="http://purl.org/dc/terms">
         <input type="hidden" deer-key="targetCollection"
             value="Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar">
+        <input type="hidden" deer-key="manuscript" deer-context="http://www.loc.gov/mods"
+            value="Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar">
+            <input is="auth-creator" type="hidden" deer-key="creator" />
         <div class="row">
             <label class="col-3 col-2-md text-right">Label:</label>
             <input type="text" deer-key="name" placeholder="Convenient Label for Humans" class="col-9 col-10-md">
             <label class="col-3 col-2-md text-right">Title:</label>
-            <input type="text" deer-key="title" placeholder="Catalog Title" class="col-9 col-10-md">
-            <label class="col-3 col-2-md text-right">Repository:</label>
-            <input type="text" deer-key="Repository" placeholder="Repository" class="col-9 col-4-md">
-            <label class="col-3 col-2-md text-right">Shelfmark:</label>
-            <input type="text" deer-key="identifier" placeholder="Shelfmark" class="col-9 col-4-md">
+            <input type="text" deer-key="label" placeholder="Catalog Title" class="col-9 col-10-md">
             <label class="col-3 col-2-md text-right">Date:</label>
             <input type="date" deer-key="date" placeholder="Enter year" min="1880-01-01" max="1906-02-07"
                 class="col-9 col-4-md">
@@ -35,11 +45,10 @@
             <label class="col-3 col-2-md text-right">City Whither:</label>
             <input type="text" deer-key="toLocation" placeholder="to City" class="col-9 col-4-md">
             <label class="col-3 col-2-md text-right">URL:</label>
-            <input type="text" deer-key="url" placeholder="Record View" class="col-9 col-4-md">
+            <input type="text" deer-key="source" placeholder="Record View" class="col-9 col-4-md">
 
-            <label class="col-3 col-2-md text-right">Base Project: <a deer-key="tpen:project" target="_blank"
-                    href="">transcribe</a></label>
-            <input id="baseProject" type="text" deer-key="tpen:project" placeholder="Base Project ID"
+            <label class="col-3 col-2-md text-right">Base Project: </label>
+            <input id="baseProject" type="text" deer-key="tpenProject" placeholder="TPEN Base Project ID"
                 class="col-9 col-4-md">
             <label class="col-3 col-2-md text-right">notes:</label>
             <input type="text" deer-key="notes" placeholder="notes" class="col-9 col-4-md">
@@ -48,15 +57,17 @@
         <a href="./manuscripts.html" onclick="deleteThis(event)" class="text-error">Drop from collection</a>
     </form>
 
-    <pre id="externalData"></pre>
-    <p class="col">Original catalog record: <deer-view id="catalogLink" deer-template="linky" deer-key="url"></deer-view></p>
+    <deer-view id="externalData" deer-template="shadow"></deer-view>
+
+    <p class="col">Original catalog record: <deer-view id="catalogLink" deer-template="linky" deer-key="source"></deer-view></p>
+
     <deer-view class="col" id="thumbroll" deer-template="thumbs" deer-id=""></deer-view>
     <deer-view id="previewTranscription" deer-template="folioTranscription"></deer-view>
 
     <gm-footer class="row">
         <a href="./index.html">🏠</a>
         <a href="./manuscripts.html">📚</a>
-        <a rel="noopener noreferrer" title="View on GitHub" href="https://github.com/cubap/Dunbar-Letters"
+        <a rel="noopener noreferrer" title="View on GitHub" href="https://github.com/CenterForDigitalHumanities/dunbar-letters"
             target="_blank">
             <svg height="16" class="octicon octicon-mark-github" viewBox="0 0 16 16" version="1.1" width="16"
                 aria-hidden="true">
@@ -65,31 +76,34 @@
                 </path>
             </svg>
         </a>
+        <a target="_blank" href="https://www.slu.edu/research/faculty-resources/research-computing.php">
+            <img class="brand" src="media/rcg-logo.jpg"> <small>©2022 Research Computing Group </small>
+        </a>
     </gm-footer>
 
     <div id="globalFeedback" class="card is-center"></div>
-    <script src="js/deer.js" type="module"></script>
-    <script src="js/app.js" type="module"></script>
     <script>
         window.onhashchange = onload = () => {
             const msid = window.location.hash.substr(1)
                 ;[catalogLink, letter, thumbroll, previewTranscription].forEach(el => el.setAttribute("deer-id", msid))
             const externals = document.addEventListener('deer-loaded', (event) => {
-                if (event?.detail?.url?.value) {
-                    const handlUrl = new URL(event.detail.url.value)
-                    loadUDelMetadata(handlUrl.pathname)
+                if (externalData.getAttribute('deer-id')) { return document.removeEventListener('deer-loaded', externals) }
+                if (event?.detail?.source?.value) {
+                    const handlUrl = new URL(event.detail.source.value)
+                    externalData.setAttribute('deer-link',handlUrl)
+                    externalData.setAttribute('deer-id','/')
                     document.removeEventListener('deer-loaded', externals)
                 }
             })
         }
 
-        baseProject.addEventListener('input', e => document.querySelector("a[deer-key='tpen:project']").setAttribute("href", "http://t-pen.org/TPEN/project.jsp?projectID=" + e.target.value))
+        baseProject.addEventListener('input', e => document.querySelector("a[deer-key='tpenProject']").setAttribute("href", "http://t-pen.org/TPEN/project.jsp?projectID=" + e.target.value))
 
         function deleteThis(event) {
             event.preventDefault()
             if (confirm("Really remove this manuscript?\n(Cannot be undone)")) {
                 let collectorId = document.querySelector('[deer-key="targetCollection"]').getAttribute("deer-source")
-                fetch("http://tinydev.rerum.io/app/delete", {
+                fetch("http://tinypaul.rerum.io/dla/delete", {
                     method: "DELETE",
                     body: collectorId
                 }).then(obj => {
@@ -98,19 +112,19 @@
             }
         }
         async function loadUDelMetadata(handle) {
-            const url = `https://udspace.udel.edu/rest${handle}?expand=metadata`
-            const xmlItem = await fetch(url)
-                .then(res => res.ok ? res : Promise.reject(res))
-                .catch((err) => {
-                    if (err.status >= 500) {
-                        return `<p class="error">Server error: ${err.status}</p>`
-                    }
-                    if (err.status >= 400) {
-                        return `<p class="error">Content error: ${err.status}, ${err.statusText}</p>`
-                    }
-                    return `<p>Probable CORS error. <a target="_blank" href="${url}">View remote resource metadata in new tab</a>.</p>`
+            const historyWildcard = { "$exists": true, "$size": 0 }
+            const uDelData = {
+                target: handle,
+                "__rerum.history.next": historyWildcard
+            }
+            fetch(DEER.URLS.QUERY, {
+                method: "POST",
+                mode: "cors",
+                body: JSON.stringify(uDelData)
+            }).then(response => response.ok ? response.json() : Promise.reject(response))
+                .then(data => {
+                    externalData.innerHTML = data
                 })
-            externalData.innerHTML = xmlItem
         }
     </script>
 </body>

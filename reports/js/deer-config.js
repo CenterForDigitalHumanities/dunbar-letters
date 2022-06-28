@@ -1,5 +1,3 @@
-import AuthButton from 'https://centerfordigitalhumanities.github.io/DLA/auth.js'
-
 const DEV = false // false or comment to turn off
 
 const baseV1 = DEV ? "http://devstore.rerum.io/":"http://store.rerum.io/"
@@ -62,6 +60,7 @@ export default {
      * or an HTML String.
      */
     TEMPLATES: {
+        cat: (obj) => `<h5>${obj.name}</h5><img src="http://placekitten.com/300/150" style="width:100%;">`,
         msList: function (obj, options = {}) {
             let tmpl = `<h2>Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar (${obj?.[options?.list].length ?? " empty "})</h2>`
             if (options.list) {
@@ -74,8 +73,6 @@ export default {
             return tmpl
         },
         managedlist: (obj, options = {}) => {
-            // Come on, Mr. Hacker. We both know you could break in here, but why waste your time? It is tested on the server past here.
-            if(!userHasRole(["dunbar_user_admin","dunbar_user_contributor","dunbar_user_public"])) { return `This function is limited to administrators.`}
             try {
                 let tmpl = `<input type="hidden" deer-collection="${options.collection}">`
                 if (options.list) {
@@ -249,14 +246,4 @@ export default {
         
     },
     version: "alpha"
-}
-
-/**
- * Checks array of stored roles for any of the roles provided.
- * @param {Array} roles Strings of roles to check.
- * @returns Boolean user has one of these roles.
- */
-function userHasRole(roles){
-    if (!Array.isArray(roles)) { roles = [roles] }
-    return Boolean(DLA_USER?.["http://dunbar.rerum.io/user_roles"]?.roles.filter(r=>roles.includes(r)).length)
 }

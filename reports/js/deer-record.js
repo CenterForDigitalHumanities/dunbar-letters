@@ -226,7 +226,6 @@ export default class DeerReport {
 
     processRecord(event) {
         event.preventDefault()
-        if(!userHasRole(["dunbar_user_admin","dunbar_user_contributor","dunbar_user_public"])) { return alert(`This function is limited to contributors.`)}
         this.evidence = this.elem.getAttribute(DEER.EVIDENCE) // inherited to inputs
         this.context = this.elem.getAttribute(DEER.CONTEXT) // inherited to inputs
         this.attribution = this.elem.getAttribute(DEER.ATTRIBUTION) // inherited to inputs
@@ -263,8 +262,7 @@ export default class DeerReport {
             formAction = fetch(DEER.URLS.CREATE, {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json; charset=utf-8",
-                    "Authorization": `Bearer ${window.DLA_USER.authorization}`
+                    "Content-Type": "application/json; charset=utf-8"
                 },
                 body: JSON.stringify(record)
             })
@@ -371,8 +369,7 @@ export default class DeerReport {
                     return fetch(DEER.URLS[action], {
                         method: (inputId) ? "PUT" : "POST",
                         headers: {
-                            "Content-Type": "application/json; charset=utf-8",
-                            "Authorization": `Bearer ${window.DLA_USER.authorization}`
+                            "Content-Type": "application/json; charset=utf-8"
                         },
                         body: JSON.stringify(annotation)
                     })
@@ -474,8 +471,7 @@ export default class DeerReport {
         return fetch(DEER.URLS[action], {
             method: (formId) ? "PUT" : "POST",
             headers: {
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": `Bearer ${window.DLA_USER.authorization}`
+                "Content-Type": "application/json; charset=utf-8"
             },
             body: JSON.stringify(record)
         })
@@ -488,14 +484,4 @@ export function initializeDeerForms(config) {
     const forms = document.querySelectorAll(config.FORM)
     Array.from(forms).forEach(elem => new DeerReport(elem, config))
     document.addEventListener(DEER.EVENTS.NEW_FORM, e => Array.from(e.detail.set).forEach(elem => new DeerReport(elem, config)))
-}
-
-/**
- * Checks array of stored roles for any of the roles provided.
- * @param {Array} roles Strings of roles to check.
- * @returns Boolean user has one of these roles.
- */
- function userHasRole(roles){
-    if (!Array.isArray(roles)) { roles = [roles] }
-    return Boolean(DLA_USER?.["http://dunbar.rerum.io/user_roles"]?.roles.filter(r=>roles.includes(r)).length)
 }
