@@ -258,5 +258,9 @@ export default {
  */
 function userHasRole(roles){
     if (!Array.isArray(roles)) { roles = [roles] }
-    return Boolean(DLA_USER?.["http://dunbar.rerum.io/user_roles"]?.roles.filter(r=>roles.includes(r)).length)
+    try {
+        return Boolean(DLA_USER?.["http://dunbar.rerum.io/user_roles"]?.roles.filter(r=>roles.includes(r)).length)
+    } catch (err) {
+        return false
+    }
 }
