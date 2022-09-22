@@ -169,7 +169,7 @@ DEER.TEMPLATES.thumbs = function (obj, options = {}) {
         then: (elem) => {
             try {
                 const proj = obj.tpenProject?.value ?? obj.tpenProject?.pop()?.value ?? obj.tpenProject?.pop() ?? obj.tpenProject
-                if (!proj) { return }    
+                if (!proj) { return }
                 fetch("http://t-pen.org/TPEN/manifest/" + proj)
                     .then(response => response.json())
                     .then(ms => elem.innerHTML = `
@@ -199,7 +199,82 @@ DEER.TEMPLATES.shadow = (obj, options = {}) => {
                     ${entries}
                     </div>`
                 })
-                .catch(err=>elem.innerHTML="Error loading external data.")
+                .catch(err => elem.innerHTML = "Error loading external data.")
+        }
+    }
+}
+
+DEER.TEMPLATES.transcriptionStatus = function (obj, options = {}) {
+    if (!obj['@id']) { return null }
+
+    return {
+        html: `
+        <style scoped>
+            p { padding: 1em; margin: 0;
+                background-color: #ddd; 
+                cursor: pointer; 
+                border-radius: 5px;
+            }
+            p:hover { background-color: #eee; }
+        </style>
+        <p> looking up transcription status... </p>`,
+        then: (elem) => {
+            const msg = elem.querySelector("p")
+            const query = {
+                target: obj['@id'],
+                "body.transcriptionStatus": { $exists: true }
+            }
+            fetch(DEER.URLS.QUERY, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(query)
+            }).then(response => response.json())
+                .then(data => {
+                    elem.dataset.transcriptionStatus = data[0]?.body.transcriptionStatus ?? "in progress"
+                    msg.innerHTML = elem.dataset.transcriptionStatus !== "in progress"
+                        ? `✔ Reviewed by <deer-view deer-id="${data[0].body.transcriptionStatus}" deer-template="label">${data[0].body.transcriptionStatus}</deer-view>`
+                        : `❌ Not yet reviewed (click to approve)`
+                    if (data.length) {
+                        elem.setAttribute(DEER.SOURCE, data[0]['@id'])
+                    }
+                    elem.append(msg)
+                    setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.VIEW_RENDERED, msg.querySelector(DEER.VIEW), obj), 0)
+                    return
+                }).catch(err => { })
+            elem.addEventListener("click", e => {
+                let url = DEER.URLS.CREATE
+                let method = "POST"
+                let approval = {
+                    target: obj['@id'],
+                    body: {
+                        transcriptionStatus: (elem.dataset.transcriptionStatus !== "in progress" ? "in progress" : DLA_USER["http://store.rerum.io/agent"])
+                    }
+                }
+                const source = elem.getAttribute(DEER.SOURCE)
+                if (source) {
+                    approval["@id"] = source
+                    url = DEER.URLS.OVERWRITE
+                    method = "PUT"
+                }
+                fetch(url, {
+                    method,
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${DLA_USER.authorization}`
+                    },
+                    body: JSON.stringify(approval)
+                }).then(response => response.json())
+                    .then(data => {
+                        elem.setAttribute(DEER.SOURCE, data?.new_obj_state?.["@id"])
+                        elem.dataset.transcriptionStatus = (elem.dataset.transcriptionStatus !== "in progress" ? "in progress" : DLA_USER["http://store.rerum.io/agent"])
+                        msg.innerHTML = data?.new_obj_state?.body?.transcriptionStatus !== "in progress"
+                            ? `✔ Reviewed by <deer-view deer-id="${data?.new_obj_state?.body?.transcriptionStatus}" deer-template="label">${data?.new_obj_state?.body?.transcriptionStatus}</deer-view>`
+                            : `❌ Not yet reviewed (click to approve)`
+                            setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.VIEW_RENDERED, msg.querySelector(DEER.VIEW), obj), 0)
+                    }).catch(err => { })
+            })
         }
     }
 }
@@ -214,8 +289,8 @@ DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
                 return
             }
             fetch("http://t-pen.org/TPEN/manifest/" + proj)
-            .then(response => response.json())
-            .then(ms => {
+                .then(response => response.json())
+                .then(ms => {
                     const pages = ms.sequences[0].canvases.slice(0, 10).reduce((a, b) => a += `
                     <div class="page">
                         <h3>${b.label}</h3>
@@ -233,7 +308,7 @@ DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
                         </div>
                     </div>
                     `, ``)
-                    
+
                     elem.innerHTML = `
                 <style>
                     printed {

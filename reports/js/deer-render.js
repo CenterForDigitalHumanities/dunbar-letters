@@ -204,6 +204,62 @@ DEER.TEMPLATES.shadow = (obj, options = {}) => {
     }
 }
 
+DEER.TEMPLATES.transcriptionStatus = function (obj, options = {}) {
+    if(!obj['@id']) return null
+
+    return {
+        html: `<p> looking up transcription status... </p>`,
+        then: (elem) => {
+            const query = {
+                target: obj['@id'],
+                body: {
+                    "dla:transcriptionStatus": {"$exists":true}
+                }
+            }
+            fetch(DEER.URLS.QUERY, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                    },
+                body: JSON.stringify(query)
+            }).then(response => response.json())
+            .then(data => {
+                elem.dataset.transcriptionStatus = data[0]?.body["dla:transcriptionStatus"]
+                if(data.length){
+                    return elem.innerHTML = `<p> ✔ Reviewed by ${data[0].body["dla:transcriptionStatus"]} </p>`
+                }
+                return elem.innerHTML = `<p> ❌ Not yet reviewed (click to approve)</p>`
+            }).catch(err => {})
+            elem.addEventListener("click", e => {
+                let url = DEER.URLS.CREATE
+                let approval = {
+                    target: obj['@id'],
+                    body: {
+                        "dla:transcriptionStatus": elem.dataset.transcriptionStatus = data[0]?.body["dla:transcriptionStatus"] ? "" : DLA_USER["http://store.rerum.io/agent"]
+                    }
+                }
+                if (elem.dataset.deer-source) {
+                    approval["@id"] = elem.dataset.deer-source
+                    url = DEER.URLS.OVERWRITE
+                }
+                fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                        },
+                    body: JSON.stringify(approval)
+                }).then(response => response.json())
+                .then(data => {
+                    elem.dataset.transcriptionStatus = data[0]?.body["dla:transcriptionStatus"]
+                    if(data.length){
+                        return elem.innerHTML = `<p> ✔ Reviewed by ${data[0].body["dla:transcriptionStatus"]} </p>`
+                    }
+                    return elem.innerHTML = `<p> ❌ Not yet reviewed (click to approve)</p>`
+                }).catch(err => {})
+            })
+    }
+}
+
 DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
     return {
         html: obj.tpenProject ? `<div class="is-full-width"> <h3> ... loading preview ... </h3> </div>` : ``,
