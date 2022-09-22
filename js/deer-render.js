@@ -230,9 +230,8 @@ DEER.TEMPLATES.transcriptionStatus = function (obj, options = {}) {
                     if (data.length) {
                         elem.setAttribute(DEER.SOURCE, data[0]['@id'])
                     }
-                    elem.append(elem)
                     elem.classList[elem.dataset.transcriptionStatus !== "in progress" ? "add" : "remove"]("success")
-                    setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.VIEW_RENDERED, elem.querySelector(DEER.VIEW), obj), 0)
+                    setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
                     return
                 }).catch(err => { })
             elem.addEventListener("click", e => {
@@ -261,11 +260,13 @@ DEER.TEMPLATES.transcriptionStatus = function (obj, options = {}) {
                     .then(data => {
                         elem.setAttribute(DEER.SOURCE, data?.new_obj_state?.["@id"])
                         elem.dataset.transcriptionStatus = (elem.dataset.transcriptionStatus !== "in progress" ? "in progress" : DLA_USER["http://store.rerum.io/agent"])
-                        elem.innerHTML = data?.new_obj_state?.body?.transcriptionStatus !== "in progress"
-                            ? `✔ Reviewed by <deer-view deer-id="${data?.new_obj_state?.body?.transcriptionStatus}" deer-template="label">${data?.new_obj_state?.body?.transcriptionStatus}</deer-view>`
-                            : `❌ Not yet reviewed (click to approve)`
-                            elem.classList[elem.dataset.transcriptionStatus !== "in progress" ? "add" : "remove"]("success")
-                            setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.VIEW_RENDERED, elem.querySelector(DEER.VIEW), obj), 0)
+                        let msg = `❌ Not yet reviewed (click to approve)`
+                        if(data?.new_obj_state?.body?.transcriptionStatus !== "in progress"){
+                            msg = `✔ Reviewed by <deer-view deer-id="${data?.new_obj_state?.body?.transcriptionStatus}" deer-template="label">${data?.new_obj_state?.body?.transcriptionStatus}</deer-view>`
+                            setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
+                        }
+                        elem.innerHTML = msg
+                        elem.classList[elem.dataset.transcriptionStatus !== "in progress" ? "add" : "remove"]("success")
                     }).catch(err => { })
             })
         }
@@ -673,7 +674,7 @@ export function initializeDeerViews(config) {
     return new Promise((res) => {
         const views = document.querySelectorAll(config.VIEW)
         Array.from(views).forEach(elem => new DeerRender(elem, config))
-        document.addEventListener(DEER.EVENTS.NEW_VIEW, e => Array.from(e.detail.set).forEach(elem => new DeerRender(elem, config)))
+        document.addEventListener(DEER.EVENTS.NEW_VIEW, e => Array.from(e.detail.set ?? [e.detail]).forEach(elem => new DeerRender(elem, config)))
         /**
          * Really each render should be a promise and we should return a Promise.all() here of some kind.
          * That would only work if DeerRender resulted in a Promise where we could return Promise.all(renderPromises).
