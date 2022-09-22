@@ -210,12 +210,13 @@ DEER.TEMPLATES.transcriptionStatus = function (obj, options = {}) {
     return {
         html: `
         <style scoped>
-            p { padding: 1em; margin: 0;
+            #transcriptStatus { padding: 1em; margin: 0;
                 background-color: #ddd; 
                 cursor: pointer; 
                 border-radius: 5px;
+                display: block;
             }
-            p:hover { background-color: #eee; }
+            #transcriptStatus:hover { background-color: #eee; }
         </style>
         <p> looking up transcription status... </p>`,
         then: (elem) => {
