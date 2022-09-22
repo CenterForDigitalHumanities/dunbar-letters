@@ -59,10 +59,12 @@
 
     <deer-view id="externalData" deer-template="shadow"></deer-view>
 
-    <p class="col">Original catalog record: <deer-view id="catalogLink" deer-template="linky" deer-key="source"></deer-view></p>
+    <div class="row">
+        <p class="col-12">Original catalog record: <deer-view id="catalogLink" deer-template="linky" deer-key="source"></deer-view></p>
+        <deer-view class="col-12" id="thumbroll" deer-template="thumbs" deer-id=""></deer-view>
+        <deer-view class="col-12 button error" id="transcriptStatus" deer-template="transcriptionStatus" deer-id=""></deer-view>
 
-    <deer-view class="col" id="thumbroll" deer-template="thumbs" deer-id=""></deer-view>
-    <deer-view class="col" id="transcriptStatus" deer-template="transcriptionStatus" deer-id=""></deer-view>
+    </div>
     <deer-view id="previewTranscription" deer-template="folioTranscription"></deer-view>
 
     <gm-footer class="row">

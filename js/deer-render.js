@@ -209,18 +209,8 @@ DEER.TEMPLATES.transcriptionStatus = function (obj, options = {}) {
 
     return {
         html: `
-        <style scoped>
-            #transcriptStatus { padding: 1em; margin: 0;
-                background-color: #ddd; 
-                cursor: pointer; 
-                border-radius: 5px;
-                display: block;
-            }
-            #transcriptStatus:hover { background-color: #eee; }
-        </style>
-        <p> looking up transcription status... </p>`,
+        looking up transcription status... `,
         then: (elem) => {
-            const msg = elem.querySelector("p")
             const query = {
                 target: obj['@id'],
                 "body.transcriptionStatus": { $exists: true }
@@ -234,14 +224,15 @@ DEER.TEMPLATES.transcriptionStatus = function (obj, options = {}) {
             }).then(response => response.json())
                 .then(data => {
                     elem.dataset.transcriptionStatus = data[0]?.body.transcriptionStatus ?? "in progress"
-                    msg.innerHTML = elem.dataset.transcriptionStatus !== "in progress"
+                    elem.innerHTML = elem.dataset.transcriptionStatus !== "in progress"
                         ? `✔ Reviewed by <deer-view deer-id="${data[0].body.transcriptionStatus}" deer-template="label">${data[0].body.transcriptionStatus}</deer-view>`
                         : `❌ Not yet reviewed (click to approve)`
                     if (data.length) {
                         elem.setAttribute(DEER.SOURCE, data[0]['@id'])
                     }
-                    elem.append(msg)
-                    setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.VIEW_RENDERED, msg.querySelector(DEER.VIEW), obj), 0)
+                    elem.append(elem)
+                    elem.classList[elem.dataset.transcriptionStatus !== "in progress" ? "add" : "remove"]("success")
+                    setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.VIEW_RENDERED, elem.querySelector(DEER.VIEW), obj), 0)
                     return
                 }).catch(err => { })
             elem.addEventListener("click", e => {
@@ -270,10 +261,11 @@ DEER.TEMPLATES.transcriptionStatus = function (obj, options = {}) {
                     .then(data => {
                         elem.setAttribute(DEER.SOURCE, data?.new_obj_state?.["@id"])
                         elem.dataset.transcriptionStatus = (elem.dataset.transcriptionStatus !== "in progress" ? "in progress" : DLA_USER["http://store.rerum.io/agent"])
-                        msg.innerHTML = data?.new_obj_state?.body?.transcriptionStatus !== "in progress"
+                        elem.innerHTML = data?.new_obj_state?.body?.transcriptionStatus !== "in progress"
                             ? `✔ Reviewed by <deer-view deer-id="${data?.new_obj_state?.body?.transcriptionStatus}" deer-template="label">${data?.new_obj_state?.body?.transcriptionStatus}</deer-view>`
                             : `❌ Not yet reviewed (click to approve)`
-                            setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.VIEW_RENDERED, msg.querySelector(DEER.VIEW), obj), 0)
+                            elem.classList[elem.dataset.transcriptionStatus !== "in progress" ? "add" : "remove"]("success")
+                            setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.VIEW_RENDERED, elem.querySelector(DEER.VIEW), obj), 0)
                     }).catch(err => { })
             })
         }
