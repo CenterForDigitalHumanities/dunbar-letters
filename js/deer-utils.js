@@ -354,9 +354,8 @@ export default {
     /**
      * Broadcast a message about DEER
      */
-    broadcast: function (event = {}, type, element = document, obj = {}) {
-        // null does not trigger default assignment
-        if(obj === null){ obj = {} }
+    broadcast: function (event = {}, type, element = document, obj) {
+        obj = obj ?? {} // null does not trigger default assignment like `obj={}`
         let e = new CustomEvent(type, { detail: Object.assign(obj, { target: event.target }), bubbles: true })
         element.dispatchEvent(e)
     },
