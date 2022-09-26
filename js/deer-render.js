@@ -169,7 +169,7 @@ DEER.TEMPLATES.thumbs = function (obj, options = {}) {
         then: (elem) => {
             try {
                 const proj = obj.tpenProject?.value ?? obj.tpenProject?.pop()?.value ?? obj.tpenProject?.pop() ?? obj.tpenProject
-                if (!proj) { return }    
+                if (!proj) { return }
                 fetch("http://t-pen.org/TPEN/manifest/" + proj)
                     .then(response => response.json())
                     .then(ms => elem.innerHTML = `
@@ -199,7 +199,76 @@ DEER.TEMPLATES.shadow = (obj, options = {}) => {
                     ${entries}
                     </div>`
                 })
-                .catch(err=>elem.innerHTML="Error loading external data.")
+                .catch(err => elem.innerHTML = "Error loading external data.")
+        }
+    }
+}
+
+DEER.TEMPLATES.transcriptionStatus = function (obj, options = {}) {
+    if (!obj['@id']) { return null }
+
+    return {
+        html: `
+        looking up transcription status... `,
+        then: (elem) => {
+            const query = {
+                target: obj['@id'],
+                "body.transcriptionStatus": { $exists: true }
+            }
+            fetch(DEER.URLS.QUERY, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(query)
+            }).then(response => response.json())
+                .then(data => {
+                    elem.dataset.transcriptionStatus = data[0]?.body.transcriptionStatus ?? "in progress"
+                    elem.innerHTML = elem.dataset.transcriptionStatus !== "in progress"
+                        ? `✔ Reviewed by <deer-view deer-id="${data[0].body.transcriptionStatus}" deer-template="label">${data[0].body.transcriptionStatus}</deer-view>`
+                        : `❌ Not yet reviewed (click to approve)`
+                    if (data.length) {
+                        elem.setAttribute(DEER.SOURCE, data[0]['@id'])
+                    }
+                    elem.classList[elem.dataset.transcriptionStatus !== "in progress" ? "add" : "remove"]("success")
+                    setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
+                    return
+                }).catch(err => { })
+            elem.addEventListener("click", e => {
+                let url = DEER.URLS.CREATE
+                let method = "POST"
+                let approval = {
+                    target: obj['@id'],
+                    body: {
+                        transcriptionStatus: (elem.dataset.transcriptionStatus !== "in progress" ? "in progress" : DLA_USER["http://store.rerum.io/agent"])
+                    }
+                }
+                const source = elem.getAttribute(DEER.SOURCE)
+                if (source) {
+                    approval["@id"] = source
+                    url = DEER.URLS.OVERWRITE
+                    method = "PUT"
+                }
+                fetch(url, {
+                    method,
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${DLA_USER.authorization}`
+                    },
+                    body: JSON.stringify(approval)
+                }).then(response => response.json())
+                    .then(data => {
+                        elem.setAttribute(DEER.SOURCE, data?.new_obj_state?.["@id"])
+                        elem.dataset.transcriptionStatus = (elem.dataset.transcriptionStatus !== "in progress" ? "in progress" : DLA_USER["http://store.rerum.io/agent"])
+                        let msg = `❌ Not yet reviewed (click to approve)`
+                        if(data?.new_obj_state?.body?.transcriptionStatus !== "in progress"){
+                            msg = `✔ Reviewed by <deer-view deer-id="${data?.new_obj_state?.body?.transcriptionStatus}" deer-template="label">${data?.new_obj_state?.body?.transcriptionStatus}</deer-view>`
+                            setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
+                        }
+                        elem.innerHTML = msg
+                        elem.classList[elem.dataset.transcriptionStatus !== "in progress" ? "add" : "remove"]("success")
+                    }).catch(err => { })
+            })
         }
     }
 }
@@ -214,8 +283,8 @@ DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
                 return
             }
             fetch("http://t-pen.org/TPEN/manifest/" + proj)
-            .then(response => response.json())
-            .then(ms => {
+                .then(response => response.json())
+                .then(ms => {
                     const pages = ms.sequences[0].canvases.slice(0, 10).reduce((a, b) => a += `
                     <div class="page">
                         <h3>${b.label}</h3>
@@ -233,7 +302,7 @@ DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
                         </div>
                     </div>
                     `, ``)
-                    
+
                     elem.innerHTML = `
                 <style>
                     printed {
@@ -605,7 +674,7 @@ export function initializeDeerViews(config) {
     return new Promise((res) => {
         const views = document.querySelectorAll(config.VIEW)
         Array.from(views).forEach(elem => new DeerRender(elem, config))
-        document.addEventListener(DEER.EVENTS.NEW_VIEW, e => Array.from(e.detail.set).forEach(elem => new DeerRender(elem, config)))
+        document.addEventListener(DEER.EVENTS.NEW_VIEW, e => Array.from(e.detail.set ?? [e.detail]).forEach(elem => new DeerRender(elem, config)))
         /**
          * Really each render should be a promise and we should return a Promise.all() here of some kind.
          * That would only work if DeerRender resulted in a Promise where we could return Promise.all(renderPromises).
