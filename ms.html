@@ -26,6 +26,9 @@
             <img src="media/logo.jpg" alt="logo">
         </logoimg>
     </gm-header>
+    <div class="row">
+        <deer-view class="col-12 button error" id="managedStatus" deer-template="managedStatus" deer-id=""></deer-view>
+    </div>
     <form id="letter" deer-type="PhysicalResource" deer-context="http://purl.org/dc/terms">
         <input type="hidden" deer-key="targetCollection"
             value="Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar">
@@ -56,14 +59,11 @@
         <input type="submit" value="update" class="col">
         <a href="./manuscripts.html" onclick="deleteThis(event)" class="text-error">Drop from collection</a>
     </form>
-
     <deer-view id="externalData" deer-template="shadow"></deer-view>
-
     <div class="row">
         <p class="col-12">Original catalog record: <deer-view id="catalogLink" deer-template="linky" deer-key="source"></deer-view></p>
         <deer-view class="col-12" id="thumbroll" deer-template="thumbs" deer-id=""></deer-view>
         <deer-view class="col-12 button error" id="transcriptStatus" deer-template="transcriptionStatus" deer-id=""></deer-view>
-        <deer-view class="col-12 button error" id="managedStatus" deer-template="managedStatus" deer-id=""></deer-view>
     </div>
     <deer-view id="previewTranscription" deer-template="folioTranscription"></deer-view>
 
@@ -131,7 +131,7 @@
         }
 
         async function addRecordToManagedCollection(){
-            
+
         }
     </script>
 </body>

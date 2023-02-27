@@ -204,6 +204,17 @@ DEER.TEMPLATES.shadow = (obj, options = {}) => {
     }
 }
 
+DEER.TEMPLATES.statusComment = (obj, options = {}) => {
+    if (!obj['@id']) { return null }
+    //We know who made the comment in obj.comment.value.creator
+    return{
+        html: `<span title="${obj.comment.value.text}" > Thanks <deer-view deer-template="label" deer-id="${obj.comment.value.creator}">  </deer-view> ❕ </span>`,
+        then: (elem) => {
+            setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
+        }
+    }
+}
+
 DEER.TEMPLATES.managedStatus = (obj, options = {}) => {
     if (!obj['@id']) { return null }
 

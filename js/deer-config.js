@@ -73,15 +73,6 @@ export default {
             }
             return tmpl
         },
-        statusComment: function (obj, options = {}) {
-            if (!obj['@id']) { return null }
-            //We know who made the comment in obj.comment.value.creator
-            let tmpl = ``
-            if(obj?.comment?.value.text){
-                tmpl = `<span title="${obj.comment.value.text}" commentor="${obj.comment.creator}"> ❕ </span>`
-            }
-            return tmpl
-        },
         managedlist: (obj, options = {}) => {
             // Come on, Mr. Hacker. We both know you could break in here, but why waste your time? It is tested on the server past here.
             if(!userHasRole(["dunbar_user_admin","dunbar_user_contributor","dunbar_user_public"])) { return `This function is limited to administrators.`}
@@ -258,7 +249,6 @@ export default {
                 return null
             }
         }
-        
     },
     version: "alpha"
 }
