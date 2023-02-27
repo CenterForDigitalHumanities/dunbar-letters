@@ -272,7 +272,7 @@ DEER.TEMPLATES.managedStatus = (obj, options = {}) => {
                             "Content-Type": "application/json",
                             "Authorization": `Bearer ${DLA_USER.authorization}`
                         },
-                        body: JSON.stringify(coll2)
+                        body: JSON.stringify(coll)
                     })
                     .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
                     .then(data => {
