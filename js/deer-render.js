@@ -252,7 +252,7 @@ DEER.TEMPLATES.managedStatus = (obj, options = {}) => {
                             })
                             .then(response => response.json())
                             .then(anno => {
-                                addRecordToManagedList(obj, elem)
+                                addRecordToManagedList(obj, elem, coll)
                             })
                             .catch(err => { })
                         }
@@ -265,14 +265,14 @@ DEER.TEMPLATES.managedStatus = (obj, options = {}) => {
                 //PARANOID CHECK to see if it is already in there
                 if(coll.itemListElement.filter(record => record["@id"] === obj['@id']).length === 0){
                     coll.itemListElement.push({"label": obj.label, "@id":obj["@id"]})
-                    fetch(`${tiny}overwrite`, {
+                    fetch(`http://tinypaul.rerum.io/dla/overwrite`, {
                         method: "PUT",
                         mode: 'cors',
                         headers: {
                             "Content-Type": "application/json",
                             "Authorization": `Bearer ${DLA_USER.authorization}`
                         },
-                        body: JSON.stringify(coll)
+                        body: JSON.stringify(coll2)
                     })
                     .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
                     .then(data => {

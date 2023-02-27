@@ -75,10 +75,10 @@ export default {
         },
         statusComment: function (obj, options = {}) {
             if (!obj['@id']) { return null }
-            //We know who made the comment
+            //We know who made the comment in obj.comment.value.creator
             let tmpl = ``
-            if(obj?.comment?.value){
-                tmpl = `<span title="${obj.comment.text}" commentor="${obj.comment.creator}"> ❕ </span>`
+            if(obj?.comment?.value.text){
+                tmpl = `<span title="${obj.comment.value.text}" commentor="${obj.comment.creator}"> ❕ </span>`
             }
             return tmpl
         },
