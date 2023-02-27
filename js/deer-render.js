@@ -204,6 +204,108 @@ DEER.TEMPLATES.shadow = (obj, options = {}) => {
     }
 }
 
+DEER.TEMPLATES.managedStatus = (obj, options = {}) => {
+    if (!obj['@id']) { return null }
+
+    return {
+        html: `checking managed collection... `,
+        then: (elem) => {
+            fetch("http://store.rerum.io/v1/id/61ae693050c86821e60b5d13")
+            .then(response => response.json())
+            .then(coll => {
+                //If you want to know who placed it, you have to check the __rerum.creator on the comment Annotation
+                //Should we allow Reviewers/Curators to remove it while they are here?
+                if(coll.itemListElement.filter(record => record["@id"] === obj['@id']).length){
+                    elem.innerHTML = `✔ This record is in the Managed Collection <deer-view deer-template="statusComment" deer-id="${obj["@id"]}"> </deer-view>`
+                    //elem.classList.remove("error")
+                    elem.classList.add("success")
+                    setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
+                }
+                else{
+                    elem.innerHTML = `❌ Click Here to Notify a Reviewer`
+                    elem.addEventListener("click", e => {
+                        let commentText = 
+                        prompt("This record will be moved to the Managed Collection and reviewers will be notified of its availablility.  This action is connected with your username.  You may add a comment below.")
+                        if(null !== commentText){
+                            //They clicked OK, so let's do it
+                            //The creator of the Annotation is the creator of the Comment
+                            const commentAnno = {
+                                "@context": "http://purl.org/dc/terms",
+                                "type": "Annotation",
+                                "body":{
+                                    "comment":{
+                                        "type" : "Comment",
+                                        "text" : commentText,
+                                        "creator" : DLA_USER["http://store.rerum.io/agent"]
+                                    }
+                                },
+                                "target":obj["@id"]
+                            }
+                            let method = "POST"
+                            fetch(DEER.URLS.CREATE, {
+                                method,
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "Authorization": `Bearer ${DLA_USER.authorization}`
+                                },
+                                body: JSON.stringify(commentAnno)
+                            })
+                            .then(response => response.json())
+                            .then(anno => {
+                                addRecordToManagedList(obj, elem)
+                            })
+                            .catch(err => { })
+                        }
+                    })
+                }
+            })
+            .catch(err => { })
+
+            function addRecordToManagedList(obj, elem, coll){
+                //PARANOID CHECK to see if it is already in there
+                if(coll.itemListElement.filter(record => record["@id"] === obj['@id']).length === 0){
+                    coll.itemListElement.push({"label": obj.label, "@id":obj["@id"]})
+                    fetch(`${tiny}overwrite`, {
+                        method: "PUT",
+                        mode: 'cors',
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${DLA_USER.authorization}`
+                        },
+                        body: JSON.stringify(coll)
+                    })
+                    .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
+                    .then(data => {
+                        elem.innerHTML = `✔ This record is in the Managed Collection <deer-view deer-template="statusComment" deer-id="${obj["@id"]}"> </deer-view>`
+                        setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
+                    })
+                    .catch(err => alert(`Failed to save: ${err}`))    
+                }
+            }    
+                
+            function removeRecordFromManagedList(obj){
+                 fetch("http://store.rerum.io/v1/id/61ae693050c86821e60b5d13")
+                .then(response => response.json())
+                .then(coll => {
+                    coll.itemListElement = coll.itemListElement.filter(record => record["@id"] !== obj['@id'])
+                    fetch(`${tiny}overwrite`, {
+                        method: "PUT",
+                        mode: 'cors',
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${DLA_USER.authorization}`
+                        },
+                        body: JSON.stringify(list_project)
+                    })
+                    .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
+                    .catch(err => alert(`Failed to save: ${err}`))
+                })
+                .catch(err => alert(`Failed to save: ${err}`))
+            }  
+        }
+    }
+}
+
 DEER.TEMPLATES.transcriptionStatus = function (obj, options = {}) {
     if (!obj['@id']) { return null }
 
