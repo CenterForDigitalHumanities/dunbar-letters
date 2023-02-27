@@ -210,6 +210,7 @@ DEER.TEMPLATES.statusComment = (obj, options = {}) => {
     return{
         html: `<span title="${obj.comment.value.text}" > Thanks <deer-view deer-template="label" deer-id="${obj.comment.value.creator}">  </deer-view> ❕ </span>`,
         then: (elem) => {
+            elem.setAttribute(DEER.SOURCE, obj.comment.source.citationSource)
             setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
         }
     }
@@ -240,6 +241,7 @@ DEER.TEMPLATES.managedStatus = (obj, options = {}) => {
                         if(null !== commentText){
                             //They clicked OK, so let's do it
                             //The creator of the Annotation is the creator of the Comment
+                            let url = DEER.URLS.CREATE
                             const commentAnno = {
                                 "@context": "http://purl.org/dc/terms",
                                 "type": "Annotation",
@@ -252,8 +254,12 @@ DEER.TEMPLATES.managedStatus = (obj, options = {}) => {
                                 },
                                 "target":obj["@id"]
                             }
+                            if(obj?.comment.source.citationSource){
+                                url = DEER.URLS.UPDATE
+                                commentAnno["@id"] = obj.comment.source.citationSource
+                            }
                             let method = "POST"
-                            fetch(DEER.URLS.CREATE, {
+                            fetch(url, {
                                 method,
                                 headers: {
                                     "Content-Type": "application/json",
