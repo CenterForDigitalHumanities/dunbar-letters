@@ -328,7 +328,7 @@ DEER.TEMPLATES.managedStatus = (obj, options = {}) => {
                         <div class="statusDrawer is-hidden"> 
                             <div style="margin-top: 1em;"> 
                                 <p> This will alert reviewers to look at this item.  You may add a comment below. </p>
-                                <textarea class="statusCommentText" placeholder="${obj?.comment.value.text ?? ""}" style="margin-top: 1em;"></textarea>
+                                <textarea class="statusCommentText" style="margin-top: 1em;"></textarea>
                                 <input class="notifyReviewerBtn success" type="button" value="Notify Reviewers" style="margin-top: 1em;" />
                             </div>
                         </div>
@@ -349,7 +349,7 @@ DEER.TEMPLATES.managedStatus = (obj, options = {}) => {
                     })
 
                     elem.querySelector(".notifyReviewerBtn").addEventListener("click", e => {
-                        if(!userHasRole(["dunbar_user_admin","dunbar_user_contributor","dunbar_user_public"])) { return alert(`This function is limited to contributors, reviewers, and curators.`)}
+                        if(!userHasRole(["dunbar_user_curator","dunbar_user_contributor","dunbar_user_reviewer"])) { return alert(`This function is limited to contributors, reviewers, and curators.`)}
                         let proceed = confirm("This action is connected with you username.  Click OK to proceed and add your note.")
                         if(!proceed){return}
                         let url = DEER.URLS.CREATE
@@ -382,6 +382,7 @@ DEER.TEMPLATES.managedStatus = (obj, options = {}) => {
                         })
                         .then(response => response.json())
                         .then(anno => {
+                            statusComment.querySelector("span").innerHTML = "See your status comment"
                             statusComment.querySelector("pre").innerHTML = elem.querySelector("textarea").value
                             addRecordToManagedList(obj, elem, coll)
                         })
