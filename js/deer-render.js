@@ -475,6 +475,10 @@ DEER.TEMPLATES.transcriptionStatus = function (obj, options = {}) {
                     elem.innerHTML = elem.dataset.transcriptionStatus !== "in progress"
                         ? `✔ Reviewed by <deer-view deer-id="${data[0].body.transcriptionStatus}" deer-template="label">${data[0].body.transcriptionStatus}</deer-view>`
                         : `❌ Not yet reviewed (click to approve)`
+                    if(elem.dataset.transcriptionStatus !== "in progress"){
+                        elem.classList.remove("bg-error")
+                        elem.classList.add("bg-success")
+                    }
                     if (data.length) {
                         elem.setAttribute(DEER.SOURCE, data[0]['@id'])
                     }
@@ -510,6 +514,8 @@ DEER.TEMPLATES.transcriptionStatus = function (obj, options = {}) {
                         elem.dataset.transcriptionStatus = (elem.dataset.transcriptionStatus !== "in progress" ? "in progress" : DLA_USER["http://store.rerum.io/agent"])
                         let msg = `❌ Not yet reviewed (click to approve)`
                         if(data?.new_obj_state?.body?.transcriptionStatus !== "in progress"){
+                            elem.classList.remove("bg-error")
+                            elem.classList.add("bg-success")
                             msg = `✔ Reviewed by <deer-view deer-id="${data?.new_obj_state?.body?.transcriptionStatus}" deer-template="label">${data?.new_obj_state?.body?.transcriptionStatus}</deer-view>`
                             setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
                         }
@@ -573,7 +579,7 @@ DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
                     </style>
                     <a href="http://t-pen.org/TPEN/transcription.html?projectID=${parseInt(ms['@id'].split("manifest/")?.[1])}" target="_blank">transcribe on TPEN</a>
                     <h2>${ms.label}</h2>
-                    <deer-view class="col-12 tag text-center bg-grey text-white" id="transcribedStatus" deer-template="transcriptionStatus" deer-id="${obj["@id"]}"></deer-view>
+                    <deer-view class="col-12 tag text-center bg-error text-white" id="transcribedStatus" deer-template="transcriptionStatus" deer-id="${obj["@id"]}"></deer-view>
                     ${pages}
                     `
                     setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
