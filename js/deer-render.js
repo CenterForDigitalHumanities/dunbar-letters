@@ -339,6 +339,7 @@ DEER.TEMPLATES.managedStatus = (obj, options = {}) => {
                     })
 
                     elem.querySelector(".notifyReviewerBtn").addEventListener("click", e => {
+                        if(!userHasRole(["dunbar_user_admin","dunbar_user_contributor","dunbar_user_public"])) { return alert(`This function is limited to contributors, reviewers, and curators.`)}
                         let proceed = confirm("This action is connected with you username.  Click OK to proceed and add your note.")
                         if(!proceed){return}
                         let url = DEER.URLS.CREATE
