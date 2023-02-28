@@ -240,6 +240,7 @@ DEER.TEMPLATES.statusComment = (obj, options = {}) => {
 
 DEER.TEMPLATES.reviewedStatus = (obj, options = {}) => {
     if (!obj['@id']) { return null }
+    // This Annotation is continually overwritten, so no history wildcard necessary.
     const query =
     {
         "releasedTo" : "http://store.rerum.io/v1/id/61ae693050c86821e60b5d13",
@@ -247,25 +248,35 @@ DEER.TEMPLATES.reviewedStatus = (obj, options = {}) => {
     }
     //query for this, check it, maybe get the comment.
     return {
-        html: `looking up record info... `,
+        html: `looking up review status... `,
         then: (elem) => {
-            // fetch(query)
-            // .then(response => response.json())
-            // .then(anno => {
-            //    // publicStatus.classList.add("is-hidden")
-            //    // managedStatus.classList.add("is-hidden")
-            //     if(anno.body.releasedTo){
-            //         elem.innerHTML = `✔ This is a Public Record>`
-            //         // managedStatus.classList.add("is-hidden")
-            //         // reviewedStatus.classList.add("is-hidden")
-            //         elem.classList.add("success")
-            //         setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
-            //     }
-            //     else{
-            //         elem.innerHTML = `This Record is Not Public`
-            //     }
-            // })
-            // .catch(err => { })
+            fetch(DEER.URLS.QUERY, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(query)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.length){
+                    elem.setAttribute(DEER.SOURCE, data[0]['@id'])
+                    if(data[0].body.releasedTo){
+                        elem.innerHTML = `✔ This Record Has Been Reviwed`
+                        // managedStatus.classList.add("is-hidden")
+                        // reviewedStatus.classList.add("is-hidden")
+                        elem.classList.remove("bg-error")
+                        elem.classList.add("bg-success")
+                    }
+                    else{
+                        elem.innerHTML = `This Record Has Not Been Reviewed`
+                    }
+                }
+                else{
+                    elem.innerHTML = `This Record Has Not Been Reviewed`
+                }
+            })
+            .catch(err => { })
         }
     }
 }
@@ -281,7 +292,7 @@ DEER.TEMPLATES.publishedStatus = (obj, options = {}) => {
             .then(coll => {
                 //If you want to know who placed it, you have to check the author of the moderating Annotation
                 if(coll.itemListElement.filter(record => record["@id"] === obj['@id']).length){
-                    elem.innerHTML = `✔ This is a Public Record>`
+                    elem.innerHTML = `✔ This Record is Publicly Available`
                     // managedStatus.classList.add("is-hidden")
                     // reviewedStatus.classList.add("is-hidden")
                     elem.classList.remove("bg-error")
@@ -289,7 +300,7 @@ DEER.TEMPLATES.publishedStatus = (obj, options = {}) => {
                     setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
                 }
                 else{
-                    elem.innerHTML = `This Record is Not Public`
+                    elem.innerHTML = `This Record is Not Publicly Available`
                 }
             })
             .catch(err => { })
@@ -394,7 +405,7 @@ DEER.TEMPLATES.managedStatus = (obj, options = {}) => {
                 if(coll.itemListElement.filter(record => record["@id"] === obj["@id"]).length === 0){
                     coll.itemListElement.push({"label": obj.label.value, "@id":obj["@id"]})
                     coll.numberOfItems++
-                    fetch(`http://tinypaul.rerum.io/dla/overwrite`, {
+                    fetch(DEER.URLS.OVERWRITE, {
                         method: "PUT",
                         mode: 'cors',
                         headers: {
@@ -424,7 +435,7 @@ DEER.TEMPLATES.managedStatus = (obj, options = {}) => {
                 .then(coll => {
                     coll.itemListElement = coll.itemListElement.filter(record => record["@id"] !== obj['@id'])
                     coll.numberOfItems--
-                    fetch(`${tiny}overwrite`, {
+                    fetch(DEER.URLS.OVERWRITE, {
                         method: "PUT",
                         mode: 'cors',
                         headers: {
