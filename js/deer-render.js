@@ -206,12 +206,93 @@ DEER.TEMPLATES.shadow = (obj, options = {}) => {
 
 DEER.TEMPLATES.statusComment = (obj, options = {}) => {
     if (!obj['@id']) { return null }
-    //We know who made the comment in obj.comment.value.creator
-    return{
-        html: `<span title="${obj.comment.value.text}" > Thanks <deer-view deer-template="label" deer-id="${obj.comment.value.creator}">  </deer-view> ❕ </span>`,
+    //We know who made the comment in obj.comment.value.author
+    let commentElem = 
+    `<div style="text-transform: none;" title="${obj.comment.value.text}" > 
+        <span> See status comments from <deer-view deer-template="label" deer-id="${obj.comment.value.author}">  </deer-view> </span>
+        <div class="statusDrawer text-dark is-hidden">           
+            <pre>${obj.comment.value.text}</pre>
+        </div>
+     </div>   `
+
+    return {
+        html: commentElem,
         then: (elem) => {
+            if(obj.comment.value.text){
+                elem.classList.remove("is-hidden")
+            }
             elem.setAttribute(DEER.SOURCE, obj.comment.source.citationSource)
-            setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
+            elem.addEventListener("click", e => {
+                if(e.target.tagName === "PRE"){
+                    //This way they can highlight and select text
+                    return
+                }
+                if(elem.querySelector(".statusDrawer").classList.contains("is-hidden")){
+                    elem.querySelector(".statusDrawer").classList.remove("is-hidden")
+                }
+                else{
+                    elem.querySelector(".statusDrawer").classList.add("is-hidden")
+                }
+            })
+        }
+    }
+}
+
+DEER.TEMPLATES.reviewedStatus = (obj, options = {}) => {
+    if (!obj['@id']) { return null }
+    const query =
+    {
+        "releasedTo" : "http://store.rerum.io/v1/id/61ae693050c86821e60b5d13",
+        "target": obj["@id"]
+    }
+    //query for this, check it, maybe get the comment.
+    return {
+        html: `looking up record info... `,
+        then: (elem) => {
+            // fetch(query)
+            // .then(response => response.json())
+            // .then(anno => {
+            //    // publicStatus.classList.add("is-hidden")
+            //    // managedStatus.classList.add("is-hidden")
+            //     if(anno.body.releasedTo){
+            //         elem.innerHTML = `✔ This is a Public Record>`
+            //         // managedStatus.classList.add("is-hidden")
+            //         // reviewedStatus.classList.add("is-hidden")
+            //         elem.classList.add("success")
+            //         setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
+            //     }
+            //     else{
+            //         elem.innerHTML = `This Record is Not Public`
+            //     }
+            // })
+            // .catch(err => { })
+        }
+    }
+}
+
+DEER.TEMPLATES.publishedStatus = (obj, options = {}) => {
+    if (!obj['@id']) { return null }
+
+    return {
+        html: `looking up record info... `,
+        then: (elem) => {
+            fetch("http://store.rerum.io/v1/id/61ae694e50c86821e60b5d15")
+            .then(response => response.json())
+            .then(coll => {
+                //If you want to know who placed it, you have to check the author of the moderating Annotation
+                if(coll.itemListElement.filter(record => record["@id"] === obj['@id']).length){
+                    elem.innerHTML = `✔ This is a Public Record>`
+                    // managedStatus.classList.add("is-hidden")
+                    // reviewedStatus.classList.add("is-hidden")
+                    elem.classList.remove("bg-error")
+                    elem.classList.add("bg-success")
+                    setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
+                }
+                else{
+                    elem.innerHTML = `This Record is Not Public`
+                }
+            })
+            .catch(err => { })
         }
     }
 }
@@ -220,7 +301,7 @@ DEER.TEMPLATES.managedStatus = (obj, options = {}) => {
     if (!obj['@id']) { return null }
 
     return {
-        html: `checking managed collection... `,
+        html: `looking up record info... `,
         then: (elem) => {
             fetch("http://store.rerum.io/v1/id/61ae693050c86821e60b5d13")
             .then(response => response.json())
@@ -228,28 +309,48 @@ DEER.TEMPLATES.managedStatus = (obj, options = {}) => {
                 //If you want to know who placed it, you have to check the __rerum.creator on the comment Annotation
                 //Should we allow Reviewers/Curators to remove it while they are here?
                 if(coll.itemListElement.filter(record => record["@id"] === obj['@id']).length){
-                    elem.innerHTML = `✔ This record is in the Managed Collection <deer-view deer-template="statusComment" deer-id="${obj["@id"]}"> </deer-view>`
-                    //elem.classList.remove("error")
-                    elem.classList.add("success")
-                    setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
+                    elem.innerHTML = `✔ Submitted For Review`
+                    elem.classList.remove("bg-error")
+                    elem.classList.add("bg-success")
                 }
                 else{
-                    elem.innerHTML = `❌ Click Here to Notify a Reviewer`
+                    let drawer = `
+                        <div class="statusDrawer is-hidden"> 
+                            <div style="margin-top: 1em;"> 
+                                <p> This will alert reviewers to look at this item.  You may add a comment below. </p>
+                                <textarea class="statusCommentText" placeholder="${obj?.comment.value.text ?? ""}" style="margin-top: 1em;"></textarea>
+                                <input class="notifyReviewerBtn success" type="button" value="Notify Reviewers" style="margin-top: 1em;" />
+                            </div>
+                        </div>
+                    `
+                    elem.innerHTML = `❕ Submit For Review ${drawer}`
+
                     elem.addEventListener("click", e => {
-                        let commentText = 
-                        prompt("This record will be moved to the Managed Collection and reviewers will be notified of its availablility.  This action is connected with your username.  You may add a comment below.")
-                        if(null !== commentText){
-                            //They clicked OK, so let's do it
-                            //The creator of the Annotation is the creator of the Comment
+                        if(e.target.id !== "managedStatus"){
+                            //Do not close when users click on internal items
+                            return
+                        }
+                        if(elem.querySelector(".statusDrawer").classList.contains("is-hidden")){
+                            elem.querySelector(".statusDrawer").classList.remove("is-hidden")
+                        }
+                        else{
+                            elem.querySelector(".statusDrawer").classList.add("is-hidden")
+                        }
+                    })
+
+                    elem.querySelector(".notifyReviewerBtn").addEventListener("click", e => {
+                        if(null !== obj?.comment.value.text){
+                            confirm("This action is connected with you username.  Click OK to proceed and add your note.")
                             let url = DEER.URLS.CREATE
                             const commentAnno = {
                                 "@context": "http://purl.org/dc/terms",
+                                "motivation" : "commenting",
                                 "type": "Annotation",
                                 "body":{
                                     "comment":{
                                         "type" : "Comment",
                                         "text" : commentText,
-                                        "creator" : DLA_USER["http://store.rerum.io/agent"]
+                                        "author" : DLA_USER["http://store.rerum.io/agent"]
                                     }
                                 },
                                 "target":obj["@id"]
@@ -274,6 +375,13 @@ DEER.TEMPLATES.managedStatus = (obj, options = {}) => {
                             .catch(err => { })
                         }
                     })
+
+                    elem.querySelector(".statusCommentText").addEventListener("keydown", e => {
+                        if( e.keyCode === 27 ) {
+                            e.target.value = ""
+                            document.getElementById("managedStatus").click()
+                        }
+                    })
                 }
             })
             .catch(err => { })
@@ -293,7 +401,11 @@ DEER.TEMPLATES.managedStatus = (obj, options = {}) => {
                     })
                     .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
                     .then(data => {
-                        elem.innerHTML = `✔ This record is in the Managed Collection <deer-view deer-template="statusComment" deer-id="${obj["@id"]}"> </deer-view>`
+                        elem.innerHTML = `✔ Submitted For Review`
+                        // managedStatus.classList.add("is-hidden")
+                        // publicStatus.classList.add("is-hidden")
+                        elem.classList.remove("bg-error")
+                        elem.classList.add("bg-success")
                         setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
                     })
                     .catch(err => alert(`Failed to save: ${err}`))    
@@ -802,4 +914,18 @@ export function initializeDeerViews(config) {
         //Failed 5 times at 100
         //Failed 0 times at 200
     })
+}
+
+/**
+ * Checks array of stored roles for any of the roles provided.
+ * @param {Array} roles Strings of roles to check.
+ * @returns Boolean user has one of these roles.
+ */
+function userHasRole(roles){
+    if (!Array.isArray(roles)) { roles = [roles] }
+    try {
+        return Boolean(DLA_USER?.["http://dunbar.rerum.io/user_roles"]?.roles.filter(r=>roles.includes(r)).length)
+    } catch (err) {
+        return false
+    }
 }

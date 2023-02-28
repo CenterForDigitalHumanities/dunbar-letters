@@ -213,3 +213,11 @@ button[is="auth-button"]{
 .welcomeLinks a{
   display:  block;
 }
+
+#managedStatus, #reviewedStatus, #publishedStatus, #statusComment{
+  cursor: default;
+}
+
+.statusArea{
+  margin-bottom: 2em;
+}
