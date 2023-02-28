@@ -209,7 +209,7 @@ DEER.TEMPLATES.statusComment = (obj, options = {}) => {
     //We know who made the comment in obj.comment.value.author
     let commentElem = 
     `<div style="text-transform: none;" title="${obj.comment.value.text}" > 
-        <span> See status comments from <deer-view deer-template="label" deer-id="${obj.comment.value.author}">  </deer-view> </span>
+        <span> See status comment from <deer-view deer-template="label" deer-id="${obj.comment.value.author}">  </deer-view> </span>
         <div class="statusDrawer text-dark is-hidden">           
             <pre>${obj.comment.value.text}</pre>
         </div>
@@ -323,7 +323,7 @@ DEER.TEMPLATES.managedStatus = (obj, options = {}) => {
                             </div>
                         </div>
                     `
-                    elem.innerHTML = `❕ Submit For Review ${drawer}`
+                    elem.innerHTML = `Submit For Review ❕ ${drawer}`
 
                     elem.addEventListener("click", e => {
                         if(e.target.id !== "managedStatus"){
@@ -339,41 +339,43 @@ DEER.TEMPLATES.managedStatus = (obj, options = {}) => {
                     })
 
                     elem.querySelector(".notifyReviewerBtn").addEventListener("click", e => {
-                        if(null !== obj?.comment.value.text){
-                            confirm("This action is connected with you username.  Click OK to proceed and add your note.")
-                            let url = DEER.URLS.CREATE
-                            const commentAnno = {
-                                "@context": "http://purl.org/dc/terms",
-                                "motivation" : "commenting",
-                                "type": "Annotation",
-                                "body":{
-                                    "comment":{
-                                        "type" : "Comment",
-                                        "text" : commentText,
-                                        "author" : DLA_USER["http://store.rerum.io/agent"]
-                                    }
-                                },
-                                "target":obj["@id"]
-                            }
-                            if(obj?.comment.source.citationSource){
-                                url = DEER.URLS.UPDATE
-                                commentAnno["@id"] = obj.comment.source.citationSource
-                            }
-                            let method = "POST"
-                            fetch(url, {
-                                method,
-                                headers: {
-                                    "Content-Type": "application/json",
-                                    "Authorization": `Bearer ${DLA_USER.authorization}`
-                                },
-                                body: JSON.stringify(commentAnno)
-                            })
-                            .then(response => response.json())
-                            .then(anno => {
-                                addRecordToManagedList(obj, elem, coll)
-                            })
-                            .catch(err => { })
+                        let proceed = confirm("This action is connected with you username.  Click OK to proceed and add your note.")
+                        if(!proceed){return}
+                        let url = DEER.URLS.CREATE
+                        let method = "POST"
+                        const commentAnno = {
+                            "@context": "http://purl.org/dc/terms",
+                            "motivation" : "commenting",
+                            "type": "Annotation",
+                            "body":{
+                                "comment":{
+                                    "type" : "Comment",
+                                    "text" : elem.querySelector("textarea").value,
+                                    "author" : DLA_USER["http://store.rerum.io/agent"]
+                                }
+                            },
+                            "target":obj["@id"]
                         }
+                        if(obj?.comment.source.citationSource){
+                            url = DEER.URLS.UPDATE
+                            method = "PUT"
+                            commentAnno["@id"] = obj.comment.source.citationSource
+                        }
+                        fetch(url, {
+                            method: method,
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Authorization": `Bearer ${DLA_USER.authorization}`
+                            },
+                            body: JSON.stringify(commentAnno)
+                        })
+                        .then(response => response.json())
+                        .then(anno => {
+                            statusComment.querySelector("pre").innerHTML = elem.querySelector("textarea").value
+                            addRecordToManagedList(obj, elem, coll)
+                        })
+                        .catch(err => { })
+                        
                     })
 
                     elem.querySelector(".statusCommentText").addEventListener("keydown", e => {
@@ -388,8 +390,9 @@ DEER.TEMPLATES.managedStatus = (obj, options = {}) => {
 
             function addRecordToManagedList(obj, elem, coll){
                 //PARANOID CHECK to see if it is already in there
-                if(coll.itemListElement.filter(record => record["@id"] === obj['@id']).length === 0){
-                    coll.itemListElement.push({"label": obj.label, "@id":obj["@id"]})
+                if(coll.itemListElement.filter(record => record["@id"] === obj["@id"]).length === 0){
+                    coll.itemListElement.push({"label": obj.label.value, "@id":obj["@id"]})
+                    coll.numberOfItems++
                     fetch(`http://tinypaul.rerum.io/dla/overwrite`, {
                         method: "PUT",
                         mode: 'cors',
@@ -404,6 +407,8 @@ DEER.TEMPLATES.managedStatus = (obj, options = {}) => {
                         elem.innerHTML = `✔ Submitted For Review`
                         // managedStatus.classList.add("is-hidden")
                         // publicStatus.classList.add("is-hidden")
+                        //statusComment.settAttribute("deer-id", "")
+                        //statusComment.settAttribute("deer-id", obj["@id"])
                         elem.classList.remove("bg-error")
                         elem.classList.add("bg-success")
                         setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
@@ -417,6 +422,7 @@ DEER.TEMPLATES.managedStatus = (obj, options = {}) => {
                 .then(response => response.json())
                 .then(coll => {
                     coll.itemListElement = coll.itemListElement.filter(record => record["@id"] !== obj['@id'])
+                    coll.numberOfItems--
                     fetch(`${tiny}overwrite`, {
                         method: "PUT",
                         mode: 'cors',
