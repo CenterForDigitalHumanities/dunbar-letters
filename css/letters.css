@@ -214,7 +214,7 @@ button[is="auth-button"]{
   display:  block;
 }
 
-#managedStatus, #reviewedStatus, #publishedStatus, #statusComment{
+#managedStatus, #reviewedStatus, #publishedStatus, #statusComment, #transcribedStatus{
   cursor: default;
 }
 

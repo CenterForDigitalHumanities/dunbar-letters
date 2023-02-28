@@ -63,14 +63,12 @@
         <input type="submit" value="update" class="col">
         <a href="./manuscripts.html" onclick="deleteThis(event)" class="text-error">Drop from collection</a>
     </form>
-    <deer-view id="externalData" deer-template="shadow"></deer-view>
+    <deer-view id="externalData" deer-template="shadow" class="row"></deer-view>
     <div class="row">
         <p class="col-12">Original catalog record: <deer-view id="catalogLink" deer-template="linky" deer-key="source"></deer-view></p>
         <deer-view class="col-12" id="thumbroll" deer-template="thumbs" deer-id=""></deer-view>
-        <deer-view class="col-12 button error" id="transcriptStatus" deer-template="transcriptionStatus" deer-id=""></deer-view>
     </div>
-    <deer-view id="previewTranscription" deer-template="folioTranscription"></deer-view>
-
+    <deer-view id="previewTranscription" deer-template="folioTranscription" class="row"></deer-view>
     <gm-footer class="row">
         <a href="./index.html">🏠</a>
         <a href="./manuscripts.html">📚</a>
@@ -92,7 +90,7 @@
     <script>
         window.onhashchange = onload = () => {
             const msid = window.location.hash.substr(1)
-                ;[catalogLink, letter, thumbroll, transcriptStatus, managedStatus, reviewedStatus, statusComment, publishedStatus, previewTranscription].forEach(el => el.setAttribute("deer-id", msid))
+                ;[catalogLink, letter, thumbroll, managedStatus, reviewedStatus, statusComment, publishedStatus, previewTranscription].forEach(el => el.setAttribute("deer-id", msid))
             const externals = document.addEventListener('deer-loaded', (event) => {
                 if (externalData.getAttribute('deer-id')) { return document.removeEventListener('deer-loaded', externals) }
                 if (event?.detail?.source?.value) {

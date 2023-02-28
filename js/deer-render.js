@@ -269,11 +269,11 @@ DEER.TEMPLATES.reviewedStatus = (obj, options = {}) => {
                         elem.classList.add("bg-success")
                     }
                     else{
-                        elem.innerHTML = `This Record Has Not Been Reviewed`
+                        elem.innerHTML = `❌ This Record Has Not Been Reviewed`
                     }
                 }
                 else{
-                    elem.innerHTML = `This Record Has Not Been Reviewed`
+                    elem.innerHTML = `❌ This Record Has Not Been Reviewed`
                 }
             })
             .catch(err => { })
@@ -297,10 +297,9 @@ DEER.TEMPLATES.publishedStatus = (obj, options = {}) => {
                     // reviewedStatus.classList.add("is-hidden")
                     elem.classList.remove("bg-error")
                     elem.classList.add("bg-success")
-                    setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
                 }
                 else{
-                    elem.innerHTML = `This Record is Not Publicly Available`
+                    elem.innerHTML = `❌ This Record is Not Publicly Available`
                 }
             })
             .catch(err => { })
@@ -553,29 +552,33 @@ DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
                     `, ``)
 
                     elem.innerHTML = `
-                <style>
-                    printed {
-                        font-family:serif;
-                    }
-                    note {
-                        font-family:monospace;
-                    }
-                    unclear {
-                        opacity:.4;
-                    }
-                    line.empty {
-                        line-height: 1.6;
-                        background-color: #CCC;
-                        height: 1em;
-                        margin: .4em 0;
-                        display:block;
-                        border-radius: 4px;
-                    }
-                </style>
-                <a href="http://t-pen.org/TPEN/transcription.html?projectID=${parseInt(ms['@id'].split("manifest/")?.[1])}" target="_blank">transcribe on TPEN</a>
-                <h2>${ms.label}</h2>
-                ${pages}
-        `})
+                    <style>
+                        printed {
+                            font-family:serif;
+                        }
+                        note {
+                            font-family:monospace;
+                        }
+                        unclear {
+                            opacity:.4;
+                        }
+                        line.empty {
+                            line-height: 1.6;
+                            background-color: #CCC;
+                            height: 1em;
+                            margin: .4em 0;
+                            display:block;
+                            border-radius: 4px;
+                        }
+                    </style>
+                    <a href="http://t-pen.org/TPEN/transcription.html?projectID=${parseInt(ms['@id'].split("manifest/")?.[1])}" target="_blank">transcribe on TPEN</a>
+                    <h2>${ms.label}</h2>
+                    <deer-view class="col-12 tag text-center bg-grey text-white" id="transcribedStatus" deer-template="transcriptionStatus" deer-id="${obj["@id"]}"></deer-view>
+                    ${pages}
+                    `
+                    setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
+                })
+                .catch(err => { })
         }
     }
 }
