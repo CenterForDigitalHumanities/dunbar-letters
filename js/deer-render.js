@@ -263,7 +263,8 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
 
             if(published){
                 elem.appendChild(statusArea)
-                //TODO get rid of the submit button on the form and alert the user
+                alert("This record is already public.  You will not be allowed to submit edits.")
+                document.querySelector("input[type='submit']").classList.add("is-hidden")
                 return
             }
 
@@ -324,7 +325,7 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
                 }
                 else{
                     let d = document.createElement("DIV")
-                    d.classList.add("recordStatus", "bg-error", "tag", "button", "is-small")
+                    d.classList.add("recordStatus", "bg-error", "button", "is-small")
                     d.setAttribute("title", "Submit this record for moderation by the reviewers")
                     d.innerHTML = `❕ submit`
                     d.addEventListener("click", e => {

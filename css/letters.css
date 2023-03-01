@@ -215,7 +215,6 @@ button[is="auth-button"]{
 }
 
 #recordStatuses{
-  cursor: default;
   position: relative;
   display: block;
   margin-bottom: 2em;
@@ -229,4 +228,14 @@ button[is="auth-button"]{
   margin: 0em 1em;
   text-transform: none;
   color: white;
+  cursor: default;
+}
+
+.recordStatus.button{
+  cursor: pointer;
+}
+
+.button.is-small{
+    font-size: .75em;
+    padding: 0.4rem;
 }
