@@ -214,10 +214,19 @@ button[is="auth-button"]{
   display:  block;
 }
 
-#managedStatus, #reviewedStatus, #publishedStatus, #statusComment, #transcribedStatus{
+#recordStatuses{
   cursor: default;
+  position: relative;
+  display: block;
+  margin-bottom: 2em;
+  margin-top: 2em;
+  width: fit-content;
 }
 
-.statusArea{
-  margin-bottom: 2em;
+.recordStatus{
+  position: relative;
+  display: inline-block;
+  margin: 0em 1em;
+  text-transform: none;
+  color: white;
 }

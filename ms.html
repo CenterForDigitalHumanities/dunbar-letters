@@ -26,13 +26,8 @@
             <img src="media/logo.jpg" alt="logo">
         </logoimg>
     </gm-header>
-    <div class="statusArea card row bg-light is-center">
-        <h5> Status Information </h5>
-        <deer-view id="statusComment" class="col-12 tag text-center bg-grey text-white is-hidden" deer-template="statusComment" deer-id=""> </deer-view>
-        <deer-view id="managedStatus" class="col-12 tag text-center bg-error text-white" deer-template="managedStatus" deer-id=""></deer-view>
-        <deer-view id="reviewedStatus" class="col-12 tag text-center bg-error text-white" deer-template="reviewedStatus" deer-id=""></deer-view>
-        <deer-view id="publishedStatus" class="col-12 tag text-center bg-error text-white" deer-template="publishedStatus" deer-id=""></deer-view>
-    </div>
+    <deer-view id="recordStatuses" class="" deer-template="recordStatuses" deer-id=""></deer-view>
+
     <form id="letter" deer-type="PhysicalResource" deer-context="http://purl.org/dc/terms">
         <input type="hidden" deer-key="targetCollection"
             value="Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar">
@@ -90,7 +85,7 @@
     <script>
         window.onhashchange = onload = () => {
             const msid = window.location.hash.substr(1)
-                ;[catalogLink, letter, thumbroll, managedStatus, reviewedStatus, statusComment, publishedStatus, previewTranscription].forEach(el => el.setAttribute("deer-id", msid))
+                ;[catalogLink, letter, thumbroll, recordStatuses, previewTranscription].forEach(el => el.setAttribute("deer-id", msid))
             const externals = document.addEventListener('deer-loaded', (event) => {
                 if (externalData.getAttribute('deer-id')) { return document.removeEventListener('deer-loaded', externals) }
                 if (event?.detail?.source?.value) {
