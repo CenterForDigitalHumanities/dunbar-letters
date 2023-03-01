@@ -199,12 +199,12 @@ export default {
                             }).then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
                             .catch(err => alert(`Failed to save: ${err}`))
 
-                            // fetch(`${tiny}overwrite`, {
-                            //     method: "PUT",
-                            //     mode: 'cors',
-                            //     body: JSON.stringify(list_public)
-                            // }).then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
-                            //     .catch(err => alert(`Failed to save: ${err}`))
+                            fetch(`${tiny}overwrite`, {
+                                method: "PUT",
+                                mode: 'cors',
+                                body: JSON.stringify(list_public)
+                            }).then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
+                                .catch(err => alert(`Failed to save: ${err}`))
                         }
 
                         function deleteThis(id, collection) {

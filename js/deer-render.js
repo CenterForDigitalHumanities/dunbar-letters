@@ -423,7 +423,6 @@ DEER.TEMPLATES.managedStatus = (obj, options = {}) => {
                         //statusComment.settAttribute("deer-id", obj["@id"])
                         elem.classList.remove("bg-error")
                         elem.classList.add("bg-success")
-                        setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
                     })
                     .catch(err => alert(`Failed to save: ${err}`))    
                 }
