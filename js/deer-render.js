@@ -243,9 +243,7 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
             let statusArea = document.createElement("DIV")
             let statusAreaHeading = document.createElement("h6")
             statusAreaHeading.innerHTML = "Record Statuses"
-            statusArea.appendChild(statusAreaHeading)
             statusArea.classList.add("card", "bg-light")
-
             //Check if the public collection contains this record id
             const published = await fetch("http://store.rerum.io/v1/id/61ae694e50c86821e60b5d15")
             .then(response => response.json())
@@ -264,8 +262,9 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
 
             if(published){
                 elem.innerHTML = ""
-                elem.appendChild(statusArea)
                 statusAreaHeading.innerHTML = `This record is public.  You can not make edits.`
+                statusArea.prepend(statusAreaHeading)
+                elem.appendChild(statusArea)
                 document.querySelector("input[type='submit']").classList.add("is-hidden")
                 return
             }
@@ -311,6 +310,7 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
             if(accepted){
                 // Reviewed and approved.  Should we hide the submit button here too? -- Yes
                 statusAreaHeading.innerHTML = `The record was reviewed and accepted.  You can not make edits.`
+                statusArea.prepend(statusAreaHeading)
                 document.querySelector("input[type='submit']").classList.add("is-hidden")
                 elem.innerHTML = ""
                 elem.innerHTML.appendChild(statusArea)
@@ -323,6 +323,7 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
             .then(coll => {
                 if(coll.itemListElement.filter(record => record["@id"] === obj['@id']).length){
                     statusAreaHeading.innerHTML = `This record has been submitted for review.  You may still make edits below.`
+                    statusArea.prepend(statusAreaHeading)
                     statusArea.innerHTML += `<div title="This record has already been submitted" class="recordStatus tag is-small bg-success"> ✔ submitted </div>`
                     return true
                 }
@@ -332,7 +333,6 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
                     let d = document.createElement("DIV")
                     d.classList.add("recordStatus", "dark", "button")
                     d.setAttribute("title", "Submit this record for moderation by the reviewers")
-                    statusAreaHeading.innerHTML = `Please fill out the information below and submit this record to reviewers.`
                     d.innerHTML = `submit to reviewers ❕ `
                     d.addEventListener("click", e => {
                         if(!userHasRole(["dunbar_user_curator","dunbar_user_contributor","dunbar_user_reviewer"])) { return alert(`This function is limited to contributors, reviewers, and curators.`)}
@@ -341,6 +341,8 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
                         addRecordToManagedList(obj, d, coll)
                     })
                     f.appendChild(d)
+                    statusAreaHeading.innerHTML = `Please fill out the information below and submit this record to reviewers.`
+                    statusArea.prepend(statusAreaHeading)
                     statusArea.appendChild(f)
                     return false
                 }
@@ -348,6 +350,7 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
             .catch(err => { return false })
             if(rejected){
                 statusAreaHeading.innerHTML = `The record was rejected.  Please edit the information below and re-submit.`
+                statusArea.prepend(statusAreaHeading)
                 statusArea.innerHTML += `<deer-view title="The submission was rejected and a comment was left by a reviewer" id="statusComment" class="tag text-center bg-grey text-white is-hidden" deer-template="statusComment" deer-id="${obj["@id"]}"> </deer-view>`
             }
             elem.innerHTML = ""
