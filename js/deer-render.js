@@ -327,6 +327,8 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
                     return true
                 }
                 else{
+                    let f = document.createElement("FOOTER")
+                    f.classList.add("is-right")
                     let d = document.createElement("DIV")
                     d.classList.add("recordStatus", "dark", "button")
                     d.setAttribute("title", "Submit this record for moderation by the reviewers")
@@ -338,7 +340,8 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
                         if(!proceed){return}
                         addRecordToManagedList(obj, d, coll)
                     })
-                    statusArea.appendChild(d)
+                    f.appendChild(d)
+                    statusArea.appendChild(f)
                     return false
                 }
             })
