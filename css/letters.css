@@ -239,3 +239,7 @@ button[is="auth-button"]{
     font-size: .75em;
     padding: 0.4rem;
 }
+
+input[readonly]{
+  color: darkred;
+}
