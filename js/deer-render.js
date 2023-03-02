@@ -650,7 +650,7 @@ DEER.TEMPLATES.transcriptionStatus = function (obj, options = {}) {
                 .then(data => {
                     elem.dataset.transcriptionStatus = data[0]?.body.transcriptionStatus ?? "in progress"
                     elem.innerHTML = elem.dataset.transcriptionStatus !== "in progress"
-                        ? `✔ Reviewed by <deer-view deer-id="${data[0].body.transcriptionStatus}" deer-template="label">${data[0].body.transcriptionStatus}</deer-view>`
+                        ? `✔ Reviewed by <deer-view deer-id="${data[0].body.transcriptionStatus}" deer-template="label">${data[0].body.transcriptionStatus}</deer-view> (click to undo)`
                         : `❌ Not yet reviewed (click to approve)`
                     if(elem.dataset.transcriptionStatus !== "in progress"){
                         elem.classList.remove("bg-error")
@@ -695,7 +695,7 @@ DEER.TEMPLATES.transcriptionStatus = function (obj, options = {}) {
                         if(data?.new_obj_state?.body?.transcriptionStatus !== "in progress"){
                             elem.classList.remove("bg-error")
                             elem.classList.add("bg-success")
-                            msg = `✔ Reviewed by <deer-view deer-id="${data?.new_obj_state?.body?.transcriptionStatus}" deer-template="label">${data?.new_obj_state?.body?.transcriptionStatus}</deer-view>`
+                            msg = `✔ Reviewed by <deer-view deer-id="${data?.new_obj_state?.body?.transcriptionStatus}" deer-template="label">${data?.new_obj_state?.body?.transcriptionStatus}</deer-view> (click to undo)`
                             setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
                         }
                         elem.innerHTML = msg
@@ -758,7 +758,7 @@ DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
                     </style>
                     <a href="http://t-pen.org/TPEN/transcription.html?projectID=${parseInt(ms['@id'].split("manifest/")?.[1])}" target="_blank">transcribe on TPEN</a>
                     <h2>${ms.label}</h2>
-                    <deer-view class="recordStatus tag is-full-width text-center bg-error" id="transcribedStatus" deer-template="transcriptionStatus" deer-id="${obj["@id"]}"></deer-view>
+                    <deer-view class="recordStatus tag button is-full-width text-center bg-error" id="transcribedStatus" deer-template="transcriptionStatus" deer-id="${obj["@id"]}"></deer-view>
                     ${pages}
                     `
                     setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
