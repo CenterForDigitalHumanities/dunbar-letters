@@ -357,7 +357,7 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
                         addRecordToManagedList(obj, d, coll)
                     })
                     f.appendChild(d)
-                    statusAreaHeading.innerHTML = `Please fill out the information below and submit this record to reviewers.`
+                    statusAreaHeading.innerHTML = `Please update the information below, then submit this record to reviewers.`
                     statusArea.prepend(statusAreaHeading)
                     statusArea.appendChild(f)
                     return false
