@@ -338,7 +338,7 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
             .then(response => response.json())
             .then(coll => {
                 if(coll.itemListElement.filter(record => record["@id"] === obj['@id']).length){
-                    statusAreaHeading.innerHTML = `This record has been submitted for review.  You may still make edits below.`
+                    statusAreaHeading.innerHTML = `This record has been submitted for review.  You may still update the information below.`
                     statusArea.prepend(statusAreaHeading)
                     statusArea.innerHTML += `<div title="This record has already been submitted" class="recordStatus tag is-small bg-success"> ✔ submitted </div>`
                     return true
