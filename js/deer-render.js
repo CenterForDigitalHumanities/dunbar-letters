@@ -659,7 +659,7 @@ DEER.TEMPLATES.transcriptionStatus = function (obj, options = {}) {
                     if (data.length) {
                         elem.setAttribute(DEER.SOURCE, data[0]['@id'])
                     }
-                    elem.classList[elem.dataset.transcriptionStatus !== "in progress" ? "add" : "remove"]("success")
+                    //elem.classList[elem.dataset.transcriptionStatus !== "in progress" ? "add" : "remove"]("success")
                     setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
                     return
                 }).catch(err => { })
@@ -690,6 +690,8 @@ DEER.TEMPLATES.transcriptionStatus = function (obj, options = {}) {
                         elem.setAttribute(DEER.SOURCE, data?.new_obj_state?.["@id"])
                         elem.dataset.transcriptionStatus = (elem.dataset.transcriptionStatus !== "in progress" ? "in progress" : DLA_USER["http://store.rerum.io/agent"])
                         let msg = `❌ Not yet reviewed (click to approve)`
+                        elem.classList.remove("bg-success")
+                        elem.classList.add("bg-error")
                         if(data?.new_obj_state?.body?.transcriptionStatus !== "in progress"){
                             elem.classList.remove("bg-error")
                             elem.classList.add("bg-success")
@@ -697,7 +699,7 @@ DEER.TEMPLATES.transcriptionStatus = function (obj, options = {}) {
                             setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
                         }
                         elem.innerHTML = msg
-                        elem.classList[elem.dataset.transcriptionStatus !== "in progress" ? "add" : "remove"]("success")
+                        //elem.classList[elem.dataset.transcriptionStatus !== "in progress" ? "add" : "remove"]("success")
                     }).catch(err => { })
             })
         }
