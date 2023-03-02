@@ -211,6 +211,22 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
         then: async (elem) => {
             let rejected = false
             let reviewed = false
+
+            function makeReadOnly(){
+                document.querySelectorAll("input[deer-key]").forEach(el => {
+                    el.setAttribute("readonly", "")
+                })
+                document.querySelectorAll("textarea[deer-key]").forEach(el => {
+                    el.setAttribute("readonly", "")
+                })
+                document.querySelectorAll("input[type='submit']").forEach(el => {
+                    el.remove()
+                })
+                document.querySelectorAll(".dropFrom").forEach(el => {
+                    el.remove()
+                })
+            }
+
             function addRecordToManagedList(obj, el, coll){
                 //PARANOID CHECK to see if it is already in there
                 if(coll.itemListElement.filter(record => record["@id"] === obj["@id"]).length === 0){
@@ -265,7 +281,7 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
                 statusAreaHeading.innerHTML = `This record is public.  You can not make edits.`
                 statusArea.prepend(statusAreaHeading)
                 elem.appendChild(statusArea)
-                document.querySelector("input[type='submit']").classList.add("is-hidden")
+                makeReadOnly()
                 return
             }
 
@@ -311,9 +327,9 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
                 // Reviewed and approved.  Should we hide the submit button here too? -- Yes
                 statusAreaHeading.innerHTML = `The record was reviewed and accepted.  You can not make edits.`
                 statusArea.prepend(statusAreaHeading)
-                document.querySelector("input[type='submit']").classList.add("is-hidden")
                 elem.innerHTML = ""
                 elem.innerHTML.appendChild(statusArea)
+                makeReadOnly()
                 return 
             }
 
