@@ -216,6 +216,7 @@ button[is="auth-button"]{
 
 #recordStatuses{
   position: relative;
+  cursor: default;
   display: block;
   margin-bottom: 2em;
   margin-top: 2em;
@@ -228,7 +229,6 @@ button[is="auth-button"]{
   margin: 0em 1em;
   text-transform: none;
   color: white;
-  cursor: default;
 }
 
 .recordStatus.button{

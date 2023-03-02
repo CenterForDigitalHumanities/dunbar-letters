@@ -332,8 +332,8 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
                     let d = document.createElement("DIV")
                     d.classList.add("recordStatus", "dark", "button")
                     d.setAttribute("title", "Submit this record for moderation by the reviewers")
-                    statusAreaHeading.innerHTML = `Please fill out the information below and submit this record for review.`
-                    d.innerHTML = `❕ submit`
+                    statusAreaHeading.innerHTML = `Please fill out the information below and submit this record to reviewers.`
+                    d.innerHTML = `submit to reviewers ❕ `
                     d.addEventListener("click", e => {
                         if(!userHasRole(["dunbar_user_curator","dunbar_user_contributor","dunbar_user_reviewer"])) { return alert(`This function is limited to contributors, reviewers, and curators.`)}
                         let proceed = confirm("This action is connected with you username.  Click OK to proceed and add your note.")
