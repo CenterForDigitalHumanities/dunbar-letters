@@ -226,7 +226,7 @@ export default class DeerReport {
 
     processRecord(event) {
         event.preventDefault()
-        if(!userHasRole(["dunbar_user_admin","dunbar_user_contributor","dunbar_user_public"])) { return alert(`This function is limited to contributors.`)}
+        if(!userHasRole(["dunbar_user_curator","dunbar_user_contributor","dunbar_user_reviewer"])) { return alert(`This function is limited to contributors.`)}
         this.evidence = this.elem.getAttribute(DEER.EVIDENCE) // inherited to inputs
         this.context = this.elem.getAttribute(DEER.CONTEXT) // inherited to inputs
         this.attribution = this.elem.getAttribute(DEER.ATTRIBUTION) // inherited to inputs
