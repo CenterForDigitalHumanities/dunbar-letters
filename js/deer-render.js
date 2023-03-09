@@ -209,8 +209,6 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
     return {
         html: `loading statuses`,
         then: async (elem) => {
-            let rejected = false
-
             function makeReadOnly(){
                 document.querySelectorAll("input[deer-key]").forEach(el => {
                     el.setAttribute("readonly", "")
@@ -286,8 +284,8 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
             //Check the moderating Annotation to see if it has been approved for the public.
             const approvedQuery = {
                 "motivation" : "moderating",
-                "body.releasedTo": "http://store.rerum.io/v1/id/61ae694e50c86821e60b5d15"
-                "__rerum.history.next": { $exists: true, $type: 'array', $eq: [] },
+                "body.releasedTo": "http://store.rerum.io/v1/id/61ae694e50c86821e60b5d15",
+                "__rerum.history.next": { $exists: true, $type: 'array', $eq: [] }
             }
             const approved = await fetch(DEER.URLS.QUERY, {
                 method: "POST",
@@ -355,7 +353,7 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
                     let d = document.createElement("DIV")
                     d.classList.add("recordStatus", "dark", "button")
                     d.setAttribute("title", "Submit this record for moderation by the reviewers")
-                    d.innerHTML = `submit to reviewers ❕ `
+                    d.innerHTML = `submit to reviewers ❕`
                     d.addEventListener("click", e => {
                         if(!userHasRole(["dunbar_user_curator","dunbar_user_contributor","dunbar_user_reviewer"])) { return alert(`This function is limited to contributors, reviewers, and curators.`)}
                         let proceed = confirm("This action is connected with you username.  Click OK to proceed and add your note.")
@@ -423,220 +421,6 @@ DEER.TEMPLATES.statusComment =  (obj, options = {}) => {
             })
             //So that the label template draws
             setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
-        }
-    }
-}
-
-DEER.TEMPLATES.reviewedStatus = (obj, options = {}) => {
-    if (!obj['@id']) { return null }
-    // This Annotation is continually overwritten, so no history wildcard necessary.
-    const query =
-    {
-        "motivation" : "moderating",
-        "body.releasedTo" : "http://store.rerum.io/v1/id/61ae693050c86821e60b5d13",
-        "target": obj["@id"]
-    }
-    return {
-        html: `looking up review status... `,
-        then: (elem) => {
-            fetch(DEER.URLS.QUERY, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(query)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if(data.length){
-                    elem.setAttribute(DEER.SOURCE, data[0]['@id'])
-                    if(data[0].body.releasedTo){
-                        elem.innerHTML = `✔ reviewed`
-                        // managedStatus.classList.add("is-hidden")
-                        // reviewedStatus.classList.add("is-hidden")
-                        elem.classList.remove("bg-error")
-                        elem.classList.add("bg-success")
-                    }
-                    else{
-                        elem.innerHTML = `❌ reviewed`
-                    }
-                }
-                else{
-                    elem.innerHTML = `❌ reviewed`
-                }
-            })
-            .catch(err => { })
-        }
-    }
-}
-
-DEER.TEMPLATES.publishedStatus = (obj, options = {}) => {
-    if (!obj['@id']) { return null }
-
-    return {
-        html: `looking up record info... `,
-        then: (elem) => {
-            fetch("http://store.rerum.io/v1/id/61ae694e50c86821e60b5d15")
-            .then(response => response.json())
-            .then(coll => {
-                //If you want to know who placed it, you have to check the author of the moderating Annotation
-                if(coll.itemListElement.filter(record => record["@id"] === obj['@id']).length){
-                    elem.innerHTML = `✔ This Record is Publicly Available`
-                    // managedStatus.classList.add("is-hidden")
-                    // reviewedStatus.classList.add("is-hidden")
-                    elem.classList.remove("bg-error")
-                    elem.classList.add("bg-success")
-                }
-                else{
-                    elem.innerHTML = `❌ This Record is Not Publicly Available`
-                }
-            })
-            .catch(err => { })
-        }
-    }
-}
-
-DEER.TEMPLATES.managedStatus = (obj, options = {}) => {
-    if (!obj['@id']) { return null }
-
-    return {
-        html: `looking up record info... `,
-        then: (elem) => {
-            fetch("http://store.rerum.io/v1/id/61ae693050c86821e60b5d13")
-            .then(response => response.json())
-            .then(coll => {
-                //If you want to know who placed it, you have to check the __rerum.creator on the comment Annotation
-                //Should we allow Reviewers/Curators to remove it while they are here?
-                if(coll.itemListElement.filter(record => record["@id"] === obj['@id']).length){
-                    elem.innerHTML = `✔ Submitted For Review`
-                    elem.classList.remove("bg-error")
-                    elem.classList.add("bg-success")
-                }
-                else{
-                    let drawer = `
-                        <div class="statusDrawer is-hidden"> 
-                            <div style="margin-top: 1em;"> 
-                                <p> This will alert reviewers to look at this item.  You may add a comment below. </p>
-                                <textarea class="statusCommentText" style="margin-top: 1em;"></textarea>
-                                <input class="notifyReviewerBtn success" type="button" value="Notify Reviewers" style="margin-top: 1em;" />
-                            </div>
-                        </div>
-                    `
-                    elem.innerHTML = `Submit For Review ❕ ${drawer}`
-
-                    elem.addEventListener("click", e => {
-                        if(e.target.id !== "managedStatus"){
-                            //Do not close when users click on internal items
-                            return
-                        }
-                        if(elem.querySelector(".statusDrawer").classList.contains("is-hidden")){
-                            elem.querySelector(".statusDrawer").classList.remove("is-hidden")
-                        }
-                        else{
-                            elem.querySelector(".statusDrawer").classList.add("is-hidden")
-                        }
-                    })
-
-                    elem.querySelector(".notifyReviewerBtn").addEventListener("click", e => {
-                        if(!userHasRole(["dunbar_user_curator","dunbar_user_contributor","dunbar_user_reviewer"])) { return alert(`This function is limited to contributors, reviewers, and curators.`)}
-                        let proceed = confirm("This action is connected with you username.  Click OK to proceed and add your note.")
-                        if(!proceed){return}
-                        let url = DEER.URLS.CREATE
-                        let method = "POST"
-                        const commentAnno = {
-                            "@context": "http://purl.org/dc/terms",
-                            "motivation" : "commenting",
-                            "type": "Annotation",
-                            "body":{
-                                "comment":{
-                                    "type" : "Comment",
-                                    "text" : elem.querySelector("textarea").value,
-                                    "author" : DLA_USER["http://store.rerum.io/agent"]
-                                }
-                            },
-                            "target":obj["@id"]
-                        }
-                        if(obj?.comment.source.citationSource){
-                            url = DEER.URLS.UPDATE
-                            method = "PUT"
-                            commentAnno["@id"] = obj.comment.source.citationSource
-                        }
-                        fetch(url, {
-                            method: method,
-                            headers: {
-                                "Content-Type": "application/json",
-                                "Authorization": `Bearer ${DLA_USER.authorization}`
-                            },
-                            body: JSON.stringify(commentAnno)
-                        })
-                        .then(response => response.json())
-                        .then(anno => {
-                            statusComment.querySelector("span").innerHTML = "See your status comment"
-                            statusComment.querySelector("pre").innerHTML = elem.querySelector("textarea").value
-                            addRecordToManagedList(obj, elem, coll)
-                        })
-                        .catch(err => { })
-                        
-                    })
-
-                    elem.querySelector(".statusCommentText").addEventListener("keydown", e => {
-                        if( e.keyCode === 27 ) {
-                            e.target.value = ""
-                            document.getElementById("managedStatus").click()
-                        }
-                    })
-                }
-            })
-            .catch(err => { })
-
-            function addRecordToManagedList(obj, elem, coll){
-                //PARANOID CHECK to see if it is already in there
-                if(coll.itemListElement.filter(record => record["@id"] === obj["@id"]).length === 0){
-                    coll.itemListElement.push({"label": obj.label.value, "@id":obj["@id"]})
-                    coll.numberOfItems++
-                    fetch(DEER.URLS.OVERWRITE, {
-                        method: "PUT",
-                        mode: 'cors',
-                        headers: {
-                            "Content-Type": "application/json",
-                            "Authorization": `Bearer ${DLA_USER.authorization}`
-                        },
-                        body: JSON.stringify(coll)
-                    })
-                    .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
-                    .then(data => {
-                        elem.innerHTML = `✔ Submitted For Review`
-                        // managedStatus.classList.add("is-hidden")
-                        // publicStatus.classList.add("is-hidden")
-                        //statusComment.settAttribute("deer-id", "")
-                        //statusComment.settAttribute("deer-id", obj["@id"])
-                        elem.classList.remove("bg-error")
-                        elem.classList.add("bg-success")
-                    })
-                    .catch(err => alert(`Failed to save: ${err}`))    
-                }
-            }    
-                
-            function removeRecordFromManagedList(obj){
-                 fetch("http://store.rerum.io/v1/id/61ae693050c86821e60b5d13")
-                .then(response => response.json())
-                .then(coll => {
-                    coll.itemListElement = coll.itemListElement.filter(record => record["@id"] !== obj['@id'])
-                    coll.numberOfItems--
-                    fetch(DEER.URLS.OVERWRITE, {
-                        method: "PUT",
-                        mode: 'cors',
-                        headers: {
-                            "Content-Type": "application/json",
-                            "Authorization": `Bearer ${DLA_USER.authorization}`
-                        },
-                        body: JSON.stringify(list_project)
-                    })
-                    .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
-                    .catch(err => alert(`Failed to save: ${err}`))
-                })
-                .catch(err => alert(`Failed to save: ${err}`))
-            }  
         }
     }
 }
