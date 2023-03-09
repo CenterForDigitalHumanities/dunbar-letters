@@ -283,6 +283,39 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
                 makeReadOnly()
                 return
             }
+            //Check the moderating Annotation to see if it has been approved for the public.
+            const approvedQuery = {
+                "motivation" : "moderating",
+                "body.releasedTo": "http://store.rerum.io/v1/id/61ae694e50c86821e60b5d15"
+                "__rerum.history.next": { $exists: true, $type: 'array', $eq: [] },
+            }
+            const approved = await fetch(DEER.URLS.QUERY, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(approvedQuery)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.length){
+                    elem.setAttribute(DEER.SOURCE, data[0]['@id'])
+                    return true
+                }
+                return false
+            })
+            .catch(err => { return false })
+
+            if(approved){
+                //The moderating Annotation says this record is ready.
+                elem.innerHTML = ""
+                statusArea.innerHTML += `<div title="This record has been approved" class="recordStatus tag is-small bg-success"> ✔ approved </div>`
+                statusAreaHeading.innerHTML = `This record has been approved for the public.  You can not make edits.`
+                statusArea.prepend(statusAreaHeading)
+                elem.appendChild(statusArea)
+                makeReadOnly()
+                return
+            }
 
             // Check the commenting Annotation body.comment
             // This Annotation is continually overwritten, so no history wildcard necessary.
@@ -337,9 +370,9 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
             })
             .catch(err => { return false })
             if(managed){
-                statusAreaHeading.innerHTML = `This record has been submitted for review.  You can not make edits.`
+                //This means it was not approved.  It does not have a moderating annotation but is in the managed list
+                statusAreaHeading.innerHTML = `This record has been submitted for review.  You can still make edits below.`
                 statusArea.innerHTML += `<div title="This record has already been submitted" class="recordStatus tag is-small bg-success"> ✔ submitted  </div>`
-                makeReadOnly()
             }
             else if(reviewed){
                 //This means it was rejected.  It is not managed and has been review commented upon by someone in the past.  
