@@ -221,6 +221,7 @@ button[is="auth-button"]{
   margin-bottom: 2em;
   margin-top: 2em;
   width: fit-content;
+  max-width: var(--grid-maxWidth);
 }
 
 .recordStatus{

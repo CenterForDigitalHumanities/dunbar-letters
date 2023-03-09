@@ -210,7 +210,6 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
         html: `loading statuses`,
         then: async (elem) => {
             let rejected = false
-            let reviewed = false
 
             function makeReadOnly(){
                 document.querySelectorAll("input[deer-key]").forEach(el => {
@@ -229,7 +228,7 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
 
             function addRecordToManagedList(obj, el, coll){
                 //PARANOID CHECK to see if it is already in there
-                if(coll.itemListElement.filter(record => record["@id"] === obj["@id"]).length === 0){
+                if(coll.itemListElement.filter(record => record["@id"] === obj["@id"]).length){
                     return
                 }
                 coll.itemListElement.push({"label": obj.label.value, "@id":obj["@id"]})
@@ -260,24 +259,24 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
             let statusAreaHeading = document.createElement("h6")
             statusAreaHeading.innerHTML = "Record Statuses"
             statusArea.classList.add("card", "bg-light")
+
             //Check if the public collection contains this record id
             const published = await fetch("http://store.rerum.io/v1/id/61ae694e50c86821e60b5d15")
             .then(response => response.json())
             .then(coll => {
-                //If you want to know who placed it, you have to check the author of the moderating Annotation
                 if(coll.itemListElement.filter(record => record["@id"] === obj['@id']).length){
-                    statusArea.innerHTML += `<div title="This record is available publicly" class="recordStatus tag is-small bg-success"> ✔ public </div>`
                     return true
                 }
                 else{
-                    //statusArea.innerHTML += `<div title="This record is not available to the public" class="recordStatus tag is-small bg-error"> ❌ public </div>`
                     return false
                 }
             })
             .catch(err => { })
 
             if(published){
+                //No need to look for the moderating Annotation
                 elem.innerHTML = ""
+                statusArea.innerHTML += `<div title="This record is available publicly" class="recordStatus tag is-small bg-success"> ✔ public </div>`
                 statusAreaHeading.innerHTML = `This record is public.  You can not make edits.`
                 statusArea.prepend(statusAreaHeading)
                 elem.appendChild(statusArea)
@@ -285,14 +284,14 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
                 return
             }
 
-            //Check the moderating Annotation body.releasedTo
+            // Check the commenting Annotation body.comment
             // This Annotation is continually overwritten, so no history wildcard necessary.
             const reviewedQuery =
             {
-                "motivation" : "moderating",
+                "motivation" : "commenting",
                 "target": obj["@id"]
             }
-            const accepted = await fetch(DEER.URLS.QUERY, {
+            const reviewed = await fetch(DEER.URLS.QUERY, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -303,47 +302,21 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
             .then(data => {
                 if(data.length){
                     elem.setAttribute(DEER.SOURCE, data[0]['@id'])
-                    rejected = (!data[0].body.releasedTo && data[0].body.resultComment) ? true : false
-                    if(data[0].body.releasedTo ? true : false){
-                        statusArea.innerHTML += `<div class="recordStatus tag is-small bg-success" title="The submission was accepted">✔ accepted</div>`
-                    }
-                    //reviewed = accepted || rejected
-                    // if(reviewed){
-                    //     statusArea.innerHTML += 
-                    //     `<div class="recordStatus tag is-small ${rejected ? "bg-error" : "bg-success"}"
-                    //      title="${rejected ? `The submission was rejected` : `The submission was reviewed`}"> 
-                    //      ${rejected ? `❌ rejected` : `✔ reviewed`} </div>`
-                    // }
-                    // if(rejected){
-                    //     statusArea.innerHTML += `
-                    //     <div class="recordStatus tag is-small bg-error" title="The submission was rejected">❌ rejected.  See comment.</div>`
-                    // }
+                    return true
                 }
-                return data[0].body.releasedTo ? true : false
+                return false
             })
             .catch(err => { return false })
-
-            if(accepted){
-                // Reviewed and approved.  Should we hide the submit button here too? -- Yes
-                statusAreaHeading.innerHTML = `The record was reviewed and accepted.  You can not make edits.`
-                statusArea.prepend(statusAreaHeading)
-                elem.innerHTML = ""
-                elem.innerHTML.appendChild(statusArea)
-                makeReadOnly()
-                return 
-            }
 
             //Check if the managed collection contains this record id
             const managed = await fetch("http://store.rerum.io/v1/id/61ae693050c86821e60b5d13")
             .then(response => response.json())
             .then(coll => {
                 if(coll.itemListElement.filter(record => record["@id"] === obj['@id']).length){
-                    statusAreaHeading.innerHTML = `This record has been submitted for review.  You may still update the information below.`
-                    statusArea.prepend(statusAreaHeading)
-                    statusArea.innerHTML += `<div title="This record has already been submitted" class="recordStatus tag is-small bg-success"> ✔ submitted </div>`
                     return true
                 }
                 else{
+                    //Whether accepted or rejected, it needs to be submitted.
                     let f = document.createElement("FOOTER")
                     f.classList.add("is-right")
                     let d = document.createElement("DIV")
@@ -358,33 +331,39 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
                     })
                     f.appendChild(d)
                     statusAreaHeading.innerHTML = `Please update the information below, then submit this record to reviewers.`
-                    statusArea.prepend(statusAreaHeading)
                     statusArea.appendChild(f)
                     return false
                 }
             })
             .catch(err => { return false })
-            if(rejected){
-                statusAreaHeading.innerHTML = `The record was rejected.  Please edit the information below and re-submit.`
-                statusArea.prepend(statusAreaHeading)
-                statusArea.innerHTML += `<deer-view title="The submission was rejected and a comment was left by a reviewer" id="statusComment" class="tag text-center bg-grey text-white is-hidden" deer-template="statusComment" deer-id="${obj["@id"]}"> </deer-view>`
+            if(managed){
+                statusAreaHeading.innerHTML = `This record has been submitted for review.  You can not make edits.`
+                statusArea.innerHTML += `<div title="This record has already been submitted" class="recordStatus tag is-small bg-success"> ✔ submitted  </div>`
+                makeReadOnly()
             }
+            else if(reviewed){
+                //This means it was rejected.  It is not managed and has been review commented upon by someone in the past.  
+                statusAreaHeading.innerHTML = `<span class="text-error">The record was rejected</span>.  Please edit the information below and re-submit.`
+                statusArea.innerHTML += `<deer-view title="A comment was left by a reviewer" id="statusComment" class="tag text-center bg-grey text-white is-full-width" deer-template="statusComment" deer-id="${obj["@id"]}"> </deer-view>`
+            }
+            statusArea.prepend(statusAreaHeading)
             elem.innerHTML = ""
             elem.appendChild(statusArea)
-            if(rejected){
-                //So that the status comment comes in
+            if(reviewed && !managed){
+                //This means rejected, so redraw for the status comment template
                 setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
             }
         }
     }
 }
 
-DEER.TEMPLATES.statusComment = (obj, options = {}) => {
+DEER.TEMPLATES.statusComment =  (obj, options = {}) => {
     if (!obj['@id']) { return null }
-    //We know who made the comment in obj.comment.value.author
+    if(!obj.comment) { return null }
+
     let commentElem = 
     `<div style="text-transform: none;" title="${obj.comment.value.text}" > 
-        <span> ❌ rejected.  See comment from <deer-view deer-template="label" deer-id="${obj.comment.value.author}">  </deer-view></span>
+        <span> See comment from <deer-view deer-template="label" deer-id="${obj.comment.value.author}">  </deer-view></span>
         <div class="statusDrawer text-dark is-hidden">           
             <pre>${obj.comment.value.text}</pre>
         </div>
