@@ -281,7 +281,7 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
                 makeReadOnly()
                 return
             }
-            //Check the moderating Annotation to see if it has been approved for the public.
+            //Check the most recent version of the moderating Annotation to see if it has been approved for the public.
             const approvedQuery = {
                 "motivation" : "moderating",
                 "body.releasedTo": "http://store.rerum.io/v1/id/61ae694e50c86821e60b5d15",
@@ -305,7 +305,7 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
             .catch(err => { return false })
 
             if(approved){
-                //The moderating Annotation says this record is ready.
+                //The moderating Annotation says this record is ready, and has a body.resultComment if we care.
                 elem.innerHTML = ""
                 statusArea.innerHTML += `<div title="This record has been approved" class="recordStatus tag is-small bg-success"> ✔ approved </div>`
                 statusAreaHeading.innerHTML = `This record has been approved for the public.  You can not make edits.`
@@ -354,9 +354,10 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
                     d.classList.add("recordStatus", "dark", "button")
                     d.setAttribute("title", "Submit this record for moderation by the reviewers")
                     d.innerHTML = `submit to reviewers ❕`
+                    //FIXME: WHY WON'T YOU REGISTER ANYMORE
                     d.addEventListener("click", e => {
                         if(!userHasRole(["dunbar_user_curator","dunbar_user_contributor","dunbar_user_reviewer"])) { return alert(`This function is limited to contributors, reviewers, and curators.`)}
-                        let proceed = confirm("This action is connected with you username.  Click OK to proceed and add your note.")
+                        let proceed = confirm("This action is connected with your username.  Click OK to proceed and add your note.")
                         if(!proceed){return}
                         addRecordToManagedList(obj, d, coll)
                     })
@@ -373,7 +374,8 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
                 statusArea.innerHTML += `<div title="This record has already been submitted" class="recordStatus tag is-small bg-success"> ✔ submitted  </div>`
             }
             else if(reviewed){
-                //This means it was rejected.  It is not managed and has been review commented upon by someone in the past.  
+                //This means it was rejected.  It is not managed and has been review commented upon by someone in the past.
+                //Note once a commenting annotation exists for this record, being out of the managed list always means "rejected" going forward.  
                 statusAreaHeading.innerHTML = `<span class="text-error">The record was rejected</span>.  Please edit the information below and re-submit.`
                 statusArea.innerHTML += `<deer-view title="A comment was left by a reviewer" id="statusComment" class="tag text-center bg-grey text-white is-full-width" deer-template="statusComment" deer-id="${obj["@id"]}"> </deer-view>`
             }
