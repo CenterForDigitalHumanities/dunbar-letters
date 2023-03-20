@@ -213,3 +213,38 @@ button[is="auth-button"]{
 .welcomeLinks a{
   display:  block;
 }
+
+#recordStatuses{
+  position: relative;
+  cursor: default;
+  display: block;
+  margin-bottom: 2em;
+  margin-top: 2em;
+  width: fit-content;
+  max-width: var(--grid-maxWidth);
+}
+
+.recordStatus{
+  position: relative;
+  display: inline-block;
+  margin: 0em 1em;
+  text-transform: none;
+  color: white;
+}
+
+.recordStatus.button{
+  cursor: pointer;
+}
+
+.button.is-small{
+    font-size: .75em;
+    padding: 0.4rem;
+}
+
+.dropFrom{
+  color:red;
+}
+
+input[readonly]{
+  color: darkred;
+}

@@ -204,6 +204,229 @@ DEER.TEMPLATES.shadow = (obj, options = {}) => {
     }
 }
 
+DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
+    if (!obj['@id']) { return null }
+    return {
+        html: `loading statuses`,
+        then: async (elem) => {
+            function makeReadOnly(){
+                document.querySelectorAll("input[deer-key]").forEach(el => {
+                    el.setAttribute("readonly", "")
+                })
+                document.querySelectorAll("textarea[deer-key]").forEach(el => {
+                    el.setAttribute("readonly", "")
+                })
+                document.querySelectorAll("input[type='submit']").forEach(el => {
+                    el.remove()
+                })
+                document.querySelectorAll(".dropFrom").forEach(el => {
+                    el.remove()
+                })
+            }
+
+            function addRecordToManagedList(obj, el, coll){
+                //PARANOID CHECK to see if it is already in there
+                if(coll.itemListElement.filter(record => record["@id"] === obj["@id"]).length){
+                    return
+                }
+                coll.itemListElement.push({"label": obj.label.value, "@id":obj["@id"]})
+                coll.numberOfItems++
+                fetch(DEER.URLS.OVERWRITE, {
+                    method: "PUT",
+                    mode: 'cors',
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${DLA_USER.authorization}`
+                    },
+                    body: JSON.stringify(coll)
+                })
+                .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
+                .then(data => {
+                    el.innerHTML = `✔ submitted`
+                    el.classList.remove("button")
+                    el.classList.remove("bg-error")
+                    el.classList.add("bg-success")
+                    el.addEventListener("click", e => {
+                        return
+                    })
+                })
+                .catch(err => alert(`Failed to save: ${err}`))    
+            }  
+
+            let statusArea = document.createElement("DIV")
+            let statusAreaHeading = document.createElement("h6")
+            statusAreaHeading.innerHTML = "Record Statuses"
+            statusArea.classList.add("card", "bg-light")
+
+            //Check if the public collection contains this record id
+            const published = await fetch("http://store.rerum.io/v1/id/61ae694e50c86821e60b5d15")
+            .then(response => response.json())
+            .then(coll => {
+                if(coll.itemListElement.filter(record => record["@id"] === obj['@id']).length){
+                    return true
+                }
+                else{
+                    return false
+                }
+            })
+            .catch(err => { })
+
+            if(published){
+                //No need to look for the moderating Annotation
+                elem.innerHTML = ""
+                statusArea.innerHTML += `<div title="This record is available publicly" class="recordStatus tag is-small bg-success"> ✔ public </div>`
+                statusAreaHeading.innerHTML = `This record is public.  You can not make edits.`
+                statusArea.prepend(statusAreaHeading)
+                elem.appendChild(statusArea)
+                makeReadOnly()
+                return
+            }
+            //Check the most recent version of the moderating Annotation to see if it has been approved for the public.
+            const approvedQuery = {
+                "motivation" : "moderating",
+                "body.releasedTo": "http://store.rerum.io/v1/id/61ae694e50c86821e60b5d15",
+                "__rerum.history.next": { $exists: true, $type: 'array', $eq: [] }
+            }
+            const approved = await fetch(DEER.URLS.QUERY, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(approvedQuery)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.length){
+                    elem.setAttribute(DEER.SOURCE, data[0]['@id'])
+                    return true
+                }
+                return false
+            })
+            .catch(err => { return false })
+
+            if(approved){
+                //The moderating Annotation says this record is ready, and has a body.resultComment if we care.
+                elem.innerHTML = ""
+                statusArea.innerHTML += `<div title="This record has been approved" class="recordStatus tag is-small bg-success"> ✔ approved </div>`
+                statusAreaHeading.innerHTML = `This record has been approved for the public.  You can not make edits.`
+                statusArea.prepend(statusAreaHeading)
+                elem.appendChild(statusArea)
+                makeReadOnly()
+                return
+            }
+
+            // Check the commenting Annotation body.comment
+            // This Annotation is continually overwritten, so no history wildcard necessary.
+            const reviewedQuery =
+            {
+                "motivation" : "commenting",
+                "target": obj["@id"]
+            }
+            const reviewed = await fetch(DEER.URLS.QUERY, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(reviewedQuery)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.length){
+                    elem.setAttribute(DEER.SOURCE, data[0]['@id'])
+                    return true
+                }
+                return false
+            })
+            .catch(err => { return false })
+
+            //Check if the managed collection contains this record id
+            const managed = await fetch("http://store.rerum.io/v1/id/61ae693050c86821e60b5d13")
+            .then(response => response.json())
+            .then(coll => {
+                if(coll.itemListElement.filter(record => record["@id"] === obj['@id']).length){
+                    return true
+                }
+                else{
+                    //Whether accepted or rejected, it needs to be submitted.
+                    let f = document.createElement("FOOTER")
+                    f.classList.add("is-right")
+                    let d = document.createElement("DIV")
+                    d.classList.add("recordStatus", "dark", "button")
+                    d.setAttribute("title", "Submit this record for moderation by the reviewers")
+                    d.innerHTML = `submit to reviewers ❕`
+                    //FIXME: WHY WON'T YOU REGISTER ANYMORE
+                    d.addEventListener("click", e => {
+                        if(!userHasRole(["dunbar_user_curator","dunbar_user_contributor","dunbar_user_reviewer"])) { return alert(`This function is limited to contributors, reviewers, and curators.`)}
+                        let proceed = confirm("This action is connected with your username.  Click OK to proceed and add your note.")
+                        if(!proceed){return}
+                        addRecordToManagedList(obj, d, coll)
+                    })
+                    f.appendChild(d)
+                    statusAreaHeading.innerHTML = `Please update the information below, then submit this record to reviewers.`
+                    statusArea.appendChild(f)
+                    return false
+                }
+            })
+            .catch(err => { return false })
+            if(managed){
+                //This means it was not approved.  It does not have a moderating annotation but is in the managed list
+                statusAreaHeading.innerHTML = `This record has been submitted for review.  You can still make edits below.`
+                statusArea.innerHTML += `<div title="This record has already been submitted" class="recordStatus tag is-small bg-success"> ✔ submitted  </div>`
+            }
+            else if(reviewed){
+                //This means it was rejected.  It is not managed and has been review commented upon by someone in the past.
+                //Note once a commenting annotation exists for this record, being out of the managed list always means "rejected" going forward.  
+                statusAreaHeading.innerHTML = `<span class="text-error">The record was rejected</span>.  Please edit the information below and re-submit.`
+                statusArea.innerHTML += `<deer-view title="A comment was left by a reviewer" id="statusComment" class="tag text-center bg-grey text-white is-full-width" deer-template="statusComment" deer-id="${obj["@id"]}"> </deer-view>`
+            }
+            statusArea.prepend(statusAreaHeading)
+            elem.innerHTML = ""
+            elem.appendChild(statusArea)
+            if(reviewed && !managed){
+                //This means rejected, so redraw for the status comment template
+                setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
+            }
+        }
+    }
+}
+
+DEER.TEMPLATES.statusComment =  (obj, options = {}) => {
+    if (!obj['@id']) { return null }
+    if(!obj.comment) { return null }
+
+    let commentElem = 
+    `<div style="text-transform: none;" title="${obj.comment.value.text}" > 
+        <span> See comment from <deer-view deer-template="label" deer-id="${obj.comment.value.author}">  </deer-view></span>
+        <div class="statusDrawer text-dark is-hidden">           
+            <pre>${obj.comment.value.text}</pre>
+        </div>
+     </div>   `
+
+    return {
+        html: commentElem,
+        then: (elem) => {
+            if(obj.comment.value.text){
+                elem.classList.remove("is-hidden")
+            }
+            elem.setAttribute(DEER.SOURCE, obj.comment.source.citationSource)
+            elem.addEventListener("click", e => {
+                if(e.target.tagName === "PRE"){
+                    //This way they can highlight and select text
+                    return
+                }
+                if(elem.querySelector(".statusDrawer").classList.contains("is-hidden")){
+                    elem.querySelector(".statusDrawer").classList.remove("is-hidden")
+                }
+                else{
+                    elem.querySelector(".statusDrawer").classList.add("is-hidden")
+                }
+            })
+            //So that the label template draws
+            setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
+        }
+    }
+}
+
 DEER.TEMPLATES.transcriptionStatus = function (obj, options = {}) {
     if (!obj['@id']) { return null }
 
@@ -225,12 +448,16 @@ DEER.TEMPLATES.transcriptionStatus = function (obj, options = {}) {
                 .then(data => {
                     elem.dataset.transcriptionStatus = data[0]?.body.transcriptionStatus ?? "in progress"
                     elem.innerHTML = elem.dataset.transcriptionStatus !== "in progress"
-                        ? `✔ Reviewed by <deer-view deer-id="${data[0].body.transcriptionStatus}" deer-template="label">${data[0].body.transcriptionStatus}</deer-view>`
+                        ? `✔ Reviewed by <deer-view deer-id="${data[0].body.transcriptionStatus}" deer-template="label">${data[0].body.transcriptionStatus}</deer-view> (click to undo)`
                         : `❌ Not yet reviewed (click to approve)`
+                    if(elem.dataset.transcriptionStatus !== "in progress"){
+                        elem.classList.remove("bg-error")
+                        elem.classList.add("bg-success")
+                    }
                     if (data.length) {
                         elem.setAttribute(DEER.SOURCE, data[0]['@id'])
                     }
-                    elem.classList[elem.dataset.transcriptionStatus !== "in progress" ? "add" : "remove"]("success")
+                    //elem.classList[elem.dataset.transcriptionStatus !== "in progress" ? "add" : "remove"]("success")
                     setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
                     return
                 }).catch(err => { })
@@ -261,12 +488,16 @@ DEER.TEMPLATES.transcriptionStatus = function (obj, options = {}) {
                         elem.setAttribute(DEER.SOURCE, data?.new_obj_state?.["@id"])
                         elem.dataset.transcriptionStatus = (elem.dataset.transcriptionStatus !== "in progress" ? "in progress" : DLA_USER["http://store.rerum.io/agent"])
                         let msg = `❌ Not yet reviewed (click to approve)`
+                        elem.classList.remove("bg-success")
+                        elem.classList.add("bg-error")
                         if(data?.new_obj_state?.body?.transcriptionStatus !== "in progress"){
-                            msg = `✔ Reviewed by <deer-view deer-id="${data?.new_obj_state?.body?.transcriptionStatus}" deer-template="label">${data?.new_obj_state?.body?.transcriptionStatus}</deer-view>`
+                            elem.classList.remove("bg-error")
+                            elem.classList.add("bg-success")
+                            msg = `✔ Reviewed by <deer-view deer-id="${data?.new_obj_state?.body?.transcriptionStatus}" deer-template="label">${data?.new_obj_state?.body?.transcriptionStatus}</deer-view> (click to undo)`
                             setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
                         }
                         elem.innerHTML = msg
-                        elem.classList[elem.dataset.transcriptionStatus !== "in progress" ? "add" : "remove"]("success")
+                        //elem.classList[elem.dataset.transcriptionStatus !== "in progress" ? "add" : "remove"]("success")
                     }).catch(err => { })
             })
         }
@@ -304,29 +535,33 @@ DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
                     `, ``)
 
                     elem.innerHTML = `
-                <style>
-                    printed {
-                        font-family:serif;
-                    }
-                    note {
-                        font-family:monospace;
-                    }
-                    unclear {
-                        opacity:.4;
-                    }
-                    line.empty {
-                        line-height: 1.6;
-                        background-color: #CCC;
-                        height: 1em;
-                        margin: .4em 0;
-                        display:block;
-                        border-radius: 4px;
-                    }
-                </style>
-                <a href="http://t-pen.org/TPEN/transcription.html?projectID=${parseInt(ms['@id'].split("manifest/")?.[1])}" target="_blank">transcribe on TPEN</a>
-                <h2>${ms.label}</h2>
-                ${pages}
-        `})
+                    <style>
+                        printed {
+                            font-family:serif;
+                        }
+                        note {
+                            font-family:monospace;
+                        }
+                        unclear {
+                            opacity:.4;
+                        }
+                        line.empty {
+                            line-height: 1.6;
+                            background-color: #CCC;
+                            height: 1em;
+                            margin: .4em 0;
+                            display:block;
+                            border-radius: 4px;
+                        }
+                    </style>
+                    <a href="http://t-pen.org/TPEN/transcription.html?projectID=${parseInt(ms['@id'].split("manifest/")?.[1])}" target="_blank">transcribe on TPEN</a>
+                    <h2>${ms.label}</h2>
+                    <deer-view class="recordStatus tag button is-full-width text-center bg-error" id="transcribedStatus" deer-template="transcriptionStatus" deer-id="${obj["@id"]}"></deer-view>
+                    ${pages}
+                    `
+                    setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
+                })
+                .catch(err => { })
         }
     }
 }
@@ -683,4 +918,18 @@ export function initializeDeerViews(config) {
         //Failed 5 times at 100
         //Failed 0 times at 200
     })
+}
+
+/**
+ * Checks array of stored roles for any of the roles provided.
+ * @param {Array} roles Strings of roles to check.
+ * @returns Boolean user has one of these roles.
+ */
+function userHasRole(roles){
+    if (!Array.isArray(roles)) { roles = [roles] }
+    try {
+        return Boolean(DLA_USER?.["http://dunbar.rerum.io/user_roles"]?.roles.filter(r=>roles.includes(r)).length)
+    } catch (err) {
+        return false
+    }
 }

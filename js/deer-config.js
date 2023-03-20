@@ -153,7 +153,6 @@ export default {
                                 saveList.addEventListener('click', overwriteList)
                             })
 
-
                         function overwriteList() {
                             let mss_project = []
                             let mss_public = []
@@ -192,9 +191,13 @@ export default {
                             fetch(`${tiny}overwrite`, {
                                 method: "PUT",
                                 mode: 'cors',
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "Authorization": `Bearer ${DLA_USER.authorization}`
+                                },
                                 body: JSON.stringify(list_project)
                             }).then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
-                                .catch(err => alert(`Failed to save: ${err}`))
+                            .catch(err => alert(`Failed to save: ${err}`))
 
                             fetch(`${tiny}overwrite`, {
                                 method: "PUT",
@@ -246,7 +249,6 @@ export default {
                 return null
             }
         }
-        
     },
     version: "alpha"
 }

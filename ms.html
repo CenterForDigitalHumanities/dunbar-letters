@@ -26,12 +26,14 @@
             <img src="media/logo.jpg" alt="logo">
         </logoimg>
     </gm-header>
+    <deer-view id="recordStatuses" class="" deer-template="recordStatuses" deer-id=""></deer-view>
+
     <form id="letter" deer-type="PhysicalResource" deer-context="http://purl.org/dc/terms">
         <input type="hidden" deer-key="targetCollection"
             value="Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar">
         <input type="hidden" deer-key="manuscript" deer-context="http://www.loc.gov/mods"
             value="Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar">
-            <input is="auth-creator" type="hidden" deer-key="creator" />
+        <input is="auth-creator" type="hidden" deer-key="creator" />
         <div class="row">
             <label class="col-3 col-2-md text-right">Label:</label>
             <input type="text" deer-key="name" placeholder="Convenient Label for Humans" class="col-9 col-10-md">
@@ -53,20 +55,15 @@
             <label class="col-3 col-2-md text-right">notes:</label>
             <input type="text" deer-key="notes" placeholder="notes" class="col-9 col-4-md">
         </div>
-        <input type="submit" value="update" class="col">
-        <a href="./manuscripts.html" onclick="deleteThis(event)" class="text-error">Drop from collection</a>
+        <input type="submit" value="Update Information" class="col">
+        <a class="dropFrom" href="./manuscripts.html" onclick="deleteThis(event)" class="text-error">Drop from collection</a>
     </form>
-
-    <deer-view id="externalData" deer-template="shadow"></deer-view>
-
+    <deer-view id="externalData" deer-template="shadow" class="row"></deer-view>
     <div class="row">
         <p class="col-12">Original catalog record: <deer-view id="catalogLink" deer-template="linky" deer-key="source"></deer-view></p>
         <deer-view class="col-12" id="thumbroll" deer-template="thumbs" deer-id=""></deer-view>
-        <deer-view class="col-12 button error" id="transcriptStatus" deer-template="transcriptionStatus" deer-id=""></deer-view>
-
     </div>
-    <deer-view id="previewTranscription" deer-template="folioTranscription"></deer-view>
-
+    <deer-view id="previewTranscription" deer-template="folioTranscription" class="row"></deer-view>
     <gm-footer class="row">
         <a href="./index.html">🏠</a>
         <a href="./manuscripts.html">📚</a>
@@ -88,7 +85,7 @@
     <script>
         window.onhashchange = onload = () => {
             const msid = window.location.hash.substr(1)
-                ;[catalogLink, letter, thumbroll, transcriptStatus, previewTranscription].forEach(el => el.setAttribute("deer-id", msid))
+                ;[catalogLink, letter, thumbroll, recordStatuses, previewTranscription].forEach(el => el.setAttribute("deer-id", msid))
             const externals = document.addEventListener('deer-loaded', (event) => {
                 if (externalData.getAttribute('deer-id')) { return document.removeEventListener('deer-loaded', externals) }
                 if (event?.detail?.source?.value) {
