@@ -14,11 +14,17 @@ import { default as DEER } from './deer-config.js'
 import pLimit from './plimit.js'
 const limiter = pLimit(4)
 
+function httpsIdArray(id,justArray) {
+    if (!id.startsWith("http")) return justArray ? [ id ] : id
+    if (id.startsWith("https://")) return justArray ? [ id, id.replace('https','http') ] : { $or: [ id, id.replace('https','http') ] }
+    return justArray ? [ id, id.replace('http','https') ] : { $or: [ id, id.replace('http','https') ] }
+}
+
 export default {
     listFromCollection: function (collectionId) {
         let queryObj = {
             body: {
-                targetCollection: collectionId
+                targetCollection: httpsIdArray(collectionId)
             }
         }
         return fetch(DEER.URLS.QUERY, {
@@ -209,10 +215,13 @@ export default {
          * @returns Boolean if the first is updated by the second
          */
         function isUpdatedBy(assertionID, anno) {
-            if (anno.__rerum.history.next.includes(assertionID)) {
+            const scrapeProtocol = url => url.replace(/^https?:\/\//,'')
+            const filterNext = anno.__rerum.history.next.map(id=>scrapeProtocol(id))
+            const cleanId = scrapeProtocol(assertionID)
+            if (filterNext.includes(cleanId)) {
                 console.warn("You may be looking for updates backwards.", anno, assertionID)
             }
-            return anno.__rerum.history.previous === assertionID
+            return scrapeProtocol(anno.__rerum.history.previous) === scrapeProtocol(assertionID)
         }
         /**
          * Match on criteria(if exists) and return true if it appears to match on the values specified.
@@ -299,8 +308,8 @@ export default {
             //TODO: should we we let the user know we had to ignore something here?
             if (typeof target === "string") {
                 let o = {}
-                o[target] = id
-                obj["$or"].push(o)
+                o[target] = httpsIdArray(id,true)
+                obj["$or"] = obj["$or"].concat(o)
             }
         }
         let matches = await fetch(DEER.URLS.QUERY, {
@@ -312,7 +321,7 @@ export default {
         })
             .then(response => response.json())
             .catch((err) => console.error(err))
-        let local_matches = everything.filter(o => o?.target === id)
+        let local_matches = everything.filter(o => httpsIdArray(id,true).includes(o?.target))
         matches = local_matches.concat(matches)
         return matches
     },
@@ -356,6 +365,11 @@ export default {
      */
     broadcast: function (event = {}, type, element = document, obj) {
         obj = obj ?? {} // null does not trigger default assignment like `obj={}`
+        ;[ 'id', '@id', 'target', 'on' ].forEach( prop=> {
+            try {
+                if (obj.hasOwnProperty(prop)) obj[prop] = obj[prop].replace(/^https?:/,location.protocol)
+            } catch(err) { }
+        })
         let e = new CustomEvent(type, { detail: Object.assign(obj, { target: event.target }), bubbles: true })
         element.dispatchEvent(e)
     },
