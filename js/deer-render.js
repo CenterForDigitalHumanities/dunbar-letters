@@ -14,7 +14,7 @@ import { default as config } from './deer-config.js'
 import { OpenSeadragon } from './openseadragon.js'
 
 const changeLoader = new MutationObserver(renderChange)
-var DEER = config
+const DEER = config
 
 /**
  * Observer callback for rendering newly loaded objects. Checks the
@@ -22,7 +22,7 @@ var DEER = config
  * @param {Array} mutationsList of MutationRecord objects
  */
 async function renderChange(mutationsList) {
-    for (var mutation of mutationsList) {
+    for (const mutation of mutationsList) {
         switch (mutation.attributeName) {
             case DEER.ID:
             case DEER.KEY:
@@ -261,14 +261,7 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
             //Check if the public collection contains this record id
             const published = await fetch("https://store.rerum.io/v1/id/61ae694e50c86821e60b5d15")
             .then(response => response.json())
-            .then(coll => {
-                if(coll.itemListElement.filter(record => record["@id"] === obj['@id']).length){
-                    return true
-                }
-                else{
-                    return false
-                }
-            })
+            .then(coll => !!(coll.itemListElement.filter(record => record["@id"] === obj['@id']).length))
             .catch(err => { })
 
             if(published){
@@ -435,7 +428,7 @@ DEER.TEMPLATES.transcriptionStatus = function (obj, options = {}) {
         looking up transcription status... `,
         then: (elem) => {
             const query = {
-                target: obj['@id'],
+                target: httpsIdArray(obj['@id']),
                 "body.transcriptionStatus": { $exists: true }
             }
             fetch(DEER.URLS.QUERY, {
@@ -459,7 +452,6 @@ DEER.TEMPLATES.transcriptionStatus = function (obj, options = {}) {
                     }
                     //elem.classList[elem.dataset.transcriptionStatus !== "in progress" ? "add" : "remove"]("success")
                     setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
-                    return
                 }).catch(err => { })
             elem.addEventListener("click", e => {
                 let url = DEER.URLS.CREATE
@@ -467,7 +459,7 @@ DEER.TEMPLATES.transcriptionStatus = function (obj, options = {}) {
                 let approval = {
                     target: obj['@id'],
                     body: {
-                        transcriptionStatus: (elem.dataset.transcriptionStatus !== "in progress" ? "in progress" : DLA_USER["https://store.rerum.io/agent"])
+                        transcriptionStatus: (elem.dataset.transcriptionStatus !== "in progress" ? "in progress" : DLA_USER["http://store.rerum.io/agent"])
                     }
                 }
                 const source = elem.getAttribute(DEER.SOURCE)
@@ -486,7 +478,7 @@ DEER.TEMPLATES.transcriptionStatus = function (obj, options = {}) {
                 }).then(response => response.json())
                     .then(data => {
                         elem.setAttribute(DEER.SOURCE, data?.new_obj_state?.["@id"])
-                        elem.dataset.transcriptionStatus = (elem.dataset.transcriptionStatus !== "in progress" ? "in progress" : DLA_USER["https://store.rerum.io/agent"])
+                        elem.dataset.transcriptionStatus = (elem.dataset.transcriptionStatus !== "in progress" ? "in progress" : DLA_USER["http://store.rerum.io/agent"])
                         let msg = `❌ Not yet reviewed (click to approve)`
                         elem.classList.remove("bg-success")
                         elem.classList.add("bg-error")
@@ -814,6 +806,7 @@ export default class DeerRender {
                 throw err
             } else {
                 if (this.id) {
+                    this.id = this.id.replace(/^https?:/,location.protocol) // avoid mixed content
                     fetch(this.id).then(response => response.json()).then(obj => RENDER.element(this.elem, obj)).catch(err => err)
                 } else if (this.collection) {
                     // Look not only for direct objects, but also collection annotations
@@ -932,4 +925,10 @@ function userHasRole(roles){
     } catch (err) {
         return false
     }
+}
+
+function httpsIdArray(id,justArray) {
+    if (!id.startsWith("http")) return justArray ? [ id ] : id
+    if (id.startsWith("https://")) return justArray ? [ id, id.replace('https','http') ] : { $or: [ id, id.replace('https','http') ] }
+    return justArray ? [ id, id.replace('http','https') ] : { $or: [ id, id.replace('http','https') ] }
 }
