@@ -2,8 +2,8 @@ import AuthButton from 'https://centerfordigitalhumanities.github.io/DLA/auth.js
 
 const DEV = false // false or comment to turn off
 
-const baseV1 = DEV ? "http://devstore.rerum.io/":"http://store.rerum.io/"
-const tiny = DEV ? "http://tinydev.rerum.io/app/":"http://tinypaul.rerum.io/dla/"
+const baseV1 = DEV ? "https://devstore.rerum.io/":"https://store.rerum.io/"
+const tiny = DEV ? "https://tinydev.rerum.io/app/":"https://tinypaul.rerum.io/dla/"
 
 export default {
     ID: "deer-id", // attribute, URI for resource to render
@@ -173,7 +173,7 @@ export default {
 
                             const list_project = {
                                 '@id': elem.getAttribute("deer-listing"),
-                                '@context': 'https://schema.org/',
+                                '@context': 'http://schema.org/',
                                 '@type': "ItemList",
                                 name: "Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar",
                                 numberOfItems: elem.projectCache.size,
@@ -181,7 +181,7 @@ export default {
                             }
                             const list_public = {
                                 '@id': elem.getAttribute("deer-released"),
-                                '@context': 'https://schema.org/',
+                                '@context': 'http://schema.org/',
                                 '@type': "ItemList",
                                 name: "Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar",
                                 numberOfItems: elem.listCache.size,
