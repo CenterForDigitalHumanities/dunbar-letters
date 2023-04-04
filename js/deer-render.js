@@ -60,6 +60,12 @@ const RENDER = {}
 
 RENDER.element = function (elem, obj) {
 
+    ;[ 'id', '@id', 'target', 'on' ].forEach( prop=> {
+        try {
+            if (obj.hasOwnProperty(prop)) obj[prop] = obj[prop].replace(/^https?:/,location.protocol)
+        } catch(err) { }
+    })
+
     return UTILS.expand(obj).then(obj => {
         let tmplName = elem.getAttribute(DEER.TEMPLATE) || (elem.getAttribute(DEER.COLLECTION) ? "list" : "json")
         let template = DEER.TEMPLATES[tmplName] || DEER.TEMPLATES.json

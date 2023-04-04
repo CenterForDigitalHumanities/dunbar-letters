@@ -26,6 +26,7 @@ async function renderChange(mutationsList) {
             case DEER.ID:
                 let id = mutation.target.getAttribute(DEER.ID)
                 if (id === null) return
+                id = id.replace(/^https?:/,location.protocol)
                 let obj = {}
                 try {
                     obj = JSON.parse(localStorage.getItem(id))
@@ -83,8 +84,9 @@ export default class DeerReport {
         elem.onsubmit = this.processRecord.bind(this)
 
         if (this.id) {
+            
             //Do we want to expand for all types?
-            UTILS.expand({ "@id": this.id })
+            UTILS.expand({ "@id": this.id.replace(/^https?:/,location.protocol) })
                 .then((function (obj) {
                     try {
                         let inputElems = this.inputs
@@ -239,7 +241,7 @@ export default class DeerReport {
         if (this.elem.getAttribute(DEER.ITEMTYPE) === "simple") {
             return this.simpleUpsert(event).then(entity => {
                 //Notice that sipleUpsert may return {} in certain controlled situations, causing an undefined error here, on purpose.
-                this.elem.setAttribute(DEER.ID, entity["@id"])
+                this.elem.setAttribute(DEER.ID, entity["@id"].replace(/^https?:/,location.protocol))
                 new DeerReport(this.elem)
             })
         }
