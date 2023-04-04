@@ -259,7 +259,7 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
             statusArea.classList.add("card", "bg-light")
 
             //Check if the public collection contains this record id
-            const published = await fetch("http://store.rerum.io/v1/id/61ae694e50c86821e60b5d15")
+            const published = await fetch("https://store.rerum.io/v1/id/61ae694e50c86821e60b5d15")
             .then(response => response.json())
             .then(coll => {
                 if(coll.itemListElement.filter(record => record["@id"] === obj['@id']).length){
@@ -284,7 +284,7 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
             //Check the most recent version of the moderating Annotation to see if it has been approved for the public.
             const approvedQuery = {
                 "motivation" : "moderating",
-                "body.releasedTo": "http://store.rerum.io/v1/id/61ae694e50c86821e60b5d15",
+                "body.releasedTo": "https://store.rerum.io/v1/id/61ae694e50c86821e60b5d15",
                 "__rerum.history.next": { $exists: true, $type: 'array', $eq: [] }
             }
             const approved = await fetch(DEER.URLS.QUERY, {
@@ -340,7 +340,7 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
             .catch(err => { return false })
 
             //Check if the managed collection contains this record id
-            const managed = await fetch("http://store.rerum.io/v1/id/61ae693050c86821e60b5d13")
+            const managed = await fetch("https://store.rerum.io/v1/id/61ae693050c86821e60b5d13")
             .then(response => response.json())
             .then(coll => {
                 if(coll.itemListElement.filter(record => record["@id"] === obj['@id']).length){
@@ -467,7 +467,7 @@ DEER.TEMPLATES.transcriptionStatus = function (obj, options = {}) {
                 let approval = {
                     target: obj['@id'],
                     body: {
-                        transcriptionStatus: (elem.dataset.transcriptionStatus !== "in progress" ? "in progress" : DLA_USER["http://store.rerum.io/agent"])
+                        transcriptionStatus: (elem.dataset.transcriptionStatus !== "in progress" ? "in progress" : DLA_USER["https://store.rerum.io/agent"])
                     }
                 }
                 const source = elem.getAttribute(DEER.SOURCE)
@@ -486,7 +486,7 @@ DEER.TEMPLATES.transcriptionStatus = function (obj, options = {}) {
                 }).then(response => response.json())
                     .then(data => {
                         elem.setAttribute(DEER.SOURCE, data?.new_obj_state?.["@id"])
-                        elem.dataset.transcriptionStatus = (elem.dataset.transcriptionStatus !== "in progress" ? "in progress" : DLA_USER["http://store.rerum.io/agent"])
+                        elem.dataset.transcriptionStatus = (elem.dataset.transcriptionStatus !== "in progress" ? "in progress" : DLA_USER["https://store.rerum.io/agent"])
                         let msg = `❌ Not yet reviewed (click to approve)`
                         elem.classList.remove("bg-success")
                         elem.classList.add("bg-error")
