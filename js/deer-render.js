@@ -179,7 +179,7 @@ DEER.TEMPLATES.thumbs = function (obj, options = {}) {
                 fetch("https://t-pen.org/TPEN/manifest/" + proj)
                     .then(response => response.json())
                     .then(ms => elem.innerHTML = `
-                    ${ms.sequences[0].canvases.slice(0, 10).reduce((a, b) => a += `<img class="thumbnail" src="${b.images[0].resource['@id']}">`, ``)}
+                    ${ms.sequences[0].canvases.slice(0, 10).reduce((a, b) => a += `<img class="thumbnail" src="${b.images[0].resource['@id'].replace(/^https?:/,'')}">`, ``)}
             `)
             } catch {
                 console.log(`No images loaded for transcription project: ${obj.tpenProject?.value}`)
@@ -518,7 +518,7 @@ DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
                     <div class="page">
                         <h3>${b.label}</h3>
                         <div class="pull-right col-6">
-                            <img src="${b.images[0].resource['@id']}">
+                            <img src="${b.images[0].resource['@id'].replace(/^https?:/,'')}">
                         </div>
                         <div>
                             ${b.otherContent[0].resources.reduce((aa, bb) => aa +=
