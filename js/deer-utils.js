@@ -308,7 +308,7 @@ export default {
             //TODO: should we we let the user know we had to ignore something here?
             if (typeof target === "string") {
                 let o = {}
-                o[target] = httpsIdArray(id,true)
+                o[target] = httpsIdArray(id)
                 obj["$or"] = obj["$or"].concat(o)
             }
         }
