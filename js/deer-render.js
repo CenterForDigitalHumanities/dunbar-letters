@@ -176,7 +176,7 @@ DEER.TEMPLATES.thumbs = function (obj, options = {}) {
             try {
                 const proj = obj.tpenProject?.value ?? obj.tpenProject?.pop()?.value ?? obj.tpenProject?.pop() ?? obj.tpenProject
                 if (!proj) { return }
-                fetch("https://t-pen.org/TPEN/manifest/" + proj)
+                fetch("//t-pen.org/TPEN/manifest/" + proj)
                     .then(response => response.json())
                     .then(ms => elem.innerHTML = `
                     ${ms.sequences[0].canvases.slice(0, 10).reduce((a, b) => a += `<img class="thumbnail" src="${b.images[0].resource['@id'].replace(/^https?:/,'')}">`, ``)}
@@ -511,7 +511,7 @@ DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
                 elem.innerHTML = `[ no project linked yet ]`
                 return
             }
-            fetch("https://t-pen.org/TPEN/manifest/" + proj)
+            fetch("//t-pen.org/TPEN/manifest/" + proj)
                 .then(response => response.json())
                 .then(ms => {
                     const pages = ms.sequences[0].canvases.slice(0, 10).reduce((a, b) => a += `
