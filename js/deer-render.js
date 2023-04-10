@@ -465,7 +465,7 @@ DEER.TEMPLATES.transcriptionStatus = function (obj, options = {}) {
                 let approval = {
                     target: obj['@id'],
                     body: {
-                        transcriptionStatus: (elem.dataset.transcriptionStatus !== "in progress" ? "in progress" : DLA_USER["https://store.rerum.io/agent"])
+                        transcriptionStatus: (elem.dataset.transcriptionStatus !== "in progress" ? "in progress" : DLA_USER["http://store.rerum.io/agent"])
                     }
                 }
                 const source = elem.getAttribute(DEER.SOURCE)
@@ -484,7 +484,7 @@ DEER.TEMPLATES.transcriptionStatus = function (obj, options = {}) {
                 }).then(response => response.json())
                     .then(data => {
                         elem.setAttribute(DEER.SOURCE, data?.new_obj_state?.["@id"])
-                        elem.dataset.transcriptionStatus = (elem.dataset.transcriptionStatus !== "in progress" ? "in progress" : DLA_USER["https://store.rerum.io/agent"])
+                        elem.dataset.transcriptionStatus = (elem.dataset.transcriptionStatus !== "in progress" ? "in progress" : DLA_USER["http://store.rerum.io/agent"])
                         let msg = `❌ Not yet reviewed (click to approve)`
                         elem.classList.remove("bg-success")
                         elem.classList.add("bg-error")
