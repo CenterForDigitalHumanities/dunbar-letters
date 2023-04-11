@@ -309,7 +309,9 @@ export default {
             //TODO: should we we let the user know we had to ignore something here?
             if (typeof target === "string") {
                 uris.forEach(uri=>{
-                    obj.$or.push({target:uri})
+                    const altQuery = {}
+                    altQuery[target] = uri
+                    obj.$or.push(altQuery)
                 })
             }
         }
