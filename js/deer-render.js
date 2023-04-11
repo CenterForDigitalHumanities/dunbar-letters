@@ -265,7 +265,7 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
             statusArea.classList.add("card", "bg-light")
 
             //Check if the public collection contains this record id
-            const published = await fetch("https://store.rerum.io/v1/id/61ae694e50c86821e60b5d15")
+            const published = await fetch("//store.rerum.io/v1/id/61ae694e50c86821e60b5d15")
             .then(response => response.json())
             .then(coll => !!(coll.itemListElement.filter(record => record["@id"] === obj['@id']).length))
             .catch(err => { })
@@ -281,9 +281,14 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
                 return
             }
             //Check the most recent version of the moderating Annotation to see if it has been approved for the public.
+            const releasedTo = [
+                {"body.releasedTo": "http://store.rerum.io/v1/id/61ae694e50c86821e60b5d15"},
+                {"body.releasedTo": "https://store.rerum.io/v1/id/61ae694e50c86821e60b5d15"}
+            ]
+            
             const approvedQuery = {
                 "motivation" : "moderating",
-                "body.releasedTo": "https://store.rerum.io/v1/id/61ae694e50c86821e60b5d15",
+                "$or" : releasedTo,
                 "__rerum.history.next": { $exists: true, $type: 'array', $eq: [] }
             }
             const approved = await fetch(DEER.URLS.QUERY, {
@@ -339,7 +344,7 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
             .catch(err => { return false })
 
             //Check if the managed collection contains this record id
-            const managed = await fetch("https://store.rerum.io/v1/id/61ae693050c86821e60b5d13")
+            const managed = await fetch("//store.rerum.io/v1/id/61ae693050c86821e60b5d13")
             .then(response => response.json())
             .then(coll => {
                 if(coll.itemListElement.filter(record => record["@id"] === obj['@id']).length){
