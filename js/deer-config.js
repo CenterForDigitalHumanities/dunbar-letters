@@ -2,8 +2,8 @@ import AuthButton from 'https://centerfordigitalhumanities.github.io/DLA/auth.js
 
 const DEV = false // false or comment to turn off
 
-const baseV1 = DEV ? "//devstore.rerum.io/":"//store.rerum.io/"
-const tiny = DEV ? "//tinydev.rerum.io/app/":"//tinypaul.rerum.io/dla/"
+const baseV1 = DEV ? "https://devstore.rerum.io/":"https://store.rerum.io/"
+const tiny = DEV ? "https://tinydev.rerum.io/app/":"https://tinypaul.rerum.io/dla/"
 
 export default {
     ID: "deer-id", // attribute, URI for resource to render
