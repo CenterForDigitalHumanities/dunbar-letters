@@ -232,7 +232,7 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
 
             function addRecordToManagedList(obj, el, coll){
                 //PARANOID CHECK to see if it is already in there
-                if(coll.itemListElement.filter(record => record["@id"] === obj["@id"]).length){
+                if(coll.itemListElement.filter(record => record["@id"].split("/").pop() === obj["@id"].split("/").pop()).length){
                     return
                 }
                 coll.itemListElement.push({"label": obj.label.value, "@id":obj["@id"]})
@@ -267,7 +267,7 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
             //Check if the public collection contains this record id
             const published = await fetch("//store.rerum.io/v1/id/61ae694e50c86821e60b5d15")
             .then(response => response.json())
-            .then(coll => !!(coll.itemListElement.filter(record => record["@id"] === obj['@id']).length))
+            .then(coll => !!(coll.itemListElement.filter(record => record["@id"].split("/").pop() === obj['@id'].split("/").pop()).length))
             .catch(err => { })
 
             if(published){
@@ -347,7 +347,7 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
             const managed = await fetch("//store.rerum.io/v1/id/61ae693050c86821e60b5d13")
             .then(response => response.json())
             .then(coll => {
-                if(coll.itemListElement.filter(record => record["@id"] === obj['@id']).length){
+                if(coll.itemListElement.filter(record => record["@id"].split("/").pop() === obj['@id'].split("/").pop()).length){
                     return true
                 }
                 else{
