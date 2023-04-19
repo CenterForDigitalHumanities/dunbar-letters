@@ -324,7 +324,7 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
             const reviewedQuery =
             {
                 "motivation" : "commenting",
-                "target": obj["@id"]
+                "target": httpsIdArray(obj["@id"])
             }
             const reviewed = await fetch(DEER.URLS.QUERY, {
                 method: "POST",
