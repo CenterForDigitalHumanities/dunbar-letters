@@ -210,10 +210,11 @@ DEER.TEMPLATES.shadow = (obj, options = {}) => {
     }
 }
 
+// Determine whether this record is published, moderated, managed or absent from the Dunbar Letters Collection.
 DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
     if (!obj['@id']) { return null }
     return {
-        html: `loading statuses`,
+        html: `<div title="loading status..." class="recordStatus tag is-small"> (⌐■_■) </div>`,
         then: async (elem) => {
             function makeReadOnly(){
                 document.querySelectorAll("input[deer-key]").forEach(el => {
@@ -235,8 +236,8 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
                 if(coll.itemListElement.filter(record => record["@id"].split("/").pop() === obj["@id"].split("/").pop()).length){
                     return
                 }
-                coll.itemListElement.push({"label": obj.label.value, "@id":obj["@id"]})
-                coll.numberOfItems++
+                coll.itemListElement.push({"label": UTILS.getLabel(obj), "@id":obj["@id"]})
+                coll.numberOfItems = coll.itemListElement.length
                 fetch(DEER.URLS.OVERWRITE, {
                     method: "PUT",
                     mode: 'cors',
@@ -252,6 +253,10 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
                     el.classList.remove("button")
                     el.classList.remove("bg-error")
                     el.classList.add("bg-success")
+                    if(document.getElementById("commentArea")){
+                        commentArea.remove()
+                    }
+                    statusHeading.innerHTML = `This record has been submitted for review.  You can still make edits below.`
                     el.addEventListener("click", e => {
                         return
                     })
@@ -261,17 +266,18 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
 
             let statusArea = document.createElement("DIV")
             let statusAreaHeading = document.createElement("h6")
+            statusAreaHeading.setAttribute("id", "statusHeading")
             statusAreaHeading.innerHTML = "Record Statuses"
             statusArea.classList.add("card", "bg-light")
 
-            //Check if the public collection contains this record id
-            const published = await fetch("//store.rerum.io/v1/id/61ae694e50c86821e60b5d15")
+            //Check if the public collection contains this record id.  If so, contributors cannot modify.
+            const published = await fetch("https://store.rerum.io/v1/id/61ae694e50c86821e60b5d15", {cache: "no-cache"})
             .then(response => response.json())
-            .then(coll => !!(coll.itemListElement.filter(record => record["@id"].split("/").pop() === obj['@id'].split("/").pop()).length))
+            .then(coll => coll.itemListElement.some(record => record["@id"].split("/").pop() === obj['@id'].split("/").pop()))
             .catch(err => { })
 
             if(published){
-                //No need to look for the moderating Annotation
+                //Published and so modifications are not allowed.  No need to continue. 
                 elem.innerHTML = ""
                 statusArea.innerHTML += `<div title="This record is available publicly" class="recordStatus tag is-small bg-success"> ✔ public </div>`
                 statusAreaHeading.innerHTML = `This record is public.  You can not make edits.`
@@ -280,71 +286,41 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
                 makeReadOnly()
                 return
             }
-            //Check the most recent version of the moderating Annotation to see if it has been approved for the public.
-            const releasedTo = [
-                {"body.releasedTo": "http://store.rerum.io/v1/id/61ae694e50c86821e60b5d15"},
-                {"body.releasedTo": "https://store.rerum.io/v1/id/61ae694e50c86821e60b5d15"}
-            ]
-            
-            const approvedQuery = {
-                "motivation" : "moderating",
-                "$or" : releasedTo,
-                "__rerum.history.next": { $exists: true, $type: 'array', $eq: [] }
+
+            // See if there is a Moderation about this item.  We can detect rejection and comment from it.
+            // This Object is continually overwritten, so no history wildcard necessary.
+            const moderationQuery = {
+                "type" : "Moderation",
+                "about": httpsIdArray(obj["@id"])
             }
-            const approved = await fetch(DEER.URLS.QUERY, {
+            const moderationAssertion = await fetch(DEER.URLS.QUERY, {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json; charset=utf-8"
                 },
-                body: JSON.stringify(approvedQuery)
+                body: JSON.stringify(moderationQuery)
             })
             .then(response => response.json())
             .then(data => {
-                if(data.length){
-                    elem.setAttribute(DEER.SOURCE, data[0]['@id'])
-                    return true
-                }
-                return false
+                if(data.length) return data[0]
+                return null
             })
-            .catch(err => { return false })
+            .catch(err => { return null })
 
-            if(approved){
-                //The moderating Annotation says this record is ready, and has a body.resultComment if we care.
+            if(moderationAssertion !== null 
+            && moderationAssertion.releasedTo === "https://store.rerum.io/v1/id/61ae694e50c86821e60b5d15" ){
+                //The moderating Annotation says this record is ready.  Contributors cannot modify.  No need to continue.
                 elem.innerHTML = ""
                 statusArea.innerHTML += `<div title="This record has been approved" class="recordStatus tag is-small bg-success"> ✔ approved </div>`
-                statusAreaHeading.innerHTML = `This record has been approved for the public.  You can not make edits.`
+                statusAreaHeading.innerHTML = `This record is queued for publication and may not be changed.`
                 statusArea.prepend(statusAreaHeading)
                 elem.appendChild(statusArea)
                 makeReadOnly()
                 return
             }
 
-            // Check the commenting Annotation body.comment
-            // This Annotation is continually overwritten, so no history wildcard necessary.
-            const reviewedQuery =
-            {
-                "motivation" : "commenting",
-                "target": httpsIdArray(obj["@id"])
-            }
-            const reviewed = await fetch(DEER.URLS.QUERY, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(reviewedQuery)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if(data.length){
-                    elem.setAttribute(DEER.SOURCE, data[0]['@id'])
-                    return true
-                }
-                return false
-            })
-            .catch(err => { return false })
-
             //Check if the managed collection contains this record id
-            const managed = await fetch("//store.rerum.io/v1/id/61ae693050c86821e60b5d13")
+            const managed = await fetch("https://store.rerum.io/v1/id/61ae693050c86821e60b5d13", {cache: "no-cache"})
             .then(response => response.json())
             .then(coll => {
                 if(coll.itemListElement.filter(record => record["@id"].split("/").pop() === obj['@id'].split("/").pop()).length){
@@ -357,11 +333,10 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
                     let d = document.createElement("DIV")
                     d.classList.add("recordStatus", "dark", "button")
                     d.setAttribute("title", "Submit this record for moderation by the reviewers")
-                    d.innerHTML = `submit to reviewers ❕`
-                    //FIXME: WHY WON'T YOU REGISTER ANYMORE
+                    d.innerHTML = `submit to reviewers ❕ `
                     d.addEventListener("click", e => {
                         if(!userHasRole(["dunbar_user_curator","dunbar_user_contributor","dunbar_user_reviewer"])) { return alert(`This function is limited to contributors, reviewers, and curators.`)}
-                        let proceed = confirm("This action is connected with your username.  Click OK to proceed and add your note.")
+                        let proceed = confirm("This action is connected with your username.  Click OK to proceed.")
                         if(!proceed){return}
                         addRecordToManagedList(obj, d, coll)
                     })
@@ -373,60 +348,49 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
             })
             .catch(err => { return false })
             if(managed){
-                //This means it was not approved.  It does not have a moderating annotation but is in the managed list
                 statusAreaHeading.innerHTML = `This record has been submitted for review.  You can still make edits below.`
                 statusArea.innerHTML += `<div title="This record has already been submitted" class="recordStatus tag is-small bg-success"> ✔ submitted  </div>`
             }
-            else if(reviewed){
-                //This means it was rejected.  It is not managed and has been review commented upon by someone in the past.
-                //Note once a commenting annotation exists for this record, being out of the managed list always means "rejected" going forward.  
+            else if(moderationAssertion !== null 
+                && moderationAssertion.resultComment !== null){
+                //This means it was rejected, and a comment exists.
+                const reviewComment = await fetch(moderationAssertion.resultComment, {cache: "no-cache"})
+                    .then(resp => resp.json())
+                    .catch(err => {
+                        console.error(err)
+                        return null
+                    })
                 statusAreaHeading.innerHTML = `<span class="text-error">The record was rejected</span>.  Please edit the information below and re-submit.`
-                statusArea.innerHTML += `<deer-view title="A comment was left by a reviewer" id="statusComment" class="tag text-center bg-grey text-white is-full-width" deer-template="statusComment" deer-id="${obj["@id"]}"> </deer-view>`
+                let commentElem = document.createElement("DIV")
+                commentElem.setAttribute("id", "commentArea")
+                commentElem.setAttribute("style", "text-transform: none;")
+                commentElem.setAttribute("title", reviewComment.text)
+                commentElem.innerHTML =
+                `   <div class="commentToggle"> Comment from <deer-view deer-template="label" deer-id="${reviewComment.author}">  </deer-view></div>
+                    <div class="statusDrawer text-dark is-hidden">           
+                        <pre>${reviewComment.text ?? "No Comment"}</pre>
+                    </div>   `
+                commentElem.addEventListener("click", e => {
+                    if(e.target.tagName === "PRE"){
+                        //This way they can highlight and select text
+                        return
+                    }
+                    if(elem.querySelector(".statusDrawer").classList.contains("is-hidden")){
+                        elem.querySelector(".statusDrawer").classList.remove("is-hidden")
+                    }
+                    else{
+                        elem.querySelector(".statusDrawer").classList.add("is-hidden")
+                    }
+                })
+                statusArea.appendChild(commentElem)
             }
             statusArea.prepend(statusAreaHeading)
             elem.innerHTML = ""
             elem.appendChild(statusArea)
-            if(reviewed && !managed){
-                //This means rejected, so redraw for the status comment template
-                setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
+            if(elem.querySelector(DEER.VIEW)){
+                //We will need need to broadcast the view
+                setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, elem, { set: elem.querySelectorAll(DEER.VIEW) }))    
             }
-        }
-    }
-}
-
-DEER.TEMPLATES.statusComment =  (obj, options = {}) => {
-    if (!obj['@id']) { return null }
-    if(!obj.comment) { return null }
-
-    let commentElem = 
-    `<div style="text-transform: none;" title="${obj.comment.value.text}" > 
-        <span> See comment from <deer-view deer-template="label" deer-id="${obj.comment.value.author}">  </deer-view></span>
-        <div class="statusDrawer text-dark is-hidden">           
-            <pre>${obj.comment.value.text}</pre>
-        </div>
-     </div>   `
-
-    return {
-        html: commentElem,
-        then: (elem) => {
-            if(obj.comment.value.text){
-                elem.classList.remove("is-hidden")
-            }
-            elem.setAttribute(DEER.SOURCE, obj.comment.source.citationSource)
-            elem.addEventListener("click", e => {
-                if(e.target.tagName === "PRE"){
-                    //This way they can highlight and select text
-                    return
-                }
-                if(elem.querySelector(".statusDrawer").classList.contains("is-hidden")){
-                    elem.querySelector(".statusDrawer").classList.remove("is-hidden")
-                }
-                else{
-                    elem.querySelector(".statusDrawer").classList.add("is-hidden")
-                }
-            })
-            //So that the label template draws
-            setTimeout(() => UTILS.broadcast(undefined, DEER.EVENTS.NEW_VIEW, document, elem.querySelector(DEER.VIEW)), 0)
         }
     }
 }
@@ -940,6 +904,6 @@ function userHasRole(roles){
 
 function httpsIdArray(id,justArray) {
     if (!id.startsWith("http")) return justArray ? [ id ] : id
-    if (id.startsWith("https://")) return justArray ? [ id, id.replace('https','http') ] : { $or: [ id, id.replace('https','http') ] }
-    return justArray ? [ id, id.replace('http','https') ] : { $or: [ id, id.replace('http','https') ] }
+    if (id.startsWith("https://")) return justArray ? [ id, id.replace('https','http') ] : { $in: [ id, id.replace('https','http') ] }
+    return justArray ? [ id, id.replace('http','https') ] : { $in: [ id, id.replace('http','https') ] }
 }

@@ -248,3 +248,12 @@ button[is="auth-button"]{
 input[readonly]{
   color: darkred;
 }
+
+.commentToggle{
+  cursor: pointer;
+  margin-top : 
+}
+
+.commentToggle:hover{
+  font-weight: 600;
+}
