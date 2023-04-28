@@ -192,7 +192,7 @@ export default {
                                     }, {
                                         "body.targetCollection": collection
                                     }],
-                                    target: id,
+                                    target: httpsIdArray(id),
                                     "__rerum.history.next": { $exists: true, $type: 'array', $eq: [] }
                                 }
                                 fetch(`${tiny}query`, {

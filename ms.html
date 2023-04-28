@@ -56,7 +56,7 @@
             <input type="text" deer-key="notes" placeholder="notes" class="col-9 col-4-md">
         </div>
         <input type="submit" value="Update Information" class="col">
-        <a class="dropFrom" href="./manuscripts.html" onclick="deleteThis(event)" class="text-error">Drop from collection</a>
+        <input type="button" class="dropFrom" value="Drop From Collection" onclick="deleteThis(event)"/>
     </form>
     <deer-view id="externalData" deer-template="shadow" class="row"></deer-view>
     <div class="row">
@@ -99,22 +99,6 @@
 
         baseProject.addEventListener('input', e => document.querySelector("a[deer-key='tpenProject']").setAttribute("href", "//t-pen.org/TPEN/project.jsp?projectID=" + e.target.value))
 
-        function deleteThis(event) {
-            event.preventDefault()
-            if (confirm("Really remove this manuscript?\n(Cannot be undone)")) {
-                let collectorId = document.querySelector('[deer-key="targetCollection"]').getAttribute("deer-source")
-                fetch("https://tinypaul.rerum.io/dla/delete", {
-                    method: "DELETE",
-                    headers: {
-                        "Content-Type": "application/json; charset=utf-8",
-                        "Authorization": `Bearer ${window.DLA_USER.authorization}`
-                    },
-                    body: JSON.stringify({"@id":collectorId})
-                }).then(obj => {
-                    location.href = "./manuscripts.html"
-                })
-            }
-        }
         async function loadUDelMetadata(handle) {
             const historyWildcard = { "$exists": true, "$size": 0 }
             const uDelData = {
