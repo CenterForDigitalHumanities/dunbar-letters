@@ -103,9 +103,13 @@
             event.preventDefault()
             if (confirm("Really remove this manuscript?\n(Cannot be undone)")) {
                 let collectorId = document.querySelector('[deer-key="targetCollection"]').getAttribute("deer-source")
-                fetch("//tinypaul.rerum.io/dla/delete", {
+                fetch("https://tinypaul.rerum.io/dla/delete", {
                     method: "DELETE",
-                    body: collectorId
+                    headers: {
+                        "Content-Type": "application/json; charset=utf-8",
+                        "Authorization": `Bearer ${window.DLA_USER.authorization}`
+                    },
+                    body: JSON.stringify({"@id":collectorId})
                 }).then(obj => {
                     location.href = "./manuscripts.html"
                 })

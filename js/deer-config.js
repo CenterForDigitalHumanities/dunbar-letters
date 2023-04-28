@@ -1,7 +1,6 @@
 import AuthButton from 'https://centerfordigitalhumanities.github.io/DLA/auth.js'
-
+import { default as UTILS } from './deer-utils.js'
 const DEV = false // false or comment to turn off
-
 const baseV1 = DEV ? "https://devstore.rerum.io/":"https://store.rerum.io/"
 const tiny = DEV ? "https://tinydev.rerum.io/app/":"https://tinypaul.rerum.io/dla/"
 
@@ -75,7 +74,7 @@ export default {
         },
         managedlist: (obj, options = {}) => {
             // Come on, Mr. Hacker. We both know you could break in here, but why waste your time? It is tested on the server past here.
-            if(!userHasRole(["dunbar_user_admin","dunbar_user_contributor","dunbar_user_public"])) { return `This function is limited to administrators.`}
+            if(!userHasRole(["dunbar_user_curator","dunbar_user_reviewer","dunbar_user_contributor","dunbar_user_public"])) { return `This function is limited to administrators.`}
             try {
                 let tmpl = `<input type="hidden" deer-collection="${options.collection}">`
                 if (options.list) {
@@ -154,62 +153,39 @@ export default {
                             })
 
                         function overwriteList() {
-                            let mss_project = []
-                            let mss_public = []
-
-                            elem.projectCache.forEach(uri => {
-                                mss_project.push({
-                                    label: document.querySelector(`deer-view[deer-id='${uri}']`).textContent.trim(),
-                                    '@id': uri
-                                })
-                            })
-
+                            let mss = []
                             elem.listCache.forEach(uri => {
-                                mss_public.push({
-                                    label: document.querySelector(`deer-view[deer-id='${uri}']`).textContent.trim(),
+                                const label = document.querySelector(`deer-view[deer-id='${uri}']`)?.textContent.trim()
+                                if(!label) { return }
+                                mss.push({
+                                    label,
                                     '@id': uri
                                 })
                             })
-
-                            const list_project = {
+        
+                            const list = {
                                 '@id': elem.getAttribute("deer-listing"),
-                                '@context': 'http://schema.org/',
+                                '@context': 'https://schema.org/',
                                 '@type': "ItemList",
-                                name: "Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar",
-                                numberOfItems: elem.projectCache.size,
-                                itemListElement: mss_project
-                            }
-                            const list_public = {
-                                '@id': elem.getAttribute("deer-released"),
-                                '@context': 'http://schema.org/',
-                                '@type': "ItemList",
-                                name: "Correspondence between Paul Laurence Dunbar and Alice Moore Dunbar",
+                                name: elem.getAttribute("deer-collection") ?? "Dunbar Poems",
                                 numberOfItems: elem.listCache.size,
-                                itemListElement: mss_public
+                                itemListElement: mss
                             }
-
+        
                             fetch(`${tiny}overwrite`, {
                                 method: "PUT",
                                 mode: 'cors',
                                 headers: {
-                                    "Content-Type": "application/json",
-                                    "Authorization": `Bearer ${DLA_USER.authorization}`
+                                    "Content-Type": "application/json; charset=utf-8",
+                                    "Authorization": `Bearer ${window.DLA_USER.authorization}`
                                 },
-                                body: JSON.stringify(list_project)
-                            }).then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
-                            .catch(err => alert(`Failed to save: ${err}`))
-
-                            fetch(`${tiny}overwrite`, {
-                                method: "PUT",
-                                mode: 'cors',
-                                body: JSON.stringify(list_public)
+                                body: JSON.stringify(list)
                             }).then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
                                 .catch(err => alert(`Failed to save: ${err}`))
                         }
 
                         function deleteThis(id, collection) {
                             if (confirm("Really remove this record?\n(Cannot be undone)")) {
-                                const historyWildcard = { "$exists": true, "$eq": [] }
                                 const queryObj = {
                                     $or: [{
                                         "targetCollection": collection
@@ -217,18 +193,25 @@ export default {
                                         "body.targetCollection": collection
                                     }],
                                     target: id,
-                                    "__rerum.history.next": historyWildcard
+                                    "__rerum.history.next": { $exists: true, $type: 'array', $eq: [] }
                                 }
                                 fetch(`${tiny}query`, {
                                     method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json; charset=utf-8"
+                                    },
                                     body: JSON.stringify(queryObj)
                                 })
-                                    .then(r => r.ok ? r.json() : Promise.reject(new Error(r?.text)))
+                                    .then(r => r.ok ? r.json() : Promise.reject(r))
                                     .then(annos => {
                                         let all = annos.map(anno => {
                                             return fetch(`${tiny}delete`, {
                                                 method: "DELETE",
-                                                body: anno["@id"]
+                                                headers: {
+                                                    "Content-Type": "application/json; charset=utf-8",
+                                                    "Authorization": `Bearer ${window.DLA_USER.authorization}`
+                                                },
+                                                body: JSON.stringify(anno)
                                             })
                                                 .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
                                                 .catch(err => { throw err })
