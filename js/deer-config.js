@@ -35,6 +35,7 @@ export default {
         UPDATE: tiny+"update",
         OVERWRITE: tiny+"overwrite",
         QUERY: tiny+"query",
+        DELETE: tiny+"delete",
         SINCE: baseV1+"since"
     },
 
@@ -180,11 +181,13 @@ export default {
                                     "Authorization": `Bearer ${window.DLA_USER.authorization}`
                                 },
                                 body: JSON.stringify(list)
-                            }).then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
+                            }).then(r => r.ok ? r.json() : Promise.reject(r))
                                 .catch(err => alert(`Failed to save: ${err}`))
                         }
 
                         function deleteThis(id, collection) {
+                            alert("The removal of letters is under development")
+                            return
                             if (confirm("Really remove this record?\n(Cannot be undone)")) {
                                 const queryObj = {
                                     $or: [{
@@ -213,7 +216,7 @@ export default {
                                                 },
                                                 body: JSON.stringify(anno)
                                             })
-                                                .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
+                                                .then(r => r.ok ? r.json() : Promise.reject(r))
                                                 .catch(err => { throw err })
                                         })
                                         Promise.all(all).then(success => {

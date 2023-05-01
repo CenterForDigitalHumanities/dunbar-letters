@@ -247,7 +247,7 @@ DEER.TEMPLATES.recordStatuses = (obj, options = {}) => {
                     },
                     body: JSON.stringify(coll)
                 })
-                .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
+                .then(r => r.ok ? r.json() : Promise.reject(r))
                 .then(data => {
                     el.innerHTML = `✔ submitted`
                     el.classList.remove("button")
