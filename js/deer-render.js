@@ -403,7 +403,7 @@ DEER.TEMPLATES.transcriptionStatus = function (obj, options = {}) {
         looking up transcription status... `,
         then: (elem) => {
             const query = {
-                target: {$in:httpsIdArray(obj['@id'],true)},
+                target: httpsIdArray(obj['@id']),
                 "body.transcriptionStatus": { $exists: true }
             }
             fetch(DEER.URLS.QUERY, {
