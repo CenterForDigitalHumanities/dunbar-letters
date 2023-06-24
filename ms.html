@@ -99,18 +99,6 @@
 
         baseProject.addEventListener('input', e => document.querySelector("a[deer-key='tpenProject']").setAttribute("href", "//t-pen.org/TPEN/project.jsp?projectID=" + e.target.value))
 
-        function deleteThis(event) {
-            event.preventDefault()
-            if (confirm("Really remove this manuscript?\n(Cannot be undone)")) {
-                let collectorId = document.querySelector('[deer-key="targetCollection"]').getAttribute("deer-source")
-                fetch("//tinypaul.rerum.io/dla/delete", {
-                    method: "DELETE",
-                    body: collectorId
-                }).then(obj => {
-                    location.href = "./manuscripts.html"
-                })
-            }
-        }
         async function loadUDelMetadata(handle) {
             const historyWildcard = { "$exists": true, "$size": 0 }
             const uDelData = {

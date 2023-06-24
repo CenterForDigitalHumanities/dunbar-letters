@@ -299,7 +299,7 @@ export default class DeerReport {
                     let action = (inputId) ? "UPDATE" : "CREATE"
                     let annotation = {
                         type: "Annotation",
-                        target: entity["@id"],
+                        target: httpsIdArray(entity["@id"]),
                         body: {}
                     }
                     /**
