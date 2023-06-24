@@ -439,7 +439,7 @@ DEER.TEMPLATES.transcriptionStatus = function (obj, options = {}) {
         looking up transcription status... `,
         then: (elem) => {
             const query = {
-                target: {$in:httpsIdArray(obj['@id'],true)},
+                target: httpsIdArray(obj['@id'],
                 "body.transcriptionStatus": { $exists: true }
             }
             fetch(DEER.URLS.QUERY, {
@@ -940,6 +940,6 @@ function userHasRole(roles){
 
 function httpsIdArray(id,justArray) {
     if (!id.startsWith("http")) return justArray ? [ id ] : id
-    if (id.startsWith("https://")) return justArray ? [ id, id.replace('https','http') ] : { $or: [ id, id.replace('https','http') ] }
+    if (id.startsWith("https://")) return justArray ? [ id, id.replace('https','http') ] : { $in: [ id, id.replace('https','http') ] }
     return justArray ? [ id, id.replace('http','https') ] : { $or: [ id, id.replace('http','https') ] }
 }
